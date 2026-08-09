@@ -51,11 +51,18 @@ export default function SeminarInfoPage() {
     setSubmitting(true);
     setError('');
     const formData = new FormData(e.currentTarget);
+    const data: Record<string, string> = {};
+    formData.forEach((v, k) => { data[k] = v as string; });
+    if (!data.event_id || data.event_id === '') delete data.event_id;
     try {
-      const res = await fetch('/api/apply', { method: 'POST', body: formData });
+      const res = await fetch('/api/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || '申込に失敗しました');
+        const result = await res.json().catch(() => ({}));
+        throw new Error(result.error || '申込に失敗しました');
       }
       setSubmitted(true);
     } catch (err: unknown) {

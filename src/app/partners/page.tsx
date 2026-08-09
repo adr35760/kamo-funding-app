@@ -14,8 +14,14 @@ export default function PartnerRegisterPage() {
     setSubmitting(true);
     setError('');
     const formData = new FormData(e.currentTarget);
+    const data: Record<string, string> = {};
+    formData.forEach((v, k) => { data[k] = v as string; });
     try {
-      const res = await fetch('/api/register-partner', { method: 'POST', body: formData });
+      const res = await fetch('/api/register-partner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || '登録に失敗しました');
