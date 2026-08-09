@@ -66,30 +66,62 @@ export default function AdminPage() {
 
   const fetchData = async () => {
     setLoading(true);
-    // TODO: Supabaseからデータ取得（未接続時は空配列）
-    // const { data: eventsData } = await supabase.from('events').select('*').order('event_date');
-    // const { data: regsData } = await supabase.from('registrations').select('*').order('created_at', { ascending: false });
-    // setEvents(eventsData || []);
-    // setRegistrations(regsData || []);
+    try {
+    // イベント一覧取得
+    const eventsRes = await fetch('/api/events');
+    if (eventsRes.ok) {
+      const eventsData = await eventsRes.json();
+      setEvents(eventsData.events || []);
+    }
+    // 申込者一覧取得（admin API経由 — service role key使用）
+    const regsRes = await fetch('/api/admin/registrations');
+    if (regsRes.ok) {
+      const regsData = await regsRes.json();
+      setRegistrations(regsData.registrations || []);
+    }
+    } catch {
+      // fetch error — 空のまま
+    }
     setLoading(false);
   };
 
   const handleCreateEvent = async () => {
-    // TODO: Supabase接続後に有効化
-    // await supabaseAdmin.from('events').insert({
-    //   title: newEvent.title,
-    //   type: newEvent.type,
-    //   pillar: Number(newEvent.pillar),
-    //   event_date: new Date(newEvent.event_date).toISOString(),
-    //   location: newEvent.location || null,
-    //   capacity: newEvent.capacity ? Number(newEvent.capacity) : null,
-    //   streaming_url: newEvent.streaming_url || null,
-    //   streaming_platform: newEvent.streaming_platform || null,
-    //   status: 'upcoming',
-    // });
-    // fetchData();
-    // setShowEventForm(false);
-    alert('Supabase接続後に有効化されます');
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) {
+      alert('Supabase接続が設定されていません');
+      return;
+    }
+    try {
+      const res = await fetch(`${supabaseUrl}/rest/v1/events`, {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation',
+        },
+        body: JSON.stringify({
+          title: newEvent.title,
+          type: newEvent.type,
+          pillar: Number(newEvent.pillar),
+          event_date: new Date(newEvent.event_date).toISOString(),
+          location: newEvent.location || null,
+          capacity: newEvent.capacity ? Number(newEvent.capacity) : null,
+          streaming_url: newEvent.streaming_url || null,
+          streaming_platform: newEvent.streaming_platform || null,
+          status: 'upcoming',
+        }),
+      });
+      if (res.ok) {
+        fetchData();
+        setShowEventForm(false);
+      } else {
+        alert('イベント作成に失敗しました');
+      }
+    } catch {
+      alert('イベント作成中にエラーが発生しました');
+    }
   };
 
   const exportCSV = () => {
