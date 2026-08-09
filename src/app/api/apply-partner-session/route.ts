@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { sendPartnerSessionConfirmationEmail } from '@/lib/email';
 
 /**
  * POST /api/apply-partner-session
@@ -55,6 +56,9 @@ export async function POST(request: NextRequest) {
       // Supabase未接続 — モック
       result = { id: `mock-session-${Date.now()}` };
     }
+
+    // 確認メール送信
+    sendPartnerSessionConfirmationEmail(email.trim(), name.trim()).catch(() => {});
 
     return NextResponse.json({
       success: true,

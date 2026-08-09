@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { sendApplyConfirmationEmail } from '@/lib/email';
 
 /**
  * POST /api/apply
@@ -69,8 +70,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: 自動確認メール送信（Phase 1後半で実装）
-    // await sendConfirmationEmail(email, name, eventId);
+    // 確認メール送信
+    sendApplyConfirmationEmail(email.trim(), name.trim()).catch(() => {});
 
     return NextResponse.json({
       success: true,

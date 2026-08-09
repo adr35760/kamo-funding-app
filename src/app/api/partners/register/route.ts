@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { sendPartnerConfirmationEmail, sendSupporterConfirmationEmail } from '@/lib/email';
 
 /**
  * POST /api/partners/register
@@ -86,6 +87,13 @@ export async function POST(request: NextRequest) {
         id: `mock-${Date.now()}`,
         referral_code: referralCode,
       };
+    }
+
+    // 確認メール送信（パートナータイプに応じて）
+    if (partner_type === 'supporter') {
+      sendSupporterConfirmationEmail(email.trim(), name.trim(), result.referral_code).catch(() => {});
+    } else {
+      sendPartnerConfirmationEmail(email.trim(), name.trim(), result.referral_code).catch(() => {});
     }
 
     return NextResponse.json({

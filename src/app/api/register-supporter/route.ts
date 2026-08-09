@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { sendSupporterConfirmationEmail } from '@/lib/email';
 
 /**
  * POST /api/register-supporter
@@ -60,6 +61,9 @@ export async function POST(request: NextRequest) {
     } catch {
       result = { id: `mock-${Date.now()}`, referral_code: referralCode };
     }
+
+    // 確認メール送信
+    sendSupporterConfirmationEmail(email.trim(), name.trim(), result.referral_code).catch(() => {});
 
     return NextResponse.json({
       success: true,
