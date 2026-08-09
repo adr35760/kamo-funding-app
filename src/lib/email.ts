@@ -1,36 +1,14 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 /**
- * 確認メール送信ユーティリティ — XサーバーSMTP経由
- * Resendをフォールバックとして残す
+ * 確認メール送信ユーティリティ — Resend経由
+ * ドメイン認証済みの info@local-creation.com から送信
  */
 
-const SMTP_HOST = process.env.SMTP_HOST || '';
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '465', 10);
-const SMTP_USER = process.env.SMTP_USER || '';
-const SMTP_PASS = process.env.SMTP_PASS || '';
-const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER || 'onboarding@resend.dev';
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'KAMOファンディング <info@local-creation.com>';
 
-// SMTP transporter（lazy初期化）
-let transporter: nodemailer.Transporter | null = null;
-
-function getTransporter(): nodemailer.Transporter | null {
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-    return null;
-  }
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_PORT === 465,
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS,
-      },
-    });
-  }
-  return transporter;
-}
+const resend = new Resend(RESEND_API_KEY);
 
 interface EmailResult {
   success: boolean;
@@ -42,19 +20,23 @@ async function sendEmail(
   subject: string,
   html: string
 ): Promise<EmailResult> {
-  const t = getTransporter();
-  if (!t) {
-    // SMTP未設定時はスキップ
-    return { success: false, error: 'SMTP not configured' };
+  if (!RESEND_API_KEY) {
+    return { success: false, error: 'RESEND_API_KEY not configured' };
   }
 
   try {
-    const info = await t.sendMail({
-      from: `KAMOファンディング <${SMTP_FROM}>`,
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
       to,
       subject,
       html,
     });
+
+    if (error) {
+      console.error('Email send error:', error);
+      return { success: false, error: error.message };
+    }
+
     return { success: true };
   } catch (err) {
     console.error('Email send error:', err);
