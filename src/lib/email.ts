@@ -1,12 +1,36 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 /**
- * 確認メール送信ユーティリティ — Resend使用
- * onboarding@resend.dev から送信（ドメイン認証不要）
+ * 確認メール送信ユーティリティ — XサーバーSMTP経由
+ * Resendをフォールバックとして残す
  */
 
-const resend = new Resend(process.env.RESEND_API_KEY || '');
-const FROM_EMAIL = 'KAMOファンディング <onboarding@resend.dev>';
+const SMTP_HOST = process.env.SMTP_HOST || '';
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '465', 10);
+const SMTP_USER = process.env.SMTP_USER || '';
+const SMTP_PASS = process.env.SMTP_PASS || '';
+const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER || 'onboarding@resend.dev';
+
+// SMTP transporter（lazy初期化）
+let transporter: nodemailer.Transporter | null = null;
+
+function getTransporter(): nodemailer.Transporter | null {
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+    return null;
+  }
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: SMTP_PORT,
+      secure: SMTP_PORT === 465,
+      auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASS,
+      },
+    });
+  }
+  return transporter;
+}
 
 interface EmailResult {
   success: boolean;
@@ -18,24 +42,19 @@ async function sendEmail(
   subject: string,
   html: string
 ): Promise<EmailResult> {
-  if (!process.env.RESEND_API_KEY) {
-    // RESEND_API_KEY未設定時は送信スキップ（エラーにしない）
-    return { success: false, error: 'RESEND_API_KEY not configured' };
+  const t = getTransporter();
+  if (!t) {
+    // SMTP未設定時はスキップ
+    return { success: false, error: 'SMTP not configured' };
   }
 
   try {
-    const { error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    const info = await t.sendMail({
+      from: `KAMOファンディング <${SMTP_FROM}>`,
       to,
       subject,
       html,
     });
-
-    if (error) {
-      console.error('Email send error:', error);
-      return { success: false, error: error.message };
-    }
-
     return { success: true };
   } catch (err) {
     console.error('Email send error:', err);
@@ -80,7 +99,7 @@ export async function sendApplyConfirmationEmail(
 }
 
 /**
- * パートナー登録完了メール
+ * 紹介パートナー登録完了メール
  */
 export async function sendPartnerConfirmationEmail(
   name: string,
