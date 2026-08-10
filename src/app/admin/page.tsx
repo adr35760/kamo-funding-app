@@ -27,6 +27,17 @@ interface Registration {
   created_at: string;
 }
 
+interface Partner {
+  id: string;
+  name: string;
+  email: string;
+  partner_type: string | null;
+  organization: string | null;
+  referral_code: string | null;
+  status: string | null;
+  created_at: string;
+}
+
 const pillarLabels: Record<number, string> = {
   1: '説明会',
   2: 'オンラインセミナー',
@@ -40,11 +51,19 @@ const typeLabels: Record<string, string> = {
   networking: '懇親会',
 };
 
+const partnerTypeLabels: Record<string, string> = {
+  referral: '紹介パートナー',
+  advisor: '認定アドバイザー',
+  supporter: 'サポーター',
+};
+
 export default function AdminPage() {
   const [tab, setTab] = useState<'events' | 'registrations' | 'partners'>('events');
   const [events, setEvents] = useState<Event[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState<string>('');
   const [showEventForm, setShowEventForm] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string>('');
 
@@ -79,10 +98,58 @@ export default function AdminPage() {
       const regsData = await regsRes.json();
       setRegistrations(regsData.registrations || []);
     }
+    // パートナー一覧取得
+    const partnersRes = await fetch('/api/admin/partners');
+    if (partnersRes.ok) {
+      const partnersData = await partnersRes.json();
+      setPartners(partnersData.partners || []);
+    }
     } catch {
       // fetch error — 空のまま
     }
     setLoading(false);
+  };
+
+  /** 申込を削除（確認ダイアログあり・不可逆） */
+  const handleDeleteRegistration = async (reg: Registration) => {
+    const confirmMsg = `${reg.name} さんの申込を削除しますか？\nこの操作は取り消せません。`;
+    if (!window.confirm(confirmMsg)) return;
+    setDeleting(reg.id);
+    try {
+      const res = await fetch(`/api/admin/registrations?id=${encodeURIComponent(reg.id)}`, { method: 'DELETE' });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || !result.ok) {
+        alert(`削除に失敗しました: ${result.error || '不明なエラー'}`);
+        return;
+      }
+      alert('申込を削除しました。');
+      fetchData();
+    } catch {
+      alert('削除中にエラーが発生しました');
+    } finally {
+      setDeleting('');
+    }
+  };
+
+  /** パートナーを削除（確認ダイアログあり・不可逆） */
+  const handleDeletePartner = async (partner: Partner) => {
+    const confirmMsg = `${partner.name} さんのパートナー登録を削除しますか？\nこの操作は取り消せません。`;
+    if (!window.confirm(confirmMsg)) return;
+    setDeleting(partner.id);
+    try {
+      const res = await fetch(`/api/admin/partners?id=${encodeURIComponent(partner.id)}`, { method: 'DELETE' });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || !result.ok) {
+        alert(`削除に失敗しました: ${result.error || '不明なエラー'}`);
+        return;
+      }
+      alert('パートナーを削除しました。');
+      fetchData();
+    } catch {
+      alert('削除中にエラーが発生しました');
+    } finally {
+      setDeleting('');
+    }
   };
 
   const handleCreateEvent = async () => {
@@ -333,6 +400,7 @@ export default function AdminPage() {
                       <Th>挑戦内容</Th>
                       <Th>ステータス</Th>
                       <Th>申込日時</Th>
+                      <Th>操作</Th>
                     </tr>
                   </thead>
                   <tbody>
@@ -348,6 +416,24 @@ export default function AdminPage() {
                         </Td>
                         <Td>{reg.status}</Td>
                         <Td>{new Date(reg.created_at).toLocaleString('ja-JP')}</Td>
+                        <Td>
+                          <button
+                            onClick={() => handleDeleteRegistration(reg)}
+                            disabled={deleting === reg.id}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: 6,
+                              border: '1px solid #f5c6c6',
+                              background: '#fdecea',
+                              color: '#d32f2f',
+                              cursor: deleting === reg.id ? 'wait' : 'pointer',
+                              fontSize: 12,
+                              fontWeight: 700,
+                              whiteSpace: 'nowrap',
+                            }}>
+                            {deleting === reg.id ? '削除中...' : '削除'}
+                          </button>
+                        </Td>
                       </tr>
                     ))}
                   </tbody>
@@ -387,21 +473,71 @@ export default function AdminPage() {
                 </table>
               </div>
 
-              <div style={{
-                textAlign: 'center', padding: 40, color: '#999',
-                background: '#f9f9f9', borderRadius: 8, fontSize: 14,
-              }}>
-                パートナー登録データがSupabase接続後に表示されます。<br />
-                紹介コード（KAMO-XXXXXX）が自動発行され、紹介実績をトラッキングできます。
-              </div>
+              {partners.length === 0 ? (
+                <div style={{
+                  textAlign: 'center', padding: 40, color: '#999',
+                  background: '#f9f9f9', borderRadius: 8, fontSize: 14,
+                }}>
+                  パートナー登録データがまだありません。<br />
+                  紹介コード（KAMO-XXXXXX）は登録時に自動発行され、紹介実績をトラッキングできます。
+                </div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                      <Th>名前</Th>
+                      <Th>メール</Th>
+                      <Th>タイプ</Th>
+                      <Th>組織</Th>
+                      <Th>紹介コード</Th>
+                      <Th>ステータス</Th>
+                      <Th>登録日時</Th>
+                      <Th>操作</Th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {partners.map(partner => (
+                      <tr key={partner.id} style={{ borderBottom: '1px solid #eee' }}>
+                        <Td>{partner.name}</Td>
+                        <Td>{partner.email}</Td>
+                        <Td>{partnerTypeLabels[partner.partner_type || ''] || partner.partner_type || '-'}</Td>
+                        <Td>{partner.organization || '-'}</Td>
+                        <Td style={{ fontWeight: 700, color: '#27AE60', fontFamily: 'monospace' }}>
+                          {partner.referral_code || '-'}
+                        </Td>
+                        <Td>{partner.status || '-'}</Td>
+                        <Td>{new Date(partner.created_at).toLocaleString('ja-JP')}</Td>
+                        <Td>
+                          <button
+                            onClick={() => handleDeletePartner(partner)}
+                            disabled={deleting === partner.id}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: 6,
+                              border: '1px solid #f5c6c6',
+                              background: '#fdecea',
+                              color: '#d32f2f',
+                              cursor: deleting === partner.id ? 'wait' : 'pointer',
+                              fontSize: 12,
+                              fontWeight: 700,
+                              whiteSpace: 'nowrap',
+                            }}>
+                            {deleting === partner.id ? '削除中...' : '削除'}
+                          </button>
+                        </Td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
         </>
       )}
 
       <div style={{ marginTop: 30, padding: 16, background: '#fff3cd', borderRadius: 8, fontSize: 13, color: '#856404' }}>
-        ⚠️ Supabase接続設定（環境変数）が完了すると、データの取得・保存が有効になります。
-        現在はUIプレビュー状態です。 / AIツールは <a href="/ai-tool" style={{ color: '#E60012' }}>こちら</a> から利用可能です（モック応答で動作確認できます）。
+        ⚠️ 削除したデータは元に戻せません。削除前に対象者へ確認を行ってください。
+        / AIツールは <a href="/ai-tool" style={{ color: '#E60012' }}>こちら</a> から利用可能です。
       </div>
     </div>
   );

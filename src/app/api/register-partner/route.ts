@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 確認メール送信
-    const emailResult = await sendPartnerConfirmationEmail(email.trim(), name.trim(), result.referral_code);
+    const emailResult = await sendPartnerConfirmationEmail(name.trim(), email.trim(), result.referral_code);
     if (!emailResult.success) {
       console.error('Email send failed:', emailResult.error);
     }

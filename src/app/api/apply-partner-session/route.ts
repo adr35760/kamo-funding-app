@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 確認メール送信
-    sendPartnerSessionConfirmationEmail(email.trim(), name.trim()).catch(() => {});
+    sendPartnerSessionConfirmationEmail(name.trim(), email.trim()).catch(() => {});
 
     return NextResponse.json({
       success: true,

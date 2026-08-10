@@ -91,9 +91,9 @@ export async function POST(request: NextRequest) {
 
     // 確認メール送信（パートナータイプに応じて）
     if (partner_type === 'supporter') {
-      sendSupporterConfirmationEmail(email.trim(), name.trim(), result.referral_code).catch(() => {});
+      sendSupporterConfirmationEmail(name.trim(), email.trim(), result.referral_code).catch(() => {});
     } else {
-      sendPartnerConfirmationEmail(email.trim(), name.trim(), result.referral_code).catch(() => {});
+      sendPartnerConfirmationEmail(name.trim(), email.trim(), result.referral_code).catch(() => {});
     }
 
     return NextResponse.json({

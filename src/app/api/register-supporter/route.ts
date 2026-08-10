@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 確認メール送信
-    sendSupporterConfirmationEmail(email.trim(), name.trim(), result.referral_code).catch(() => {});
+    sendSupporterConfirmationEmail(name.trim(), email.trim(), result.referral_code).catch(() => {});
 
     return NextResponse.json({
       success: true,

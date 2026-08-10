@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 確認メール送信（エラーを返さないが、結果をログに出す）
-    const emailResult = await sendApplyConfirmationEmail(email.trim(), name.trim());
+    const emailResult = await sendApplyConfirmationEmail(name.trim(), email.trim());
     if (!emailResult.success) {
       console.error('Email send failed:', emailResult.error);
     }
