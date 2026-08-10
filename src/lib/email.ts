@@ -8,6 +8,25 @@ import { Resend } from 'resend';
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 
 /**
+ * 受講オンラインURL（Zoom）— 全イベント共通の固定値（t iku提供）
+ */
+export const ZOOM_URL = 'https://us06web.zoom.us/j/6719620613?pwd=SHBlOFpzOWl4bzNFdUV5QUFXQlhNZz09';
+export const ZOOM_MEETING_ID = '671 962 0613';
+export const ZOOM_PASSCODE = '9Q7m0f';
+
+/** メール本文に挿入する Zoom 情報ブロック */
+function zoomBlockHtml(): string {
+  return `
+    <div style="margin: 16px 0; padding: 16px; background: #F4F8FF; border: 1px solid #CCE0FF; border-radius: 8px; font-size: 14px;">
+      <p style="margin: 0 0 8px; font-weight: 700; color: #1A73E8;">📍 受講オンライン（Zoom）</p>
+      <p style="margin: 0 0 4px;">URL: <a href="${ZOOM_URL}" style="color: #1A73E8; word-break: break-all;">${ZOOM_URL}</a></p>
+      <p style="margin: 0 0 4px;">ミーティングID: <strong>${ZOOM_MEETING_ID}</strong></p>
+      <p style="margin: 0;">パスコード: <strong>${ZOOM_PASSCODE}</strong></p>
+    </div>
+  `;
+}
+
+/**
  * RESEND_FROM_EMAIL の形式チェック
  * 有効な形式: "email@example.com" または "Name <email@example.com>"
  * コピペで壊れた値（全角括弧・前後余分なスペース・引用符等）は無効とみなし、
@@ -65,13 +84,18 @@ async function sendEmail(
 
 /**
  * 掲載説明会 申込完了メール
+ * @param name お名前
+ * @param email メールアドレス
+ * @param eventTitle イベント名（例: 第1回 KAMOファンディング無料掲載説明会）
+ * @param eventDateJa 開催日時の日本語表記（例: 8/18（火）19:30〜21:00）
  */
 export async function sendApplyConfirmationEmail(
   name: string,
   email: string,
-  eventTitle?: string
+  eventTitle?: string,
+  eventDateJa?: string
 ): Promise<EmailResult> {
-  const subject = '【KAMOファンディング】掲載説明会 申込完了';
+  const subject = eventTitle ? `【KAMOファンディング】${eventTitle} 申込完了` : '【KAMOファンディング】掲載説明会 申込完了';
   const html = `
     <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: #E60012; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
@@ -82,13 +106,58 @@ export async function sendApplyConfirmationEmail(
         <p>${name}様</p>
         <p>掲載説明会への申込を受け付けました。ありがとうございます！</p>
         ${eventTitle ? `<p><strong>参加予定回：</strong>${eventTitle}</p>` : '<p>開催日程が確定次第、改めてご案内いたします。</p>'}
-        <p style="margin-top: 20px; padding: 16px; background: #FFF5F5; border-radius: 8px; font-size: 14px;">
-          📅 開催日程は申込フォームの「参加希望回」で選択ください<br />
+        ${eventDateJa ? `
+        <div style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; font-size: 15px; border: 1px solid #FFD6D6;">
+          <p style="margin: 0 0 4px; font-weight: 700; color: #E60012;">📅 開催日時</p>
+          <p style="margin: 0; font-size: 18px; font-weight: 700;">${eventDateJa}</p>
+        </div>` : ''}
+        <p style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; font-size: 14px;">
           💻 オンライン（Zoom）で開催<br />
           ⏱️ 約90分<br />
           💰 参加費無料
         </p>
-        <p style="margin-top: 20px;">当日までに、ZoomのURLなど詳細をご案内いたします。</p>
+        ${zoomBlockHtml()}
+        <p style="margin-top: 20px;">当日、指定の日時までにZoomへアクセスしてください。</p>
+        <p style="margin-top: 20px; font-size: 12px; color: #999;">
+          KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
+          https://kamo-funding-app.vercel.app/
+        </p>
+      </div>
+    </div>
+  `;
+  return sendEmail(email, subject, html);
+}
+
+/**
+ * 開催当日リマインドメール
+ * @param name お名前
+ * @param email メールアドレス
+ * @param eventTitle イベント名
+ * @param eventDateJa 開催日時の日本語表記（例: 8/18（火）19:30〜21:00）
+ */
+export async function sendReminderEmail(
+  name: string,
+  email: string,
+  eventTitle: string,
+  eventDateJa: string
+): Promise<EmailResult> {
+  const subject = `【KAMOファンディング】本日開催: ${eventTitle}`;
+  const html = `
+    <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #E60012; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h1 style="margin: 0; font-size: 24px;">🔥 KAMOファンディング</h1>
+        <p style="margin: 4px 0 0; font-size: 14px;">開催リマインド</p>
+      </div>
+      <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 8px 8px; border: 1px solid #eee;">
+        <p>${name}様</p>
+        <p>本日、ご参加予定の下記説明会が開催されます。</p>
+        <div style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; border: 1px solid #FFD6D6;">
+          <p style="margin: 0 0 4px; font-weight: 700; color: #E60012;">📅 開催日時</p>
+          <p style="margin: 0 0 8px; font-size: 18px; font-weight: 700;">${eventDateJa}</p>
+          <p style="margin: 0; font-size: 13px; color: #666;">${eventTitle}</p>
+        </div>
+        ${zoomBlockHtml()}
+        <p style="margin-top: 20px;">それでは、お会いできるのを楽しみにしています！</p>
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
           https://kamo-funding-app.vercel.app/

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendApplyConfirmationEmail } from '@/lib/email';
+import { formatEventDateJa } from '@/lib/event-format';
 
 /**
  * POST /api/apply
@@ -70,8 +71,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 選択されたイベント情報を取得（開催日時をメールに記載するため）
+    let eventTitle: string | undefined;
+    let eventDateJa: string | undefined;
+    try {
+      const { data: ev } = await supabaseAdmin
+        .from('events')
+        .select('title, event_date, duration_minutes')
+        .eq('id', event_id)
+        .single();
+      if (ev) {
+        eventTitle = (ev.title as string) || undefined;
+        eventDateJa = formatEventDateJa(ev.event_date as string, ev.duration_minutes as number | null);
+      }
+    } catch (e) {
+      console.error('Event fetch for email failed:', e);
+    }
+
     // 確認メール送信（エラーを返さないが、結果をログに出す）
-    const emailResult = await sendApplyConfirmationEmail(name.trim(), email.trim());
+    const emailResult = await sendApplyConfirmationEmail(name.trim(), email.trim(), eventTitle, eventDateJa);
     if (!emailResult.success) {
       console.error('Email send failed:', emailResult.error);
     }

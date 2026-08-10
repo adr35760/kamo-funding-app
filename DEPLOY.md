@@ -31,8 +31,20 @@ Vercelプロジェクト設定 → Environment Variables に以下を追加：
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key | Supabase管理画面から取得 |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | Supabase管理画面から取得（※サーバー側のみ） |
 | `OPENAI_API_KEY` | OpenAI APIキー | `sk-proj-...` |
+| `RESEND_API_KEY` | Resend APIキー | Resendダッシュボードから取得 |
+| `RESEND_FROM_EMAIL` | 送信元アドレス | `KAMOファンディング <info@local-creation.com>`（半角の`<>`） |
+| `CRON_SECRET` | リマインドcron認証用の任意の長い文字列 | Vercel Cronが自動で付与するため設定必須（例: ランダム40文字） |
 
 ⚠️ **環境変数はVercelダッシュボードから直接入力** — コードやチャットに書かない。
+
+### 3b. リマインドメール用DBマイグレーション
+Supabase管理画面 → SQL Editor → `supabase/migration-reminder-sent.sql` の内容を貼り付けて実行
+（`registrations` テーブルに `reminder_sent` カラムを追加。存在チェック付きなので何度実行しても安全）。
+
+### 3c. Cron（リマインド自動配信）
+- `vercel.json` で `/api/cron/reminders` を **15分間隔**（`*/15 * * * *`）で実行する設定済み。
+- ⚠️ **Hobbyプランは「1日1回」までしか実行できません**（`*/15` はProプラン以上が必要）。Proプランへのアップグレード推奨。
+- 送信対象: 開催開始時刻の約15分前〜60分前から、`reminder_sent=false` の申込者にリマインドメールを送信。送信後フラグを立てて重複送信を防止。
 
 ### 4. デプロイ
 「Deploy」ボタンをクリック。初回デプロイは2-3分。
