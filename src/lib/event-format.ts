@@ -13,8 +13,7 @@ export interface EventLike {
 }
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
-const MONTHS_JA = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-const MONTHS_EN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const MONTHS_JA_SHORT = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
 
 /** 指定したISO時刻を Tokyo タイムゾーンで分解 */
 function tokyoParts(iso: string): { month: number; day: number; weekday: number; hour: number; minute: number } {
@@ -57,8 +56,8 @@ export function formatEventDateJa(eventDate: string, durationMinutes?: number | 
 }
 
 /**
- * LP のカード表示用（月英字・日・曜日・時間帯）:
- * { month: 'AUG', day: 18, weekday: '火', timeRange: '19:30〜21:00' }
+ * LP のカード表示用（月・日・曜日・時間帯 — すべて日本語表記）:
+ * { month: '8月', day: 18, weekday: '火', dateJa: '8/18（火）', timeRange: '19:30〜21:00' }
  */
 export function eventCardParts(eventDate: string, durationMinutes?: number | null) {
   const s = tokyoParts(eventDate);
@@ -67,10 +66,10 @@ export function eventCardParts(eventDate: string, durationMinutes?: number | nul
   const hhmm = (p: { hour: number; minute: number }) =>
     `${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')}`;
   return {
-    month: MONTHS_EN[s.month - 1],
-    monthJa: MONTHS_JA[s.month - 1],
+    month: MONTHS_JA_SHORT[s.month - 1],
     day: s.day,
     weekday: WEEKDAYS[s.weekday],
+    dateJa: `${s.month}/${s.day}（${WEEKDAYS[s.weekday]}）`,
     timeRange: `${hhmm(s)}〜${hhmm(e)}`,
   };
 }

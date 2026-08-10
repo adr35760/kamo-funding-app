@@ -169,7 +169,7 @@ export default function SeminarInfoPage() {
                   </div>
                   <div className="schedule-info">
                     <h4>{ev.title}</h4>
-                    <p>{p.timeRange} | オンライン（Zoom）</p>
+                    <p>{p.dateJa} {p.timeRange} | オンライン（Zoom）</p>
                   </div>
                   <div className="schedule-status" style={{ background: '#E60012', color: '#fff' }}>募集中</div>
                 </div>
