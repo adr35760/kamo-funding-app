@@ -8,11 +8,14 @@ import { formatEventDateJa } from '@/lib/event-format';
  *
  * 開催当日リマインドメール自動配信（Vercel Cron Jobs から呼び出し）
  *
- * ロジック:
- * 1. 現在時刻から「リマインド対象ウィンドウ」内に開催開始時刻が含まれるイベントを取得
- *    （ウィンドウ: REMINDER_WINDOW_MINUTES（デフォルト60分）前〜次の実行まで）
- * 2. そのイベントに申込済み（status=registered）で、まだ reminder_sent=false の登録者に
- *    リマインドメールを送信
+ * 動作モード（REMINDER_MODE 環境変数で切替、デフォルト sameday）:
+ * - sameday（Hobbyプラン用・推奨）: cron を毎日 UTC 0:00（= 日本時間9:00）に実行し、
+ *   日本時間「当日」開催の全イベントの申込者に朝一括でリマインドメールを送信
+ * - window（Proプラン用）: 開催開始時刻の約15分前〜60分前に送信
+ *
+ * 共通:
+ * 1. 対象イベント（status=upcoming）を抽出
+ * 2. 申込済み（status=registered）で reminder_sent=false の登録者にリマインドメールを送信
  * 3. 送信成功したら reminder_sent=true に更新（重複送信防止）
  *
  * 認証: Authorization: Bearer <CRON_SECRET>（Vercel Cronは自動付与）
@@ -43,21 +46,42 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseAdmin();
     const now = new Date();
 
-    // リマインド対象ウィンドウ: 開催開始時刻が [now - behindMin, now + aheadMin] のイベント
-    // aheadMin: 開始の少し前（例 15分前）に届くよう前方ウィンドウ
-    // behindMin: 実行間隔が空いた・遅延した場合でも漏らさないための後方ウィンドウ
-    // ※dedupは reminder_sent フラグで行うため、複数回実行されても重複送信は起きない
-    const aheadMin = Number(process.env.REMINDER_AHEAD_MINUTES || 15);
-    const behindMin = Number(process.env.REMINDER_BEHIND_MINUTES || 60);
-    const windowStart = new Date(now.getTime() - behindMin * 60_000).toISOString();
-    const windowEnd = new Date(now.getTime() + aheadMin * 60_000).toISOString();
+    // 動作モード: REMINDER_MODE=sameday（デフォルト・Hobbyプラン用）| window（Proプラン用）
+    const mode = (process.env.REMINDER_MODE || 'sameday').toLowerCase();
+
+    let sinceIso: string;
+    let untilIso: string;
+
+    if (mode === 'window') {
+      // window モード: 開催開始時刻が [now - behindMin, now + aheadMin] のイベント
+      // 開始の15分前〜60分前に届く（Proプランで15分間隔cron実行時に使用）
+      const aheadMin = Number(process.env.REMINDER_AHEAD_MINUTES || 15);
+      const behindMin = Number(process.env.REMINDER_BEHIND_MINUTES || 60);
+      sinceIso = new Date(now.getTime() - behindMin * 60_000).toISOString();
+      untilIso = new Date(now.getTime() + aheadMin * 60_000).toISOString();
+    } else {
+      // sameday モード（Hobby用）: 日本時間「当日」開催の全イベントに朝一括送信
+      // cron を毎日 UTC 0:00（= 日本時間 9:00）に実行する前提
+      const tokyoFmt = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric',
+      });
+      const parts = tokyoFmt.formatToParts(now);
+      const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+      const y = get('year');
+      const m = get('month');
+      const d = get('day');
+      // 日本時間 0:00 = UTC 前日 15:00
+      const dayStartUtc = Date.UTC(y, m - 1, d) - 9 * 60 * 60 * 1000;
+      sinceIso = new Date(dayStartUtc).toISOString();
+      untilIso = new Date(dayStartUtc + 24 * 60 * 60 * 1000).toISOString();
+    }
 
     const { data: events, error: eventsError } = await supabase
       .from('events')
       .select('id, title, event_date, duration_minutes')
       .eq('status', 'upcoming')
-      .gte('event_date', windowStart)
-      .lte('event_date', windowEnd);
+      .gte('event_date', sinceIso)
+      .lte('event_date', untilIso);
 
     if (eventsError) {
       console.error('Reminder: events query error:', eventsError);
@@ -65,7 +89,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!events || events.length === 0) {
-      return NextResponse.json({ ok: true, checkedAt: now.toISOString(), reminded: 0, skipped: 0 });
+      return NextResponse.json({ ok: true, mode, checkedAt: now.toISOString(), reminded: 0, skipped: 0 });
     }
 
     const eventIds = events.map((e: { id: string }) => e.id);
@@ -124,6 +148,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
+      mode,
       checkedAt: now.toISOString(),
       events: events.length,
       targetRegistrations: (registrations || []).length,

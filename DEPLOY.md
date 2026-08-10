@@ -34,6 +34,7 @@ Vercelプロジェクト設定 → Environment Variables に以下を追加：
 | `RESEND_API_KEY` | Resend APIキー | Resendダッシュボードから取得 |
 | `RESEND_FROM_EMAIL` | 送信元アドレス | `KAMOファンディング <info@local-creation.com>`（半角の`<>`） |
 | `CRON_SECRET` | リマインドcron認証用の任意の長い文字列 | Vercel Cronが自動で付与するため設定必須（例: ランダム40文字） |
+| `REMINDER_MODE` | （任意）リマインド方式 | `sameday`（デフォルト・Hobby用）/ `window`（Pro用） |
 
 ⚠️ **環境変数はVercelダッシュボードから直接入力** — コードやチャットに書かない。
 
@@ -41,10 +42,13 @@ Vercelプロジェクト設定 → Environment Variables に以下を追加：
 Supabase管理画面 → SQL Editor → `supabase/migration-reminder-sent.sql` の内容を貼り付けて実行
 （`registrations` テーブルに `reminder_sent` カラムを追加。存在チェック付きなので何度実行しても安全）。
 
-### 3c. Cron（リマインド自動配信）
-- `vercel.json` で `/api/cron/reminders` を **15分間隔**（`*/15 * * * *`）で実行する設定済み。
-- ⚠️ **Hobbyプランは「1日1回」までしか実行できません**（`*/15` はProプラン以上が必要）。Proプランへのアップグレード推奨。
-- 送信対象: 開催開始時刻の約15分前〜60分前から、`reminder_sent=false` の申込者にリマインドメールを送信。送信後フラグを立てて重複送信を防止。
+### 3c. Cron（リマインド自動配信）— Hobbyプラン設定
+- `vercel.json` で `/api/cron/reminders` を **毎日 UTC 0:00（= 日本時間9:00）** で実行する設定済み（Hobbyプラン対応）。
+- 動作モード（環境変数 `REMINDER_MODE`）:
+  - `sameday`（デフォルト・Hobby用）: 日本時間「当日」開催の全イベントの登録者に朝一括でリマインドメールを送信
+  - `window`（Pro用・切替可能）: 開催開始時刻の約15分前〜60分前に送信（`*/15 * * * *` cron と組み合わせ）
+- 送信対象: `status=registered` かつ `reminder_sent=false` の申込者。送信成功後にフラグを立てて**重複送信を防止**。
+- ⚠️ 注意: Hobbyプランは cron の実行時刻精度が±59分のため、日本時間9:00ちょうどに実行されない場合があります（9:00〜9:59の範囲で実行）。当日開催イベントへの送信には影響なし。
 
 ### 4. デプロイ
 「Deploy」ボタンをクリック。初回デプロイは2-3分。
