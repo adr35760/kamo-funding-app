@@ -66,6 +66,9 @@ export default function AdminPage() {
   const [deleting, setDeleting] = useState<string>('');
   const [showEventForm, setShowEventForm] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string>('');
+  // 一括削除用: チェックされた行の id 集合
+  const [selectedRegIds, setSelectedRegIds] = useState<Set<string>>(new Set());
+  const [selectedPartnerIds, setSelectedPartnerIds] = useState<Set<string>>(new Set());
 
   // 新規イベントフォーム
   const [newEvent, setNewEvent] = useState({
@@ -108,6 +111,9 @@ export default function AdminPage() {
       // fetch error — 空のまま
     }
     setLoading(false);
+    // 一括削除後の再取得時は選択をクリア
+    setSelectedRegIds(new Set());
+    setSelectedPartnerIds(new Set());
   };
 
   /** 申込を削除（確認ダイアログあり・不可逆） */
@@ -150,6 +156,87 @@ export default function AdminPage() {
     } finally {
       setDeleting('');
     }
+  };
+
+  /** 申込を一括削除（確認ダイアログあり・不可逆） */
+  const handleBulkDeleteRegistrations = async () => {
+    const ids = Array.from(selectedRegIds);
+    if (ids.length === 0) {
+      alert('削除する申込を選択してください。');
+      return;
+    }
+    const confirmMsg = `選択した ${ids.length} 件の申込を削除しますか？\nこの操作は取り消せません。`;
+    if (!window.confirm(confirmMsg)) return;
+    setDeleting('bulk-regs');
+    try {
+      const res = await fetch(`/api/admin/registrations?id=${encodeURIComponent(ids.join(','))}`, { method: 'DELETE' });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || !result.ok) {
+        alert(`削除に失敗しました: ${result.error || '不明なエラー'}`);
+        return;
+      }
+      alert(`${ids.length} 件の申込を削除しました。`);
+      setSelectedRegIds(new Set());
+      fetchData();
+    } catch {
+      alert('削除中にエラーが発生しました');
+    } finally {
+      setDeleting('');
+    }
+  };
+
+  /** パートナーを一括削除（確認ダイアログあり・不可逆） */
+  const handleBulkDeletePartners = async () => {
+    const ids = Array.from(selectedPartnerIds);
+    if (ids.length === 0) {
+      alert('削除するパートナーを選択してください。');
+      return;
+    }
+    const confirmMsg = `選択した ${ids.length} 件のパートナーを削除しますか？\nこの操作は取り消せません。`;
+    if (!window.confirm(confirmMsg)) return;
+    setDeleting('bulk-partners');
+    try {
+      const res = await fetch(`/api/admin/partners?id=${encodeURIComponent(ids.join(','))}`, { method: 'DELETE' });
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || !result.ok) {
+        alert(`削除に失敗しました: ${result.error || '不明なエラー'}`);
+        return;
+      }
+      alert(`${ids.length} 件のパートナーを削除しました。`);
+      setSelectedPartnerIds(new Set());
+      fetchData();
+    } catch {
+      alert('削除中にエラーが発生しました');
+    } finally {
+      setDeleting('');
+    }
+  };
+
+  /** 行チェックのトグル */
+  const toggleRegSelection = (id: string) => {
+    setSelectedRegIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const togglePartnerSelection = (id: string) => {
+    setSelectedPartnerIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const allPartnersSelected = partners.length > 0 && partners.every(p => selectedPartnerIds.has(p.id));
+  const toggleAllPartners = () => {
+    setSelectedPartnerIds(prev => {
+      const next = new Set(prev);
+      partners.forEach(p => next.add(p.id));
+      if (allPartnersSelected) partners.forEach(p => next.delete(p.id));
+      return next;
+    });
   };
 
   const handleCreateEvent = async () => {
@@ -215,6 +302,17 @@ export default function AdminPage() {
   const filteredRegs = selectedEventId
     ? registrations.filter(r => r.event_id === selectedEventId)
     : registrations;
+
+  /** 全選択チェックボックス（一覧表示中の行すべて） */
+  const allRegsSelected = filteredRegs.length > 0 && filteredRegs.every(r => selectedRegIds.has(r.id));
+  const toggleAllRegs = () => {
+    setSelectedRegIds(prev => {
+      const next = new Set(prev);
+      filteredRegs.forEach(r => next.add(r.id));
+      if (allRegsSelected) filteredRegs.forEach(r => next.delete(r.id));
+      return next;
+    });
+  };
 
   return (
     <div style={{ fontFamily: "'Noto Sans JP', sans-serif", maxWidth: 1100, margin: '0 auto', padding: 20 }}>
@@ -380,6 +478,22 @@ export default function AdminPage() {
                       <option key={ev.id} value={ev.id}>{ev.title}</option>
                     ))}
                   </select>
+                  <button
+                    onClick={handleBulkDeleteRegistrations}
+                    disabled={selectedRegIds.size === 0 || deleting === 'bulk-regs'}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 6,
+                      border: '1px solid #f5c6c6',
+                      background: selectedRegIds.size > 0 ? '#fdecea' : '#f9f9f9',
+                      color: selectedRegIds.size > 0 ? '#d32f2f' : '#bbb',
+                      cursor: selectedRegIds.size > 0 ? 'pointer' : 'not-allowed',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                    }}>
+                    {deleting === 'bulk-regs' ? '削除中...' : `選択したものを削除 (${selectedRegIds.size})`}
+                  </button>
                   <button onClick={exportCSV}
                     style={{ ...secondaryBtn, fontSize: 13 }}>
                     CSV出力
@@ -393,6 +507,14 @@ export default function AdminPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                      <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', width: 36 }}>
+                        <input
+                          type="checkbox"
+                          checked={allRegsSelected}
+                          onChange={toggleAllRegs}
+                          title="全選択"
+                        />
+                      </th>
                       <Th>名前</Th>
                       <Th>メール</Th>
                       <Th>会社</Th>
@@ -405,7 +527,14 @@ export default function AdminPage() {
                   </thead>
                   <tbody>
                     {filteredRegs.map(reg => (
-                      <tr key={reg.id} style={{ borderBottom: '1px solid #eee' }}>
+                      <tr key={reg.id} style={{ borderBottom: '1px solid #eee', background: selectedRegIds.has(reg.id) ? '#FFF5F5' : 'transparent' }}>
+                        <Td>
+                          <input
+                            type="checkbox"
+                            checked={selectedRegIds.has(reg.id)}
+                            onChange={() => toggleRegSelection(reg.id)}
+                          />
+                        </Td>
                         <Td>{reg.name}</Td>
                         <Td>{reg.email}</Td>
                         <Td>{reg.company || '-'}</Td>
@@ -448,6 +577,22 @@ export default function AdminPage() {
               <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ fontSize: 18 }}>パートナー管理</h2>
                 <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={handleBulkDeletePartners}
+                    disabled={selectedPartnerIds.size === 0 || deleting === 'bulk-partners'}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 6,
+                      border: '1px solid #f5c6c6',
+                      background: selectedPartnerIds.size > 0 ? '#fdecea' : '#f9f9f9',
+                      color: selectedPartnerIds.size > 0 ? '#d32f2f' : '#bbb',
+                      cursor: selectedPartnerIds.size > 0 ? 'pointer' : 'not-allowed',
+                      fontSize: 13,
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                    }}>
+                    {deleting === 'bulk-partners' ? '削除中...' : `選択したものを削除 (${selectedPartnerIds.size})`}
+                  </button>
                   <a href="/partners" target="_blank" style={{ ...primaryBtn, fontSize: 13, textDecoration: 'none' }}>
                     パートナー登録ページ →
                   </a>
@@ -485,6 +630,14 @@ export default function AdminPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                      <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', width: 36 }}>
+                        <input
+                          type="checkbox"
+                          checked={allPartnersSelected}
+                          onChange={toggleAllPartners}
+                          title="全選択"
+                        />
+                      </th>
                       <Th>名前</Th>
                       <Th>メール</Th>
                       <Th>タイプ</Th>
@@ -497,7 +650,14 @@ export default function AdminPage() {
                   </thead>
                   <tbody>
                     {partners.map(partner => (
-                      <tr key={partner.id} style={{ borderBottom: '1px solid #eee' }}>
+                      <tr key={partner.id} style={{ borderBottom: '1px solid #eee', background: selectedPartnerIds.has(partner.id) ? '#FFF5F5' : 'transparent' }}>
+                        <Td>
+                          <input
+                            type="checkbox"
+                            checked={selectedPartnerIds.has(partner.id)}
+                            onChange={() => togglePartnerSelection(partner.id)}
+                          />
+                        </Td>
                         <Td>{partner.name}</Td>
                         <Td>{partner.email}</Td>
                         <Td>{partnerTypeLabels[partner.partner_type || ''] || partner.partner_type || '-'}</Td>

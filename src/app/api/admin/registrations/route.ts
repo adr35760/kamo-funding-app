@@ -24,8 +24,9 @@ export async function GET() {
 }
 
 /**
- * DELETE /api/admin/registrations?id=<registration_id>
+ * DELETE /api/admin/registrations?id=<id1,id2,id3>
  * 申込者情報を削除する（不可逆操作）
+ * 単一も複数も対応: id はカンマ区切りで複数指定可能（例: ?id=aaa,bbb,ccc）
  */
 export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -35,14 +36,19 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ ok: false, error: 'id が必要です' }, { status: 400 });
   }
 
+  const ids = id.split(',').map(s => s.trim()).filter(Boolean);
+  if (ids.length === 0) {
+    return NextResponse.json({ ok: false, error: 'id が必要です' }, { status: 400 });
+  }
+
   try {
     const supabase = getSupabaseAdmin();
-    const { error } = await supabase.from('registrations').delete().eq('id', id);
+    const { error } = await supabase.from('registrations').delete().in('id', ids);
 
     if (error) {
       return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
     }
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, deleted: ids.length });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: err instanceof Error ? err.message : '削除に失敗しました' },
