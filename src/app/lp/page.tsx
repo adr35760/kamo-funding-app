@@ -188,10 +188,10 @@ export default function LPPage() {
             <div className="pillar-card">
               <div className="pillar-number">02</div>
               <span className="pillar-tag">教育・熱量</span>
-              <h3>【鴨頭特別参加会】AI時代のクラウドファンディング活用セミナー</h3>
-              <p>本業が停滞している方向けに、クラファンで売上を上げる短期キャンペーン手法を解説。<br />※各会10名限定（有料）</p>
+              <h3>【鴨頭嘉人特別参加会】AI時代のクラウドファンディング活用セミナー</h3>
+              <p>本業が停滞している方向けに、クラファンで売上を上げる短期キャンペーン手法を解説。<br />※各会20名限定（有料）</p>
               <ul>
-                <li>鴨頭義人さんが後半参加で熱量UP</li>
+                <li>鴨頭嘉人が後半で熱量を注入！</li>
                 <li>3つの設計＋3つのポイント</li>
                 <li>AI活用でページ作成を簡略化</li>
               </ul>
