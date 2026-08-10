@@ -3,12 +3,9 @@
 import { useEffect, useState } from 'react';
 import '@/styles/kamo-icons.css';
 import '@/styles/kamo-lp.css';
+import { formatEventDateJa, eventCardParts, cleanTitle, EventLike } from '@/lib/event-format';
 
-interface EventOption {
-  id: string;
-  title: string;
-  event_date: string;
-}
+interface EventOption extends EventLike {}
 
 export default function LPPage() {
   const [events, setEvents] = useState<EventOption[]>([]);
@@ -16,17 +13,23 @@ export default function LPPage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
+  // 説明会（pillar=1）イベントのみ表示用にフィルタ
+  const infoEvents = events.filter(e => !e.pillar || e.pillar === 1);
+
   // 動的にイベント一覧を取得（EngineerのAPIから）
   useEffect(() => {
     fetch('/api/events')
       .then(res => res.ok ? res.json() : [])
-      .then(data => setEvents(data.events || data || []))
+      .then(data => {
+        const list: EventOption[] = (data.events || data || []).map((e: EventLike) => ({ ...e }));
+        if (list.length > 0) setEvents(list);
+      })
       .catch(() => {
         // フォールバック: 実際のイベント日程（API取得失敗時）
         setEvents([
-          { id: '0ae42e1f-1a2b-4c3d-8e5f-6a7b8c9d0e1f', title: '第1回 KAMOファンディング無料掲載説明会 (8/18)', event_date: '2026-08-18T19:30:00+09:00' },
-          { id: '851bfae5-2b3c-4d5e-9f6a-7b8c9d0e1f2a', title: '第2回 KAMOファンディング無料掲載説明会 (8/28)', event_date: '2026-08-28T19:30:00+09:00' },
-          { id: '94f5db1d-3c4d-4e6f-a7b8-c9d0e1f2a3b4', title: '第3回 KAMOファンディング無料掲載説明会 (9/15)', event_date: '2026-09-15T19:30:00+09:00' },
+          { id: '0ae42e1f-1a2b-4c3d-8e5f-6a7b8c9d0e1f', title: '第1回 KAMOファンディング無料掲載説明会', event_date: '2026-08-18T19:30:00+09:00', pillar: 1, duration_minutes: 90 },
+          { id: '851bfae5-2b3c-4d5e-9f6a-7b8c9d0e1f2a', title: '第2回 KAMOファンディング無料掲載説明会', event_date: '2026-08-28T19:30:00+09:00', pillar: 1, duration_minutes: 90 },
+          { id: '94f5db1d-3c4d-4e6f-a7b8-c9d0e1f2a3b4', title: '第3回 KAMOファンディング無料掲載説明会', event_date: '2026-09-15T19:30:00+09:00', pillar: 1, duration_minutes: 90 },
         ]);
       });
   }, []);
@@ -228,70 +231,80 @@ export default function LPPage() {
             <p>各回定員になり次第締切となります。お早めにお申込みください。</p>
           </div>
           <div className="schedule-list">
-            <div className="schedule-item">
-              <div className="schedule-date">
-                <div className="month">SEP</div>
-                <div className="day">15</div>
-                <div className="weekday">月曜</div>
-              </div>
-              <div className="schedule-info">
-                <h4>第1回 無料掲載説明会</h4>
-                <p>19:00〜20:30 | オンライン（Zoom）</p>
-                <div className="tags">
-                  <span className="tag tag-online">オンライン</span>
-                  <span className="tag tag-free">参加費無料</span>
+            {infoEvents.length > 0 ? (
+              infoEvents.map(ev => {
+                const p = eventCardParts(ev.event_date, ev.duration_minutes);
+                return (
+                  <div className="schedule-item" key={ev.id}>
+                    <div className="schedule-date">
+                      <div className="month">{p.month}</div>
+                      <div className="day">{p.day}</div>
+                      <div className="weekday">{p.weekday}曜</div>
+                    </div>
+                    <div className="schedule-info">
+                      <h4>{cleanTitle(ev.title)}</h4>
+                      <p>{p.timeRange} | オンライン（Zoom）</p>
+                      <div className="tags">
+                        <span className="tag tag-online">オンライン</span>
+                        <span className="tag tag-free">参加費無料</span>
+                      </div>
+                    </div>
+                    <div className="schedule-status status-open">募集中</div>
+                  </div>
+                );
+              })
+            ) : (
+              <>
+                <div className="schedule-item">
+                  <div className="schedule-date">
+                    <div className="month">AUG</div>
+                    <div className="day">18</div>
+                    <div className="weekday">火曜</div>
+                  </div>
+                  <div className="schedule-info">
+                    <h4>第1回 KAMOファンディング無料掲載説明会</h4>
+                    <p>19:30〜21:00 | オンライン（Zoom）</p>
+                    <div className="tags">
+                      <span className="tag tag-online">オンライン</span>
+                      <span className="tag tag-free">参加費無料</span>
+                    </div>
+                  </div>
+                  <div className="schedule-status status-open">募集中</div>
                 </div>
-              </div>
-              <div className="schedule-status status-open">募集中</div>
-            </div>
-            <div className="schedule-item">
-              <div className="schedule-date">
-                <div className="month">SEP</div>
-                <div className="day">29</div>
-                <div className="weekday">月曜</div>
-              </div>
-              <div className="schedule-info">
-                <h4>第2回 無料掲載説明会</h4>
-                <p>19:00〜20:30 | オンライン（Zoom）</p>
-                <div className="tags">
-                  <span className="tag tag-online">オンライン</span>
-                  <span className="tag tag-free">参加費無料</span>
+                <div className="schedule-item">
+                  <div className="schedule-date">
+                    <div className="month">AUG</div>
+                    <div className="day">28</div>
+                    <div className="weekday">金曜</div>
+                  </div>
+                  <div className="schedule-info">
+                    <h4>第2回 KAMOファンディング無料掲載説明会</h4>
+                    <p>19:30〜21:00 | オンライン（Zoom）</p>
+                    <div className="tags">
+                      <span className="tag tag-online">オンライン</span>
+                      <span className="tag tag-free">参加費無料</span>
+                    </div>
+                  </div>
+                  <div className="schedule-status status-open">募集中</div>
                 </div>
-              </div>
-              <div className="schedule-status status-open">募集中</div>
-            </div>
-            <div className="schedule-item">
-              <div className="schedule-date">
-                <div className="month">OCT</div>
-                <div className="day">10</div>
-                <div className="weekday">金曜</div>
-              </div>
-              <div className="schedule-info">
-                <h4>【鴨頭特別参加会】AI時代のクラウドファンディング活用セミナー</h4>
-                <p>19:00〜21:00 | オンライン（Zoom）| 鴨頭嘉人さん参加（後半）| ※各会10名限定（有料）</p>
-                <div className="tags">
-                  <span className="tag tag-online">オンライン</span>
-                  <span className="tag tag-free">参加費無料</span>
+                <div className="schedule-item">
+                  <div className="schedule-date">
+                    <div className="month">SEP</div>
+                    <div className="day">15</div>
+                    <div className="weekday">火曜</div>
+                  </div>
+                  <div className="schedule-info">
+                    <h4>第3回 KAMOファンディング無料掲載説明会</h4>
+                    <p>19:30〜21:00 | オンライン（Zoom）</p>
+                    <div className="tags">
+                      <span className="tag tag-online">オンライン</span>
+                      <span className="tag tag-free">参加費無料</span>
+                    </div>
+                  </div>
+                  <div className="schedule-status status-open">募集中</div>
                 </div>
-              </div>
-              <div className="schedule-status status-limited">残りわずか</div>
-            </div>
-            <div className="schedule-item">
-              <div className="schedule-date">
-                <div className="month">OCT</div>
-                <div className="day">25</div>
-                <div className="weekday">土曜</div>
-              </div>
-              <div className="schedule-info">
-                <h4>リアルセミナー＆懇親会</h4>
-                <p>14:00〜17:00 | 池袋（会場詳細は申込者に通知）| 鴨頭嘉人さん参加</p>
-                <div className="tags">
-                  <span className="tag tag-offline">リアル開催</span>
-                  <span className="tag tag-free">参加費無料</span>
-                </div>
-              </div>
-              <div className="schedule-status status-limited">残りわずか</div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -334,16 +347,15 @@ export default function LPPage() {
                     <label>参加希望回 <span className="required">必須</span></label>
                     <select name="event_id" required>
                       <option value="">選択してください</option>
-                      {events.length > 0 ? (
-                        events.map(ev => (
-                          <option key={ev.id} value={ev.id}>{ev.title}</option>
+                      {infoEvents.length > 0 ? (
+                        infoEvents.map(ev => (
+                          <option key={ev.id} value={ev.id}>{formatEventDateJa(ev.event_date, ev.duration_minutes)} — {cleanTitle(ev.title)}</option>
                         ))
                       ) : (
                         <>
-                          <option value="evt_001">9/15（月）第1回 掲載説明会</option>
-                          <option value="evt_002">9/29（月）第2回 掲載説明会</option>
-                          <option value="evt_003">10/10（金）CFセミナー</option>
-                          <option value="evt_004">10/25（土）リアル懇親会</option>
+                          <option value="0ae42e1f-1a2b-4c3d-8e5f-6a7b8c9d0e1f">8/18（火）19:30〜21:00 — 第1回 掲載説明会</option>
+                          <option value="851bfae5-2b3c-4d5e-9f6a-7b8c9d0e1f2a">8/28（金）19:30〜21:00 — 第2回 掲載説明会</option>
+                          <option value="94f5db1d-3c4d-4e6f-a7b8-c9d0e1f2a3b4">9/15（火）19:30〜21:00 — 第3回 掲載説明会</option>
                         </>
                       )}
                     </select>

@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react';
 import '@/styles/kamo-icons.css';
 import '@/styles/seminar-info.css';
+import { formatEventDateJa, eventCardParts, EventLike } from '@/lib/event-format';
 
 export default function SeminarInfoPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
-  const [events, setEvents] = useState<Array<{ id: string; title: string; event_date: string; pillar?: number }>>([
+  const [events, setEvents] = useState<Array<EventLike>>([
     // フォールバック: API取得前の初期表示用
     { id: '0ae42e1f-1a2b-4c3d-8e5f-6a7b8c9d0e1f', title: '第1回 KAMOファンディング無料掲載説明会', event_date: '2026-08-18T19:30:00+09:00', pillar: 1 },
     { id: '851bfae5-2b3c-4d5e-9f6a-7b8c9d0e1f2a', title: '第2回 KAMOファンディング無料掲載説明会', event_date: '2026-08-28T19:30:00+09:00', pillar: 1 },
@@ -155,7 +156,27 @@ export default function SeminarInfoPage() {
 
       <section className="schedule" id="schedule">
         <div className="container">
-          <div className="schedule-title"><h2>開催日程は<span className="accent">参加申し込み</span>の<br />参加希望会で選択ください！</h2></div>
+          <div className="schedule-title"><h2>説明会の<span className="accent">開催日程</span></h2></div>
+          <div className="schedule-list">
+            {events.map(ev => {
+              const p = eventCardParts(ev.event_date, ev.duration_minutes);
+              return (
+                <div className="schedule-item" key={ev.id}>
+                  <div className="schedule-date">
+                    <div className="month">{p.month}</div>
+                    <div className="day">{p.day}</div>
+                    <div className="weekday">{p.weekday}曜</div>
+                  </div>
+                  <div className="schedule-info">
+                    <h4>{ev.title}</h4>
+                    <p>{p.timeRange} | オンライン（Zoom）</p>
+                  </div>
+                  <div className="schedule-status" style={{ background: '#E60012', color: '#fff' }}>募集中</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="schedule-title" style={{ marginTop: '48px' }}><h2>参加申込は<span className="accent">こちら</span></h2></div>
           <p style={{ textAlign: 'center', fontSize: '17px', fontWeight: '700', color: '#E60012', marginTop: '24px', marginBottom: '16px' }}>音声配信メディア！Voicyでも、クラウドファンディング成功ノウハウを配信中！</p>
           <div style={{ textAlign: 'center', marginBottom: '16px' }}>
             <img src="/voicy-banner.png" alt="Voicy — クラウドファンディング成功ノウハウ配信中" style={{ maxWidth: '400px', width: '100%', height: 'auto', borderRadius: '12px' }} />
@@ -200,9 +221,8 @@ export default function SeminarInfoPage() {
                       <option value="">選択してください</option>
                       {events.length > 0 ? (
                         events.map(ev => {
-                          const date = new Date(ev.event_date);
-                          const dateStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2,'0')}`;
-                          return <option key={ev.id} value={ev.id}>{dateStr} — {ev.title}</option>;
+                          const dateStr = formatEventDateJa(ev.event_date, ev.duration_minutes);
+                          return <option key={ev.id} value={ev.id}>{dateStr} — {ev.title.replace(/\s*\(.*\)\s*$/, '')}</option>;
                         })
                       ) : (
                         <>

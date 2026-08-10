@@ -7,7 +7,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
  * イベント一覧を取得する（LPの申込フォームのevent_id select用）。
  * Supabase未接続時は空配列を返す（LP側でフォールバック表示）。
  * 
- * Response: { events: [{ id, title, event_date, type, pillar, location, capacity }] }
+ * Response: { events: [{ id, title, event_date, type, pillar, location, capacity, duration_minutes }] }
  */
 export async function GET() {
   try {
@@ -19,6 +19,7 @@ export async function GET() {
       pillar: number;
       location: string | null;
       capacity: number | null;
+      duration_minutes: number | null;
     }> = [];
 
     try {
@@ -38,6 +39,7 @@ export async function GET() {
           pillar: e.pillar as number,
           location: (e.location as string) || null,
           capacity: (e.capacity as number) || null,
+          duration_minutes: (e.duration_minutes as number | null) || null,
         }));
       }
     } catch {
