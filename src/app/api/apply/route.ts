@@ -70,12 +70,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 確認メール送信
-    sendApplyConfirmationEmail(email.trim(), name.trim()).catch(() => {});
+    // 確認メール送信（エラーを返さないが、結果をログに出す）
+    const emailResult = await sendApplyConfirmationEmail(email.trim(), name.trim());
+    if (!emailResult.success) {
+      console.error('Email send failed:', emailResult.error);
+    }
 
     return NextResponse.json({
       success: true,
       registration_id: data.id,
+      email_sent: emailResult.success,
+      email_error: emailResult.success ? undefined : emailResult.error,
     });
   } catch (err) {
     console.error('API /apply error:', err);

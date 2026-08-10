@@ -61,12 +61,17 @@ export async function POST(request: NextRequest) {
     }
 
     // 確認メール送信
-    sendPartnerConfirmationEmail(email.trim(), name.trim(), result.referral_code).catch(() => {});
+    const emailResult = await sendPartnerConfirmationEmail(email.trim(), name.trim(), result.referral_code);
+    if (!emailResult.success) {
+      console.error('Email send failed:', emailResult.error);
+    }
 
     return NextResponse.json({
       success: true,
       partner_id: result.id,
       referral_code: result.referral_code,
+      email_sent: emailResult.success,
+      email_error: emailResult.success ? undefined : emailResult.error,
     });
   } catch (err) {
     console.error('API /register-partner error:', err);
