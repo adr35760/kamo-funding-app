@@ -6,7 +6,26 @@ import { Resend } from 'resend';
  */
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'KAMOファンディング <info@local-creation.com>';
+
+/**
+ * RESEND_FROM_EMAIL の形式チェック
+ * 有効な形式: "email@example.com" または "Name <email@example.com>"
+ * コピペで壊れた値（全角括弧・前後余分なスペース・引用符等）は無効とみなし、
+ * 安全なデフォルトへフォールバックする。
+ */
+const DEFAULT_FROM_EMAIL = 'KAMOファンディング <info@local-creation.com>';
+
+function resolveFromEmail(): string {
+  const raw = (process.env.RESEND_FROM_EMAIL || '').trim().replace(/\u3000/g, ' ');
+  if (!raw) return DEFAULT_FROM_EMAIL;
+  // 全角 ＜＞ を半角に、両端の引用符を除去
+  const cleaned = raw.replace(/[＜＞]/g, (m) => (m === '＜' ? '<' : '>')).replace(/^["']+|["']+$/g, '');
+  const simple = /^[^<>@\s]+@[^<>@\s]+\.[^<>@\s]+$/.test(cleaned);
+  const named = /^[^<>{}\[\]]+\s*<[^<>@\s]+@[^<>@\s]+\.[^<>@\s]+>$/.test(cleaned);
+  return simple || named ? cleaned : DEFAULT_FROM_EMAIL;
+}
+
+const FROM_EMAIL = resolveFromEmail();
 
 const resend = new Resend(RESEND_API_KEY);
 
