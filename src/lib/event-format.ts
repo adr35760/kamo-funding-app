@@ -57,7 +57,7 @@ export function formatEventDateJa(eventDate: string, durationMinutes?: number | 
 
 /**
  * LP のカード表示用（月・日・曜日・時間帯 — すべて日本語表記）:
- * { month: '8月', day: 18, weekday: '火', dateJa: '8/18（火）', timeRange: '19:30〜21:00' }
+ * { month: '8月', day: 18, weekday: '火', weekdayKakko: '（火）', dateJa: '8/18（火）', timeRange: '19:30〜21:00' }
  */
 export function eventCardParts(eventDate: string, durationMinutes?: number | null) {
   const s = tokyoParts(eventDate);
@@ -69,6 +69,7 @@ export function eventCardParts(eventDate: string, durationMinutes?: number | nul
     month: MONTHS_JA_SHORT[s.month - 1],
     day: s.day,
     weekday: WEEKDAYS[s.weekday],
+    weekdayKakko: `（${WEEKDAYS[s.weekday]}）`,
     dateJa: `${s.month}/${s.day}（${WEEKDAYS[s.weekday]}）`,
     timeRange: `${hhmm(s)}〜${hhmm(e)}`,
   };

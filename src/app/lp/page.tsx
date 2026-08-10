@@ -237,13 +237,15 @@ export default function LPPage() {
                 return (
                   <div className="schedule-item" key={ev.id}>
                     <div className="schedule-date">
-                      <div className="month">{p.month}</div>
-                      <div className="day">{p.day}</div>
-                      <div className="weekday">{p.weekday}曜</div>
+                      <div className="date-main">
+                        <span className="date-month">{p.month}</span>
+                        <span className="date-day">{p.day}</span>
+                        <span className="date-weekday">{p.weekdayKakko}</span>
+                      </div>
+                      <div className="schedule-time">{p.timeRange}</div>
                     </div>
                     <div className="schedule-info">
                       <h4>{cleanTitle(ev.title)}</h4>
-                      <p>{p.dateJa} {p.timeRange} | オンライン（Zoom）</p>
                       <div className="tags">
                         <span className="tag tag-online">オンライン</span>
                         <span className="tag tag-free">参加費無料</span>
@@ -257,13 +259,15 @@ export default function LPPage() {
               <>
                 <div className="schedule-item">
                   <div className="schedule-date">
-                    <div className="month">8月</div>
-                    <div className="day">18</div>
-                    <div className="weekday">火曜</div>
+                    <div className="date-main">
+                      <span className="date-month">8月</span>
+                      <span className="date-day">18</span>
+                      <span className="date-weekday">（火）</span>
+                    </div>
+                    <div className="schedule-time">19:30〜21:00</div>
                   </div>
                   <div className="schedule-info">
                     <h4>第1回 KAMOファンディング無料掲載説明会</h4>
-                    <p>8/18（火）19:30〜21:00 | オンライン（Zoom）</p>
                     <div className="tags">
                       <span className="tag tag-online">オンライン</span>
                       <span className="tag tag-free">参加費無料</span>
@@ -273,13 +277,15 @@ export default function LPPage() {
                 </div>
                 <div className="schedule-item">
                   <div className="schedule-date">
-                    <div className="month">8月</div>
-                    <div className="day">28</div>
-                    <div className="weekday">金曜</div>
+                    <div className="date-main">
+                      <span className="date-month">8月</span>
+                      <span className="date-day">28</span>
+                      <span className="date-weekday">（金）</span>
+                    </div>
+                    <div className="schedule-time">19:30〜21:00</div>
                   </div>
                   <div className="schedule-info">
                     <h4>第2回 KAMOファンディング無料掲載説明会</h4>
-                    <p>8/28（金）19:30〜21:00 | オンライン（Zoom）</p>
                     <div className="tags">
                       <span className="tag tag-online">オンライン</span>
                       <span className="tag tag-free">参加費無料</span>
@@ -289,13 +295,15 @@ export default function LPPage() {
                 </div>
                 <div className="schedule-item">
                   <div className="schedule-date">
-                    <div className="month">9月</div>
-                    <div className="day">15</div>
-                    <div className="weekday">火曜</div>
+                    <div className="date-main">
+                      <span className="date-month">9月</span>
+                      <span className="date-day">15</span>
+                      <span className="date-weekday">（火）</span>
+                    </div>
+                    <div className="schedule-time">19:30〜21:00</div>
                   </div>
                   <div className="schedule-info">
                     <h4>第3回 KAMOファンディング無料掲載説明会</h4>
-                    <p>9/15（火）19:30〜21:00 | オンライン（Zoom）</p>
                     <div className="tags">
                       <span className="tag tag-online">オンライン</span>
                       <span className="tag tag-free">参加費無料</span>
