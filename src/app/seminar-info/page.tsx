@@ -163,13 +163,16 @@ export default function SeminarInfoPage() {
               return (
                 <div className="schedule-item" key={ev.id}>
                   <div className="schedule-date">
-                    <div className="month">{p.month}</div>
-                    <div className="day">{p.day}</div>
-                    <div className="weekday">{p.weekday}曜</div>
+                    <div className="date-main">
+                      <span className="date-month">{p.month}</span>
+                      <span className="date-day">{p.day}</span>
+                      <span className="date-weekday">{p.weekdayKakko}</span>
+                    </div>
+                    <div className="schedule-time">{p.timeRange}</div>
                   </div>
                   <div className="schedule-info">
                     <h4>{ev.title}</h4>
-                    <p>{p.dateJa} {p.timeRange} | オンライン（Zoom）</p>
+                    <p>オンライン（Zoom） | 参加費無料</p>
                   </div>
                   <div className="schedule-status" style={{ background: '#E60012', color: '#fff' }}>募集中</div>
                 </div>
