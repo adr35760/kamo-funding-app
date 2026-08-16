@@ -7,11 +7,19 @@
  * フォーム表示・確認メールの両方に反映される。
  */
 
-export const REFERRAL_TERMS_VERSION = '1.0（暫定版）';
+export const REFERRAL_TERMS_VERSION = '1.1（暫定版）';
 
 export const REFERRAL_TERMS_TITLE = 'KAMOファンディング 紹介料規約';
 
-export type TermsArticle = { heading: string; body: string[] };
+/** body の各項は文字列（=項）、または項＋号（items）の組で表現する */
+export type TermsClause = string | { text: string; items: string[] };
+export type TermsArticle = { heading: string; body: TermsClause[] };
+
+/** 改定履歴 */
+export const REFERRAL_TERMS_HISTORY: { version: string; date: string; summary: string }[] = [
+  { version: '1.1（暫定版）', date: '2026-08-17', summary: '第2条に紹介成立の要件（初回掲載であること／紹介時点で鴨Bizメンバーでないこと）を追加' },
+  { version: '1.0（暫定版）', date: '2026-08-17', summary: '初版' },
+];
 
 export const REFERRAL_TERMS: TermsArticle[] = [
   {
@@ -25,6 +33,13 @@ export const REFERRAL_TERMS: TermsArticle[] = [
     body: [
       'パートナーは、当社が発行する固有の紹介コードを用いて紹介者を登録するものとします。',
       '紹介コード経由で登録された紹介は、システムにより自動的に当該パートナーの紹介として紐付けられます。',
+      {
+        text: '紹介は、紹介者が次の各号のいずれにも該当する場合に成立するものとします。',
+        items: [
+          'KAMOファンディングへ初めて掲載する方であること',
+          '紹介時点において鴨Bizメンバーでないこと',
+        ],
+      },
       '同一の紹介者が複数のパートナーから登録された場合、先に登録された紹介を有効とします。',
     ],
   },
@@ -89,7 +104,14 @@ export function referralTermsPlainText(): string {
   const lines = [`${REFERRAL_TERMS_TITLE}（version ${REFERRAL_TERMS_VERSION}）`, ''];
   for (const a of REFERRAL_TERMS) {
     lines.push(a.heading);
-    a.body.forEach((b, i) => lines.push(`  ${i + 1}. ${b}`));
+    a.body.forEach((b, i) => {
+      if (typeof b === 'string') {
+        lines.push(`  ${i + 1}. ${b}`);
+      } else {
+        lines.push(`  ${i + 1}. ${b.text}`);
+        b.items.forEach((it, j) => lines.push(`     (${j + 1}) ${it}`));
+      }
+    });
     lines.push('');
   }
   return lines.join('\n');
@@ -102,7 +124,10 @@ export function referralTermsHtml(): string {
       <div style="margin-bottom: 14px;">
         <p style="margin: 0 0 4px; font-weight: 700; color: #0B1D3A; font-size: 14px;">${a.heading}</p>
         <ol style="margin: 0; padding-left: 18px; font-size: 13px; color: #444; line-height: 1.7;">
-          ${a.body.map((b) => `<li>${b}</li>`).join('')}
+          ${a.body.map((b) => typeof b === 'string'
+            ? `<li>${b}</li>`
+            : `<li>${b.text}<ol style="margin: 6px 0 0; padding-left: 18px; list-style: none;">${b.items.map((it, j) => `<li style="margin-bottom: 2px;">(${j + 1}) ${it}</li>`).join('')}</ol></li>`
+          ).join('')}
         </ol>
       </div>`
   ).join('');

@@ -138,7 +138,18 @@ export default function ReferralRegisterPage() {
                         <div key={a.heading} style={{ marginBottom: '14px' }}>
                           <p style={{ fontWeight: 700, fontSize: '14px', color: '#0B1D3A', marginBottom: '4px' }}>{a.heading}</p>
                           <ol style={{ paddingLeft: '18px', fontSize: '13px', color: '#444', lineHeight: 1.8 }}>
-                            {a.body.map((b, i) => <li key={i}>{b}</li>)}
+                            {a.body.map((b, i) => (
+                              <li key={i}>
+                                {typeof b === 'string' ? b : (
+                                  <>
+                                    {b.text}
+                                    <ol style={{ margin: '4px 0 0', paddingLeft: '18px', listStyle: 'none' }}>
+                                      {b.items.map((it, j) => <li key={j}>（{j + 1}）{it}</li>)}
+                                    </ol>
+                                  </>
+                                )}
+                              </li>
+                            ))}
                           </ol>
                         </div>
                       ))}
