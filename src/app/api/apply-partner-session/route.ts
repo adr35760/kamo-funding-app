@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendPartnerSessionConfirmationEmail } from '@/lib/email';
+import { formatSlotJa } from '@/lib/event-format';
 
 /**
  * POST /api/apply-partner-session
@@ -26,8 +27,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 希望日時（第1・第2）をまとめて1カラムに保持
-    const slot1 = body.preferred_slot_1?.trim() || '';
-    const slot2 = body.preferred_slot_2?.trim() || '';
+    // datetime-local の値（例 "2026-09-10T20:00"）は日本語表記に整形して保存・メール表示。
+    // 旧テキスト入力の自由記述が来た場合はそのまま通す（formatSlotJa が非対応形式を素通しする）。
+    const slot1 = formatSlotJa(body.preferred_slot_1?.trim() || '');
+    const slot2 = formatSlotJa(body.preferred_slot_2?.trim() || '');
     const preferredSlots = [
       slot1 ? `第1希望: ${slot1}` : '',
       slot2 ? `第2希望: ${slot2}` : '',

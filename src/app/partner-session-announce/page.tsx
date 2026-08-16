@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { preferredSlotRange } from '@/lib/event-format';
 import '@/styles/kamo-icons.css';
 import '@/styles/partner-session-announce.css';
 
@@ -8,6 +9,9 @@ export default function PartnerSessionAnnouncePage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  // SSRとクライアントで日付がずれるとhydration不一致になるため、マウント後に設定
+  const [slotRange, setSlotRange] = useState<{ min: string; max: string }>({ min: '', max: '' });
+  useEffect(() => { setSlotRange(preferredSlotRange()); }, []);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -179,8 +183,9 @@ export default function PartnerSessionAnnouncePage() {
                   </select>
                 </div>
                 <div className="form-row">
-                  <div className="form-group"><label>ご希望日時：第1希望 <span className="required">必須</span></label><input type="text" name="preferred_slot_1" required placeholder="例: 9/10（木）20:00〜" /></div>
-                  <div className="form-group"><label>ご希望日時：第2希望</label><input type="text" name="preferred_slot_2" placeholder="例: 9/12（土）14:00〜" /></div>
+                  <div className="form-group"><label>ご希望日時：第1希望 <span className="required">必須</span></label><input type="datetime-local" name="preferred_slot_1" required step={1800} min={slotRange.min || undefined} max={slotRange.max || undefined} /></div>
+                  <div className="form-group"><label>ご希望日時：第2希望</label><input type="datetime-local" name="preferred_slot_2" step={1800} min={slotRange.min || undefined} max={slotRange.max || undefined} /></div>
+                  <p style={{ gridColumn: '1 / -1', fontSize: '13px', color: '#666', margin: '-4px 0 8px' }}>※ 翌日以降の日時をカレンダーからお選びください（30分刻み）。<strong>10:00〜21:00</strong> の間でご希望いただけると調整がスムーズです。</p>
                 </div>
                 <div className="form-group"><label>質問・メッセージ（任意）</label><textarea name="message" placeholder="個別説明会で聞きたいこと等があれば"></textarea></div>
                 {error && <p style={{color:'#E60012',fontSize:'14px',marginBottom:'12px'}}>{error}</p>}

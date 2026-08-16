@@ -79,3 +79,37 @@ export function eventCardParts(eventDate: string, durationMinutes?: number | nul
 export function cleanTitle(title: string): string {
   return title.replace(/\s*\([0-9]{1,2}\/[0-9]{1,2}\)\s*$/, '').trim();
 }
+
+/**
+ * 個別説明会の希望日時ピッカー用の範囲（Asia/Tokyo基準）
+ * min: 翌日の00:00 / max: 約3ヶ月先
+ * datetime-local 用の "YYYY-MM-DDTHH:mm" 形式で返す
+ */
+export function preferredSlotRange(now: Date = new Date()): { min: string; max: string } {
+  // Asia/Tokyo の「今日」を取得し、翌日00:00 〜 約3ヶ月先 を返す
+  const today = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(now); // YYYY-MM-DD
+  const [ty, tm, td] = today.split('-').map(Number);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const tomorrow = new Date(Date.UTC(ty, tm - 1, td + 1));
+  const threeMonths = new Date(Date.UTC(ty, tm - 1 + 3, td));
+  const fmt = (d: Date, time: string) =>
+    `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${time}`;
+  return { min: fmt(tomorrow, '00:00'), max: fmt(threeMonths, '23:30') };
+}
+
+/**
+ * datetime-local の値（"2026-09-10T20:00"）を日本語表記に整形
+ * → "2026/9/10（木）20:00"
+ */
+export function formatSlotJa(value: string): string {
+  if (!value) return '';
+  const m = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return value; // 想定外の形式はそのまま返す
+  const [, y, mo, d, hh, mm] = m;
+  const wd = ['日', '月', '火', '水', '木', '金', '土'][
+    new Date(Date.UTC(Number(y), Number(mo) - 1, Number(d))).getUTCDay()
+  ];
+  return `${Number(y)}/${Number(mo)}/${Number(d)}（${wd}）${hh}:${mm}`;
+}

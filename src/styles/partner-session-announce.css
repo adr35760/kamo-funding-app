@@ -122,3 +122,19 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .form-card { padding: 28px 20px; } }
 
 .footer { background: var(--kamo-dark); padding: 32px 0; text-align: center; color: rgba(255,255,255,0.4); font-size: 12px; }
+
+/* 希望日時のカレンダー入力（datetime-local）— iOS Safari で高さが潰れる/文字が小さくなるのを防ぐ */
+.form-group input[type="datetime-local"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 48px;
+  line-height: 1.4;
+  background: var(--kamo-white, #fff);
+  color: inherit;
+  font-size: 16px; /* iOSの自動ズーム防止 */
+}
+.form-group input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+}
+.form-group input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
