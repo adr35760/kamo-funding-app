@@ -103,10 +103,10 @@ export default function PartnerSessionPage() {
               <ul>
                 <li>登録のみ（オンラインフォーム）</li>
                 <li>紹介コード自動発行</li>
-                <li>掲載完了時に紹介料（総支援額の2%）</li>
+                <li>募集終了時に紹介料確定（総支援額の2%）・翌々月末入金</li>
                 <li>新しいスキルは不要・ネットワークを活かすだけ</li>
               </ul>
-              <div className="reward-text">紹介料：総支援金額（税抜）の2%<span style={{fontSize:'12px',color:'#666',fontWeight:400,display:'block'}}>例：¥1,000,000→¥20,000 / ¥10,000,000→¥200,000</span></div>
+              <div className="reward-text">紹介料：総支援金額（税抜）の2%<span style={{fontSize:'12px',color:'#666',fontWeight:400,display:'block'}}>例：¥1,000,000→¥20,000 / ¥10,000,000→¥200,000<br />募集終了時に明細発行・終了月の翌々月末に入金</span></div>
               <a href="/partners" className="cta-link">パートナー登録へ →</a>
             </div>
             <div className="program-card high">

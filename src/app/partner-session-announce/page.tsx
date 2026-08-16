@@ -82,7 +82,7 @@ export default function PartnerSessionAnnouncePage() {
             <div className="program-card green">
               <div className="num">PROGRAM A</div>
               <h3>紹介パートナー</h3>
-              <div className="reward">総支援金額（税抜）の2%</div>
+              <div className="reward">総支援金額（税抜）の2%<span style={{display:'block',fontSize:'12px',fontWeight:400,opacity:0.85,marginTop:'4px'}}>募集終了時に明細発行・翌々月末入金</span></div>
               <p>クラファン掲載候補を紹介するだけ。ネットワークを活かす。</p>
               <span className="barrier barrier-low">登録のみ・無料</span>
             </div>
