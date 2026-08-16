@@ -64,7 +64,7 @@ export default function PartnerSessionAnnouncePage() {
         <div className="container">
           <div className="hero-inner">
             <div className="hero-badge"><span className="hero-badge-dot"></span>1対1の個別説明会・目安60分・参加費無料</div>
-            <h1><span className="gold">共犯者</span>になって、<br />一緒に稼ごう。<br />KAMOファンディング<br />パートナーシップ個別説明会（1対1）</h1>
+            <h1 className="hero-h1-lead"><span className="gold">挑戦者</span>をあなたのスキルで<br className="br-sp" /><span className="gold">ステージアップ！</span><br />KAMOファンディング<br />パートナーシップ個別説明会（1対1）</h1>
             <p className="hero-sub">紹介するだけ、伴走する、がっつり稼ぐ — あなたの関わり方に合わせた3つのプログラム。<br />どれからでも始められる、KAMOファンディングのパートナーシップ制度。</p>
             <a href="#apply" className="hero-cta">無料で申し込む →</a>
             <div className="hero-meta">

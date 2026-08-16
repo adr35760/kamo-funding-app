@@ -81,7 +81,7 @@ export default function PartnerSessionPage() {
         <div className="container">
           <div className="hero-inner">
             <div className="hero-badge"><span className="hero-badge-dot"></span>Pillar 4 — エコシステム拡張プログラム</div>
-            <h1><span className="accent">共犯者</span>になって、一緒に稼ごう。<br />KAMOファンディング<br /><span className="gold">パートナーシップ個別説明会（1対1）</span></h1>
+            <h1 className="hero-h1-lead"><span className="accent">挑戦者</span>をあなたのスキルで<br className="br-sp" /><span className="accent">ステージアップ！</span><br />KAMOファンディング<br /><span className="gold">パートナーシップ個別説明会（1対1）</span></h1>
             <p className="hero-sub">紹介するだけ、伴走する、がっつり稼ぐ — あなたの関わり方に合わせた3つのプログラム。<br />どれからでも始められる、KAMOファンディングのパートナーシップ制度。</p>
             <div className="hero-cta-group">
               <a href="#apply" className="btn-primary">個別説明会に申し込む →</a>
