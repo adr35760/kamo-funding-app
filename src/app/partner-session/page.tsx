@@ -67,8 +67,8 @@ export default function PartnerSessionPage() {
           <nav className="header-nav">
             <a href="#programs">3プログラム</a>
             <a href="#comparison">比較表</a>
-            <a href="#schedule">説明会構成</a>
-            <a href="#apply" className="header-cta">説明会に申し込む</a>
+            <a href="#schedule">個別説明会の内容</a>
+            <a href="#apply" className="header-cta">個別説明会に申し込む</a>
           </nav>
         </div>
       </header>
@@ -77,10 +77,10 @@ export default function PartnerSessionPage() {
         <div className="container">
           <div className="hero-inner">
             <div className="hero-badge"><span className="hero-badge-dot"></span>Pillar 4 — エコシステム拡張プログラム</div>
-            <h1><span className="accent">共犯者</span>になって、一緒に稼ごう。<br />KAMOファンディング<br /><span className="gold">パートナーシップ説明会</span></h1>
+            <h1><span className="accent">共犯者</span>になって、一緒に稼ごう。<br />KAMOファンディング<br /><span className="gold">パートナーシップ個別説明会（1対1）</span></h1>
             <p className="hero-sub">紹介するだけ、伴走する、がっつり稼ぐ — あなたの関わり方に合わせた3つのプログラム。<br />どれからでも始められる、KAMOファンディングのパートナーシップ制度。</p>
             <div className="hero-cta-group">
-              <a href="#apply" className="btn-primary">説明会に申し込む →</a>
+              <a href="#apply" className="btn-primary">個別説明会に申し込む →</a>
               <a href="#programs" className="btn-secondary">3プログラムを見る</a>
             </div>
           </div>
@@ -121,11 +121,11 @@ export default function PartnerSessionPage() {
                 <li>受講料¥128,000・認定証授与</li>
               </ul>
               <div className="reward-text">KAMO手数料の20%＋コンサルフィー¥30,000〜100,000<span style={{fontSize:'12px',color:'#666',fontWeight:400,display:'block'}}>受講料：¥128,000</span></div>
-              <a href="#apply" className="cta-link">説明会に申し込む →</a>
+              <a href="#apply" className="cta-link">個別説明会に申し込む →</a>
             </div>
             <div className="program-card mid">
               <div className="program-num">PROGRAM C</div>
-              <span className="program-tag">参入ハードル：中（説明会参加）</span>
+              <span className="program-tag">参入ハードル：中（個別説明会）</span>
               <h3>プロジェクトサポーター</h3>
               <p>KAMOファンディングの作業をサポートで成果報酬を受け取ろう。PR・事務局でプロジェクトを伴走サポート。※SNS発信、スケジュール管理、裏方業務得意な方！求む！</p>
               <ul>
@@ -178,7 +178,7 @@ export default function PartnerSessionPage() {
                   <td><strong>参入ハードル</strong></td>
                   <td><span className="barrier-badge barrier-low">登録のみ（無料）</span></td>
                   <td><span className="barrier-badge barrier-high">養成講座修了</span></td>
-                  <td><span className="barrier-badge barrier-mid">説明会参加</span></td>
+                  <td><span className="barrier-badge barrier-mid">個別説明会</span></td>
                 </tr>
                 <tr>
                   <td><strong>必要なスキル</strong></td>
@@ -196,7 +196,7 @@ export default function PartnerSessionPage() {
                   <td><strong>登録方法</strong></td>
                   <td>オンラインフォーム（即日）</td>
                   <td>養成講座申し込み（全6回）</td>
-                  <td>説明会参加後、オンライン登録</td>
+                  <td>個別説明会後、オンライン登録</td>
                 </tr>
                 <tr>
                   <td><strong>こんな方に</strong></td>
@@ -219,7 +219,7 @@ export default function PartnerSessionPage() {
           </div>
           <div className="funnel-section">
             <div className="funnel-diagram">
-              <div className="funnel-top"><span className="kamo-icon kamo-icon-clipboard sm" style={{display:'inline-flex',verticalAlign:'middle',marginRight:'8px'}}></span>説明会参加（90分・3プログラム統合）</div>
+              <div className="funnel-top"><span className="kamo-icon kamo-icon-clipboard sm" style={{display:'inline-flex',verticalAlign:'middle',marginRight:'8px'}}></span>個別説明会（60分・1対1・3プログラム紹介）</div>
               <div className="funnel-arrow">↓</div>
               <div className="funnel-split">
                 <div className="funnel-branch green"><strong>紹介パートナー</strong><br />登録だけ（ハードル低）</div>
@@ -235,17 +235,17 @@ export default function PartnerSessionPage() {
         <div className="container">
           <div className="section-title">
             <span className="label">EXPLANATION SESSION</span>
-            <h2>説明会<span className="accent">構成（90分）</span></h2>
-            <p>3プログラムを1回の説明会に統合。参入ハードル順に説明します。</p>
+            <h2>個別説明会<span className="accent">の内容（60分）</span></h2>
+            <p>担当者との1対1でご案内します。3プログラムを参入ハードル順に説明し、ご質問にその場でお答えします。</p>
           </div>
           <div className="schedule-timeline">
-            <div className="timeline-item"><div className="timeline-time">0:00-0:05</div><div className="timeline-content"><h4>開場・アイスブレイク <span className="timeline-tag tag-info">導入</span></h4><p>鴨頭嘉人さんメッセージ動画</p></div></div>
-            <div className="timeline-item"><div className="timeline-time">0:05-0:15</div><div className="timeline-content"><h4>KAMOファンディングの現状 <span className="timeline-tag tag-info">概要</span></h4><p>月10件獲得の目標と現在地</p></div></div>
-            <div className="timeline-item"><div className="timeline-time">0:15-0:30</div><div className="timeline-content"><h4>プログラムA：紹介パートナー <span className="timeline-tag tag-a">最も参入しやすい</span></h4><p>登録だけ・紹介料：総支援金額（税抜）の2%</p></div></div>
-            <div className="timeline-item"><div className="timeline-time">0:30-0:50</div><div className="timeline-content"><h4>プログラムB：アドバイザー養成講座 <span className="timeline-tag tag-b">がっつり稼ぎたい方</span></h4><p>全6回・受講料¥128,000・KAMO手数料の20%＋コンサルフィー</p></div></div>
-            <div className="timeline-item"><div className="timeline-time">0:50-1:05</div><div className="timeline-content"><h4>プログラムC：サポーター <span className="timeline-tag tag-c">コミュニティ参加型</span></h4><p>PR・集客支援</p></div></div>
-            <div className="timeline-item"><div className="timeline-time">1:05-1:20</div><div className="timeline-content"><h4>登録フロー・次のアクション <span className="timeline-tag tag-info">行動喚起</span></h4><p>その場で登録可能・LP経由</p></div></div>
-            <div className="timeline-item"><div className="timeline-time">1:20-1:30</div><div className="timeline-content"><h4>質疑応答＋交流 <span className="timeline-tag tag-info">クロージング</span></h4><p>鴨頭嘉人さん参加</p></div></div>
+            <div className="timeline-item"><div className="timeline-time">0:00-0:05</div><div className="timeline-content"><h4>ご挨拶・ヒアリング <span className="timeline-tag tag-info">導入</span></h4><p>ご状況・ご関心をお伺いします</p></div></div>
+            <div className="timeline-item"><div className="timeline-time">0:05-0:12</div><div className="timeline-content"><h4>KAMOファンディングの現状 <span className="timeline-tag tag-info">概要</span></h4><p>月10件獲得の目標と現在地</p></div></div>
+            <div className="timeline-item"><div className="timeline-time">0:12-0:22</div><div className="timeline-content"><h4>プログラムA：紹介パートナー <span className="timeline-tag tag-a">最も参入しやすい</span></h4><p>登録だけ・紹介料：総支援金額（税抜）の2%</p></div></div>
+            <div className="timeline-item"><div className="timeline-time">0:22-0:37</div><div className="timeline-content"><h4>プログラムB：アドバイザー養成講座 <span className="timeline-tag tag-b">がっつり稼ぎたい方</span></h4><p>全6回・受講料¥128,000・KAMO手数料の20%＋コンサルフィー</p></div></div>
+            <div className="timeline-item"><div className="timeline-time">0:37-0:47</div><div className="timeline-content"><h4>プログラムC：サポーター <span className="timeline-tag tag-c">コミュニティ参加型</span></h4><p>PR・集客支援</p></div></div>
+            <div className="timeline-item"><div className="timeline-time">0:47-0:55</div><div className="timeline-content"><h4>登録フロー・次のアクション <span className="timeline-tag tag-info">行動喚起</span></h4><p>その場で登録可能・LP経由</p></div></div>
+            <div className="timeline-item"><div className="timeline-time">0:55-1:00</div><div className="timeline-content"><h4>質疑応答 <span className="timeline-tag tag-info">クロージング</span></h4><p>1対1で疑問にお答えします</p></div></div>
           </div>
         </div>
       </section>
@@ -253,13 +253,13 @@ export default function PartnerSessionPage() {
       <section className="form-section" id="apply">
         <div className="container">
           <div className="form-card">
-            <h2>パートナーシップ説明会に<span className="accent">申し込む</span></h2>
-            <p className="form-sub">3プログラムの説明会（90分・オンライン）にご参加ください。</p>
+            <h2>パートナーシップ個別説明会に<span className="accent">申し込む</span></h2>
+            <p className="form-sub">1対1の個別説明会（目安60分・オンライン／Zoom）です。ご希望の日時をお知らせください。担当者より個別に日程調整のご連絡をします。</p>
             {submitted ? (
               <div style={{ textAlign: 'center', padding: '48px 24px' }}>
                 <div className="kamo-icon kamo-icon-check-lg" style={{ width: '48px', height: '48px', marginBottom: '16px' }}></div>
                 <h3 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '8px' }}>申込完了！</h3>
-                <p style={{ color: '#666', fontSize: '15px' }}>確認メールを送信しました。当日までにお待ちください。</p>
+                <p style={{ color: '#666', fontSize: '15px' }}>確認メールを送信しました。ご希望日時を確認のうえ、担当者より日程確定のご連絡をします。</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
@@ -294,22 +294,25 @@ export default function PartnerSessionPage() {
                     <option value="all">すべて聞いてから決めたい</option>
                   </select>
                 </div>
-                <div className="form-group">
-                  <label>参加希望日</label>
-                  <select name="event_id">
-                    <option value="">選択してください</option>
-                    <option value="ps_001">第1回 パートナーシップ説明会（日程調整中）</option>
-                  </select>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>ご希望日時：第1希望 <span className="required">必須</span></label>
+                    <input type="text" name="preferred_slot_1" required placeholder="例: 9/10（木）20:00〜" />
+                  </div>
+                  <div className="form-group">
+                    <label>ご希望日時：第2希望</label>
+                    <input type="text" name="preferred_slot_2" placeholder="例: 9/12（土）14:00〜" />
+                  </div>
                 </div>
                 <div className="form-group">
                   <label>質問・メッセージ（任意）</label>
-                  <textarea name="message" placeholder="説明会で聞きたいこと、質問などがあればお書きください"></textarea>
+                  <textarea name="message" placeholder="個別説明会で聞きたいこと、質問などがあればお書きください"></textarea>
                 </div>
                 {error && <p style={{ color: '#E60012', fontSize: '14px', marginBottom: '12px' }}>{error}</p>}
                 <button type="submit" className="form-submit" disabled={submitting} style={submitting ? { opacity: 0.7 } : {}}>
-                  {submitting ? '送信中...' : '説明会に申し込む →'}
+                  {submitting ? '送信中...' : '個別説明会に申し込む →'}
                 </button>
-                <p className="form-note">※ 申込後に確認メールが自動送信されます<br />※ 個人情報は本説明会の運営目的のみに使用します</p>
+                <p className="form-note">※ 申込後に確認メールが自動送信されます<br />※ ご希望日時を確認のうえ、担当者より日程確定のご連絡をします<br />※ 個人情報は本説明会の運営目的のみに使用します</p>
               </form>
             )}
           </div>
@@ -325,7 +328,7 @@ export default function PartnerSessionPage() {
             </div>
             <div className="footer-links">
               <div><h5>プログラム</h5><ul><li><a href="#programs">紹介パートナー</a></li><li><a href="#programs">認定アドバイザー</a></li><li><a href="#programs">プロジェクトサポーター</a></li></ul></div>
-              <div><h5>説明会</h5><ul><li><a href="#schedule">説明会構成</a></li><li><a href="#apply">お申込み</a></li><li><a href="/partners">パートナー登録</a></li><li><a href="/supporters">サポーター登録</a></li></ul></div>
+              <div><h5>個別説明会</h5><ul><li><a href="#schedule">個別説明会の内容</a></li><li><a href="#apply">お申込み</a></li><li><a href="/partners">パートナー登録</a></li><li><a href="/supporters">サポーター登録</a></li></ul></div>
               <div><h5>KAMO</h5><ul><li><a href="https://www.kamofunding.com/">公式サイト</a></li><li><a href="https://www.kamofunding.com/projects">プロジェクト一覧</a></li></ul></div>
             </div>
           </div>

@@ -250,34 +250,45 @@ export async function sendSupporterConfirmationEmail(
 }
 
 /**
- * パートナーシップ説明会 申込完了メール
+ * パートナーシップ個別説明会（1対1） 申込完了メール
+ * 固定日程・Zoom情報は記載せず、日程確定連絡時に個別案内する運用。
+ * @param preferredSlots 申込時に入力された希望日時（第1希望 / 第2希望）
  */
 export async function sendPartnerSessionConfirmationEmail(
   name: string,
-  email: string
+  email: string,
+  preferredSlots?: string
 ): Promise<EmailResult> {
-  const subject = '【KAMOファンディング】パートナーシップ説明会 申込完了';
+  const subject = '【KAMOファンディング】パートナーシップ個別説明会 申込完了';
   const html = `
     <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: #E60012; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
         <h1 style="margin: 0; font-size: 24px;">🤝 KAMOファンディング</h1>
-        <p style="margin: 4px 0 0; font-size: 14px;">パートナーシップ説明会 申込完了</p>
+        <p style="margin: 4px 0 0; font-size: 14px;">パートナーシップ個別説明会 申込完了</p>
       </div>
       <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 8px 8px; border: 1px solid #eee;">
         <p>${name}様</p>
-        <p>パートナーシップ説明会への申込を受け付けました。ありがとうございます！</p>
+        <p>パートナーシップ個別説明会（1対1）への申込を受け付けました。ありがとうございます！</p>
         <p style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; font-size: 14px;">
-          📢 アドバイザー・紹介パートナー・PJサポーターの合同説明会<br />
-          ⏱️ 90分・オンライン・無料<br />
-          💻 Zoomで開催
+          🤝 1対1の個別説明会（オンライン・無料）<br />
+          ⏱️ 所要時間の目安: 60分<br />
+          💻 オンライン（Zoom）
         </p>
+        ${preferredSlots ? `
+        <div style="margin-top: 16px; padding: 16px; background: #F4F8FF; border: 1px solid #CCE0FF; border-radius: 8px; font-size: 14px;">
+          <p style="margin: 0 0 4px; font-weight: 700; color: #1A73E8;">📅 ご希望日時</p>
+          <p style="margin: 0;">${preferredSlots}</p>
+        </div>` : ''}
         <p style="margin-top: 16px;">
           <strong>3つのプログラム：</strong><br />
           1. 紹介パートナー — 紹介するだけで総支援金額の約2%<br />
           2. アドバイザー養成講座 — KAMO手数料の20%＋コンサルフィー<br />
           3. プロジェクトサポーター — PR・事務局で伴走サポート
         </p>
-        <p style="margin-top: 20px;">開催日程が確定次第、Zoom URL等の詳細をご案内いたします。</p>
+        <p style="margin-top: 20px; padding: 16px; background: #FFF9E6; border: 1px solid #FFE9A8; border-radius: 8px;">
+          <strong>ご希望日時を確認のうえ、担当者より日程確定のご連絡をします。</strong><br />
+          <span style="font-size: 13px; color: #666;">Zoomの参加URLは、日程確定のご連絡時にあわせてご案内いたします。</span>
+        </p>
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
           https://kamo-funding-app.vercel.app/
