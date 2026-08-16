@@ -73,6 +73,17 @@ export default function PartnerRegisterPage() {
             <div className="step-item"><div className="step-num">5</div><div className="step-content"><h3>報酬確定</h3><p>紹介した企業のクラファン掲載が完了し、募集終了した時点で、総支援金額（税抜）の2%が報酬として確定します。その時点で、登録メールアドレスまでに明細を発行。</p></div></div>
             <div className="step-item"><div className="step-num">6</div><div className="step-content"><h3>紹介料のお支払い</h3><p>終了月の翌々月末に指定の口座へ入金します。</p></div></div>
           </div>
+          <div style={{ marginTop: '32px', padding: '24px', background: '#0B1D3A', borderRadius: '12px', textAlign: 'center' }}>
+            <p style={{ color: '#fff', fontWeight: 700, fontSize: '16px', marginBottom: '6px' }}>
+              すでに紹介パートナーとして登録済みの方へ
+            </p>
+            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '14px', marginBottom: '16px' }}>
+              紹介コードをお持ちの方は、こちらから紹介者を登録できます。
+            </p>
+            <a href="/partners/referral" style={{ display: 'inline-block', background: 'var(--kamo-gold)', color: '#0B1D3A', padding: '14px 28px', borderRadius: '8px', fontWeight: 700, fontSize: '15px' }}>
+              紹介者を登録する →
+            </a>
+          </div>
         </div>
       </section>
 

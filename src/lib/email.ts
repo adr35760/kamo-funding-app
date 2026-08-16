@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { referralTermsHtml } from '@/lib/referral-terms';
 
 /**
  * 確認メール送信ユーティリティ — Resend経由
@@ -297,4 +298,47 @@ export async function sendPartnerSessionConfirmationEmail(
     </div>
   `;
   return sendEmail(email, subject, html);
+}
+
+/**
+ * 紹介者登録の確認メール（宛先: 紹介パートナー本人）
+ * 紹介料規約の全文を同梱する。
+ */
+export async function sendReferralRegistrationEmail(
+  partnerName: string,
+  partnerEmail: string,
+  info: { referredName: string; relationship: string; referralCode: string }
+): Promise<EmailResult> {
+  const subject = '【KAMOファンディング】紹介者の登録完了／紹介料規約のご案内';
+  const html = `
+    <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #0B1D3A; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h1 style="margin: 0; font-size: 24px;">🤝 KAMOファンディング</h1>
+        <p style="margin: 4px 0 0; font-size: 14px; color: #D4AF37;">紹介者の登録が完了しました</p>
+      </div>
+      <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 8px 8px; border: 1px solid #eee;">
+        <p>${partnerName}様</p>
+        <p>紹介者のご登録ありがとうございます。以下の内容で受け付けました。</p>
+        <div style="margin-top: 16px; padding: 16px; background: #fff; border: 1px solid #E6D9A8; border-radius: 8px; font-size: 14px;">
+          <p style="margin: 0 0 6px;"><strong>紹介者氏名：</strong>${info.referredName}</p>
+          <p style="margin: 0 0 6px;"><strong>ご関係：</strong>${info.relationship}</p>
+          <p style="margin: 0;"><strong>紹介コード：</strong>${info.referralCode}</p>
+        </div>
+        <p style="margin-top: 16px; font-size: 14px;">
+          この紹介は紹介コード経由であなたの紹介として記録されました。掲載が完了し募集が終了した時点で、
+          総支援金額（税抜）の<strong>2%</strong>が紹介料として確定し、登録メールアドレス宛に明細を発行のうえ、
+          <strong>終了月の翌々月末</strong>に指定口座へお支払いします。
+        </p>
+        <p style="margin-top: 20px; font-size: 13px; color: #666;">
+          ご登録時にご同意いただいた紹介料規約の全文を、控えとして以下に記載します。
+        </p>
+        ${referralTermsHtml()}
+        <p style="margin-top: 20px; font-size: 12px; color: #999;">
+          KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
+          https://kamo-funding-app.vercel.app/
+        </p>
+      </div>
+    </div>
+  `;
+  return sendEmail(partnerEmail, subject, html);
 }

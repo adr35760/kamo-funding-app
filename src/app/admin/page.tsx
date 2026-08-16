@@ -36,6 +36,30 @@ interface Partner {
   referral_code: string | null;
   status: string | null;
   created_at: string;
+  terms_agreed?: boolean | null;
+  terms_agreed_at?: string | null;
+}
+
+interface Referral {
+  id: string;
+  partner_id: string;
+  referred_contact_name: string | null;
+  referred_company_name: string | null;
+  referred_email: string | null;
+  relationship?: string | null;
+  status: string | null;
+  notes: string | null;
+  terms_agreed?: boolean | null;
+  terms_agreed_at?: string | null;
+  created_at: string;
+  partners?: { name: string | null; email: string | null; referral_code: string | null } | null;
+}
+
+/** migration未適用時、notes に退避した「ご関係」「規約同意日時」を読み出す */
+function extractFromNotes(notes: string | null | undefined, key: string): string {
+  if (!notes) return '';
+  const line = notes.split('\n').find(l => l.startsWith(`${key}:`));
+  return line ? line.slice(key.length + 1).trim() : '';
 }
 
 const pillarLabels: Record<number, string> = {
@@ -58,10 +82,11 @@ const partnerTypeLabels: Record<string, string> = {
 };
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'events' | 'registrations' | 'partners'>('events');
+  const [tab, setTab] = useState<'events' | 'registrations' | 'partners' | 'referrals'>('events');
   const [events, setEvents] = useState<Event[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
+  const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string>('');
   const [showEventForm, setShowEventForm] = useState(false);
@@ -106,6 +131,12 @@ export default function AdminPage() {
     if (partnersRes.ok) {
       const partnersData = await partnersRes.json();
       setPartners(partnersData.partners || []);
+    }
+    // 紹介者一覧取得
+    const referralsRes = await fetch('/api/admin/referrals');
+    if (referralsRes.ok) {
+      const referralsData = await referralsRes.json();
+      setReferrals(referralsData.referrals || []);
     }
     } catch {
       // fetch error — 空のまま
@@ -353,6 +384,9 @@ export default function AdminPage() {
         </TabButton>
         <TabButton active={tab === 'partners'} onClick={() => setTab('partners')}>
           パートナー管理
+        </TabButton>
+        <TabButton active={tab === 'referrals'} onClick={() => setTab('referrals')}>
+          紹介者一覧
         </TabButton>
       </div>
 
@@ -644,6 +678,7 @@ export default function AdminPage() {
                       <Th>組織</Th>
                       <Th>紹介コード</Th>
                       <Th>ステータス</Th>
+                      <Th>規約同意</Th>
                       <Th>登録日時</Th>
                       <Th>操作</Th>
                     </tr>
@@ -666,6 +701,20 @@ export default function AdminPage() {
                           {partner.referral_code || '-'}
                         </Td>
                         <Td>{partner.status || '-'}</Td>
+                        <Td>
+                          {partner.terms_agreed ? (
+                            <span style={{ color: '#27AE60', fontWeight: 700 }}>
+                              ✅ 同意済
+                              {partner.terms_agreed_at && (
+                                <span style={{ display: 'block', fontSize: 11, color: '#666', fontWeight: 400 }}>
+                                  {new Date(partner.terms_agreed_at).toLocaleString('ja-JP')}
+                                </span>
+                              )}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#999' }}>未同意</span>
+                          )}
+                        </Td>
                         <Td>{new Date(partner.created_at).toLocaleString('ja-JP')}</Td>
                         <Td>
                           <button
@@ -685,6 +734,61 @@ export default function AdminPage() {
                             {deleting === partner.id ? '削除中...' : '削除'}
                           </button>
                         </Td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {/* Referrals Tab — 紹介者一覧 */}
+          {tab === 'referrals' && (
+            <div>
+              <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>紹介者一覧</h2>
+              <p style={{ fontSize: 13, color: '#666', marginBottom: 16 }}>
+                紹介パートナーが登録した紹介者の一覧です（{referrals.length}件）。
+              </p>
+              {referrals.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>まだ紹介者の登録はありません</div>
+              ) : (
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                      <Th>紹介者氏名</Th>
+                      <Th>ご関係</Th>
+                      <Th>会社・団体</Th>
+                      <Th>紹介パートナー</Th>
+                      <Th>紹介コード</Th>
+                      <Th>規約同意</Th>
+                      <Th>登録日時</Th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {referrals.map(r => (
+                      <tr key={r.id} style={{ borderBottom: '1px solid #eee' }}>
+                        <Td>{r.referred_contact_name || '-'}</Td>
+                        <Td>{r.relationship || extractFromNotes(r.notes, 'ご関係') || '-'}</Td>
+                        <Td>{r.referred_company_name || '-'}</Td>
+                        <Td>{r.partners?.name || '-'}</Td>
+                        <Td style={{ fontWeight: 700, color: '#27AE60', fontFamily: 'monospace' }}>
+                          {r.partners?.referral_code || '-'}
+                        </Td>
+                        <Td>
+                          {r.terms_agreed || extractFromNotes(r.notes, '紹介料規約に同意') ? (
+                            <span style={{ color: '#27AE60', fontWeight: 700 }}>
+                              ✅ 同意済
+                              <span style={{ display: 'block', fontSize: 11, color: '#666', fontWeight: 400 }}>
+                                {r.terms_agreed_at
+                                  ? new Date(r.terms_agreed_at).toLocaleString('ja-JP')
+                                  : extractFromNotes(r.notes, '紹介料規約に同意')}
+                              </span>
+                            </span>
+                          ) : (
+                            <span style={{ color: '#999' }}>未同意</span>
+                          )}
+                        </Td>
+                        <Td>{new Date(r.created_at).toLocaleString('ja-JP')}</Td>
                       </tr>
                     ))}
                   </tbody>
