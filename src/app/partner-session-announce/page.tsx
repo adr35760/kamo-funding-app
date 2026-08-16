@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { preferredSlotRange } from '@/lib/event-format';
 import '@/styles/kamo-icons.css';
 import '@/styles/partner-session-announce.css';
@@ -72,6 +73,22 @@ export default function PartnerSessionAnnouncePage() {
               <div className="hero-meta-item"><span className="kamo-icon kamo-icon-yen sm"></span> 参加費¥0</div>
               <div className="hero-meta-item"><span className="kamo-icon kamo-icon-target sm"></span> 3プログラム一堂に</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="venue-photo">
+        <div className="container">
+          <div className="venue-photo-frame">
+            <Image
+              src="/partner-session-hero.jpg"
+              alt="パートナーシッププログラム説明会の様子"
+              width={1600}
+              height={899}
+              priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1100px"
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+            />
           </div>
         </div>
       </section>
