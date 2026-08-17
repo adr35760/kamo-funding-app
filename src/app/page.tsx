@@ -135,7 +135,10 @@ export default function HomePage() {
       </section>
 
       <footer className="footer">
-        <div className="container">&copy; 2026 KAMO FUNDING. 共犯者を集め、夢を叶える場所。</div>
+        <div className="container">
+          <div>&copy; 2026 KAMO FUNDING. 共犯者を集め、夢を叶える場所。</div>
+          <a href="/admin" className="admin-link">管理画面</a>
+        </div>
       </footer>
     </>
   );

@@ -349,8 +349,16 @@ export default function AdminPage() {
     <div style={{ fontFamily: "'Noto Sans JP', sans-serif", maxWidth: 1100, margin: '0 auto', padding: 20 }}>
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ color: '#E60012', fontSize: 24, margin: '0 0 4px' }}>
-          KAMOファンディング 管理画面
+        <h1 style={{ fontSize: 24, margin: '0 0 4px' }}>
+          <a
+            href="/"
+            title="トップページへ"
+            style={{ color: '#E60012', textDecoration: 'none', borderBottom: '2px solid transparent', cursor: 'pointer', transition: 'border-color .2s, opacity .2s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderBottomColor = '#E60012'; e.currentTarget.style.opacity = '0.8'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderBottomColor = 'transparent'; e.currentTarget.style.opacity = '1'; }}
+          >
+            KAMOファンディング 管理画面
+          </a>
         </h1>
         <p style={{ color: '#999', fontSize: 13 }}>説明会・セミナー管理 + 申込者一覧</p>
       </div>
