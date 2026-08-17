@@ -1,0 +1,76 @@
+/* 新規セミナーLP共通スタイル（紺×金／既存デザイン踏襲） */
+.seminar-lp {
+  --kamo-red: #E60012;
+  --kamo-gold: #D4A017;
+  --kamo-navy: #0B1D3A;
+  --kamo-white: #fff;
+  --kamo-dark: #1A1A1A;
+  --kamo-gray: #666;
+  --radius: 8px;
+  --radius-lg: 16px;
+  color: var(--kamo-dark);
+  line-height: 1.8;
+}
+.sl-container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+
+.sl-header { border-bottom: 1px solid rgba(0,0,0,.08); padding: 16px 0; position: sticky; top: 0; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); z-index: 20; }
+.sl-header-inner { display: flex; align-items: center; justify-content: space-between; }
+.sl-header-cta { background: var(--kamo-navy); color: #fff; padding: 10px 20px; border-radius: var(--radius); font-size: 14px; font-weight: 700; text-decoration: none; }
+.sl-header-cta:hover { opacity: .85; }
+
+/* Hero */
+.sl-hero { background: linear-gradient(160deg, var(--kamo-navy) 0%, #16305c 100%); color: #fff; padding: 64px 0 72px; text-align: center; }
+.sl-badge { display: inline-block; border: 1px solid rgba(212,160,23,.6); color: var(--kamo-gold); font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: 999px; margin-bottom: 20px; }
+.sl-hero h1 { font-size: clamp(24px, 4.4vw, 38px); font-weight: 900; line-height: 1.4; margin-bottom: 16px; }
+.sl-lead { color: rgba(255,255,255,.82); font-size: 16px; max-width: 720px; margin: 0 auto 24px; }
+.sl-hero-meta { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: center; font-size: 14px; color: var(--kamo-gold); font-weight: 700; margin-bottom: 28px; }
+.sl-cta { display: inline-block; background: var(--kamo-gold); color: var(--kamo-navy); padding: 16px 40px; border-radius: var(--radius); font-size: 17px; font-weight: 900; text-decoration: none; box-shadow: 0 8px 24px rgba(212,160,23,.3); transition: transform .2s; }
+.sl-cta:hover { transform: translateY(-2px); }
+.sl-hero-image { margin-top: 36px; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid rgba(212,160,23,.35); line-height: 0; }
+.sl-hero-image img { width: 100%; height: auto; display: block; }
+
+/* Sections */
+.sl-section { padding: 64px 0; }
+.sl-section-alt { background: #F7F9FC; }
+.sl-section h2 { text-align: center; font-size: clamp(22px, 3.4vw, 30px); font-weight: 900; margin-bottom: 32px; }
+
+/* 内容リスト */
+.sl-contents { list-style: none; max-width: 680px; margin: 0 auto; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.sl-contents li { display: flex; align-items: center; gap: 16px; background: #fff; border: 1px solid rgba(0,0,0,.07); border-radius: var(--radius); padding: 16px 20px; font-size: 16px; font-weight: 700; box-shadow: 0 2px 8px rgba(11,29,58,.05); }
+.sl-num { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; }
+
+/* 日程カード */
+.sl-schedule { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.sl-schedule-card { background: #fff; border: 1px solid rgba(0,0,0,.08); border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 6px 20px rgba(11,29,58,.08); }
+.sl-schedule-date { color: #fff; padding: 18px 20px; text-align: center; }
+.sl-round { display: block; font-size: 12px; font-weight: 700; opacity: .85; margin-bottom: 2px; }
+.sl-date { display: block; font-size: 26px; font-weight: 900; }
+.sl-schedule-body { padding: 20px; }
+.sl-time { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+.sl-time-sub { color: var(--kamo-gray); font-weight: 400; }
+.sl-venue { font-size: 14px; color: var(--kamo-gray); margin: 10px 0 0; }
+.sl-note { text-align: center; font-size: 14px; color: var(--kamo-gray); margin-top: 24px; }
+
+/* フォーム */
+.sl-form-card { max-width: 720px; margin: 0 auto; background: #fff; border-radius: var(--radius-lg); padding: 40px; box-shadow: 0 10px 30px rgba(11,29,58,.1); border: 1px solid rgba(0,0,0,.06); }
+.sl-form-group { margin-bottom: 18px; }
+.sl-form-group label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+.sl-required { color: var(--kamo-red); font-size: 12px; margin-left: 4px; }
+.sl-form-group input, .sl-form-group select, .sl-form-group textarea { width: 100%; padding: 12px 16px; border: 2px solid #E0E0E0; border-radius: var(--radius); font-size: 16px; font-family: inherit; transition: border-color .2s; }
+.sl-form-group input:focus, .sl-form-group select:focus, .sl-form-group textarea:focus { outline: none; border-color: var(--kamo-navy); }
+.sl-form-group textarea { min-height: 90px; resize: vertical; }
+.sl-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.sl-hint { font-size: 13px; color: var(--kamo-gray); margin-top: 6px; }
+.sl-error { color: var(--kamo-red); font-weight: 700; margin-bottom: 12px; }
+.sl-submit { width: 100%; color: #fff; padding: 18px; border: none; border-radius: var(--radius); font-size: 17px; font-weight: 900; cursor: pointer; transition: opacity .2s, transform .2s; }
+.sl-submit:hover:not(:disabled) { transform: translateY(-2px); }
+.sl-submit:disabled { opacity: .6; cursor: wait; }
+
+.sl-footer { background: var(--kamo-dark); color: rgba(255,255,255,.45); text-align: center; padding: 28px 0; font-size: 12px; }
+
+@media (max-width: 768px) {
+  .sl-form-row { grid-template-columns: 1fr; }
+  .sl-form-card { padding: 28px 20px; }
+  .sl-hero { padding: 48px 0 56px; }
+  .sl-section { padding: 48px 0; }
+}

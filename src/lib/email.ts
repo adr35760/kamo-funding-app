@@ -27,6 +27,18 @@ function zoomBlockHtml(): string {
   `;
 }
 
+/** リアル開催回の会場案内ブロック（Zoom情報の代わり） */
+function venueBlockHtml(): string {
+  return `
+    <div style="margin: 16px 0; padding: 16px; background: #FFFBF0; border: 1px solid #E6D9A8; border-radius: 8px; font-size: 14px;">
+      <p style="margin: 0 0 8px; font-weight: 700; color: #8A6D1F;">📍 会場のご案内</p>
+      <p style="margin: 0 0 4px;">セミナー会場: <strong>エデュケーションギャラリー</strong></p>
+      <p style="margin: 0 0 8px;">懇親会会場: <strong>YAKINIKUMAFIA</strong></p>
+      <p style="margin: 0; font-size: 13px; color: #666;">会場の詳しい住所・アクセス、当日の持ち物などは、開催が近づきましたら改めてご案内します。</p>
+    </div>
+  `;
+}
+
 /**
  * RESEND_FROM_EMAIL の形式チェック
  * 有効な形式: "email@example.com" または "Name <email@example.com>"
@@ -94,31 +106,56 @@ export async function sendApplyConfirmationEmail(
   name: string,
   email: string,
   eventTitle?: string,
-  eventDateJa?: string
+  eventDateJa?: string,
+  /** イベント種別。3=リアル開催（会場案内）、2=オンラインセミナー、その他=掲載説明会 */
+  pillar?: number | null
 ): Promise<EmailResult> {
-  const subject = eventTitle ? `【KAMOファンディング】${eventTitle} 申込完了` : '【KAMOファンディング】掲載説明会 申込完了';
+  const isReal = pillar === 3;
+  const isOnlineSeminar = pillar === 2;
+  const headingLabel = isReal
+    ? 'リアルセミナー＆懇親会 申込完了'
+    : isOnlineSeminar
+      ? 'オンラインセミナー 申込完了'
+      : '掲載説明会 申込完了';
+  const bodyLabel = isReal
+    ? 'リアルセミナー＆懇親会'
+    : isOnlineSeminar
+      ? 'オンラインセミナー'
+      : '掲載説明会';
+  const subject = eventTitle ? `【KAMOファンディング】${eventTitle} 申込完了` : `【KAMOファンディング】${bodyLabel} 申込完了`;
   const html = `
     <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: #E60012; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
         <h1 style="margin: 0; font-size: 24px;">🔥 KAMOファンディング</h1>
-        <p style="margin: 4px 0 0; font-size: 14px;">掲載説明会 申込完了</p>
+        <p style="margin: 4px 0 0; font-size: 14px;">${headingLabel}</p>
       </div>
       <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 8px 8px; border: 1px solid #eee;">
         <p>${name}様</p>
-        <p>掲載説明会への申込を受け付けました。ありがとうございます！</p>
+        <p>${bodyLabel}への申込を受け付けました。ありがとうございます！</p>
         ${eventTitle ? `<p><strong>参加予定回：</strong>${eventTitle}</p>` : '<p>開催日程が確定次第、改めてご案内いたします。</p>'}
         ${eventDateJa ? `
         <div style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; font-size: 15px; border: 1px solid #FFD6D6;">
           <p style="margin: 0 0 4px; font-weight: 700; color: #E60012;">📅 開催日時</p>
           <p style="margin: 0; font-size: 18px; font-weight: 700;">${eventDateJa}</p>
         </div>` : ''}
+        ${isReal ? `
+        <p style="margin-top: 16px; padding: 16px; background: #FFFBF0; border-radius: 8px; font-size: 14px;">
+          🏢 会場開催（セミナー＋懇親会）<br />
+          💰 参加費・詳細は追ってご案内します
+        </p>` : isOnlineSeminar ? `
+        <p style="margin-top: 16px; padding: 16px; background: #F4F8FF; border-radius: 8px; font-size: 14px;">
+          💻 オンライン（Zoom）で開催<br />
+          💰 参加費・詳細は追ってご案内します
+        </p>` : `
         <p style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; font-size: 14px;">
           💻 オンライン（Zoom）で開催<br />
           ⏱️ 約90分<br />
           💰 参加費無料
-        </p>
-        ${zoomBlockHtml()}
-        <p style="margin-top: 20px;">当日、指定の日時までにZoomへアクセスしてください。</p>
+        </p>`}
+        ${isReal ? venueBlockHtml() : zoomBlockHtml()}
+        <p style="margin-top: 20px;">${isReal
+          ? '当日は、開始時刻までに会場へお越しください。'
+          : '当日、指定の日時までにZoomへアクセスしてください。'}</p>
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
           https://kamo-funding-app.vercel.app/

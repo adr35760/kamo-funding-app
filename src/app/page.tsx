@@ -42,6 +42,14 @@ export default function HomePage() {
               <a href="/seminar-info" className="btn-primary">掲載説明会に申し込む →</a>
               <a href="/partner-session-announce" className="btn-secondary">パートナーシップ説明会</a>
             </div>
+            <div className="hero-cta-group hero-cta-seminars">
+              <a href="/ai-seminar" className="btn-seminar btn-seminar-online">
+                オンライン・リアルセミナーに申し込む →
+              </a>
+              <a href="/real-seminar" className="btn-seminar btn-seminar-real">
+                支援者と繋がる交流会に申し込む →
+              </a>
+            </div>
           </div>
           <div className="hero-image-wrap">
             <img src="/kamogashira-hero.png" alt="鴨頭嘉人 — 挑戦なくして、未来は明るくならない。" className="hero-image" />
