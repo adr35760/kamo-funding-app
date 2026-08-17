@@ -107,10 +107,10 @@ export default function PartnerSessionPage() {
               <ul>
                 <li>登録のみ（オンラインフォーム）</li>
                 <li>紹介コード自動発行</li>
-                <li>募集終了時に紹介料確定（総支援額の2%）・翌々月末入金</li>
+                <li>募集終了時に紹介料確定（対象額の2%）・翌々月末入金</li>
                 <li>新しいスキルは不要・ネットワークを活かすだけ</li>
               </ul>
-              <div className="reward-text">紹介料：総支援金額（税抜）の2%<span style={{fontSize:'12px',color:'#666',fontWeight:400,display:'block'}}>例：¥1,000,000→¥20,000 / ¥10,000,000→¥200,000<br />募集終了時に明細発行・終了月の翌々月末に入金</span></div>
+              <div className="reward-text">紹介料：対象額の2%<span style={{fontSize:'12px',color:'#666',fontWeight:400,display:'block'}}>対象額＝総支援金額ー手数料ー手数料に係る消費税<br />例：¥1,000,000→対象額¥780,000→約¥15,600 / ¥10,000,000→¥7,800,000→約¥156,000（手数料20%・消費税10%で試算）<br />募集終了時に明細発行・終了月の翌々月末に入金</span></div>
               <a href="/partners" className="cta-link">パートナー登録へ →</a>
             </div>
             <div className="program-card high">
@@ -174,7 +174,7 @@ export default function PartnerSessionPage() {
                 </tr>
                 <tr>
                   <td><strong>報酬</strong></td>
-                  <td>総支援金額（税抜）の2%</td>
+                  <td>対象額の2%<span style={{display:'block',fontSize:'11px',color:'#666'}}>総支援金額ー手数料ー消費税</span></td>
                   <td>KAMO手数料の20%＋コンサルフィー¥30k〜100k</td>
                   <td>コミュニティ特典（報酬設定は今後追加）</td>
                 </tr>
@@ -245,7 +245,7 @@ export default function PartnerSessionPage() {
           <div className="schedule-timeline">
             <div className="timeline-item"><div className="timeline-time">0:00-0:05</div><div className="timeline-content"><h4>ご挨拶・ヒアリング <span className="timeline-tag tag-info">導入</span></h4><p>ご状況・ご関心をお伺いします</p></div></div>
             <div className="timeline-item"><div className="timeline-time">0:05-0:12</div><div className="timeline-content"><h4>KAMOファンディングの現状 <span className="timeline-tag tag-info">概要</span></h4><p>月10件獲得の目標と現在地</p></div></div>
-            <div className="timeline-item"><div className="timeline-time">0:12-0:22</div><div className="timeline-content"><h4>プログラムA：紹介パートナー <span className="timeline-tag tag-a">最も参入しやすい</span></h4><p>登録だけ・紹介料：総支援金額（税抜）の2%</p></div></div>
+            <div className="timeline-item"><div className="timeline-time">0:12-0:22</div><div className="timeline-content"><h4>プログラムA：紹介パートナー <span className="timeline-tag tag-a">最も参入しやすい</span></h4><p>登録だけ・紹介料：対象額（総支援金額ー手数料ー消費税）の2%</p></div></div>
             <div className="timeline-item"><div className="timeline-time">0:22-0:37</div><div className="timeline-content"><h4>プログラムB：アドバイザー養成講座 <span className="timeline-tag tag-b">がっつり稼ぎたい方</span></h4><p>全6回・受講料¥128,000・KAMO手数料の20%＋コンサルフィー</p></div></div>
             <div className="timeline-item"><div className="timeline-time">0:37-0:47</div><div className="timeline-content"><h4>プログラムC：サポーター <span className="timeline-tag tag-c">コミュニティ参加型</span></h4><p>PR・集客支援</p></div></div>
             <div className="timeline-item"><div className="timeline-time">0:47-0:55</div><div className="timeline-content"><h4>登録フロー・次のアクション <span className="timeline-tag tag-info">行動喚起</span></h4><p>その場で登録可能・LP経由</p></div></div>

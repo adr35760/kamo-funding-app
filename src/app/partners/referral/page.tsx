@@ -68,7 +68,7 @@ export default function ReferralRegisterPage() {
               <h2 style={{ fontSize: '22px', fontWeight: 900, marginBottom: '12px' }}>紹介者の登録が完了しました</h2>
               <p style={{ color: 'var(--kamo-gray)' }}>
                 ご登録のメールアドレス宛に、確認メールと<strong>紹介料規約の全文</strong>をお送りしました。<br />
-                掲載完了・募集終了時点で紹介料（総支援金額（税抜）の2%）が確定し、明細を発行のうえ終了月の翌々月末にお支払いします。
+                掲載完了・募集終了時点で紹介料（対象額の2%）が確定し、明細を発行のうえ終了月の翌々月末にお支払いします。
               </p>
               <p style={{ marginTop: '20px' }}>
                 <a href="/partners" style={{ color: 'var(--kamo-red)', fontWeight: 700 }}>← パートナーページに戻る</a>
@@ -163,7 +163,7 @@ export default function ReferralRegisterPage() {
                     <span>
                       <strong>紹介料規約に同意します</strong> <span className="required">必須</span><br />
                       <span style={{ fontSize: '13px', color: 'var(--kamo-gray)' }}>
-                        紹介料は総支援金額（税抜）の2%、募集終了時に確定・明細発行、終了月の翌々月末にお支払いします。
+                        紹介料は対象額（総支援金額から手数料・手数料に係る消費税を控除した額）の2%、募集終了時に確定・明細発行、終了月の翌々月末にお支払いします。
                       </span>
                     </span>
                   </label>

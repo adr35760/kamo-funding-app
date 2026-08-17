@@ -103,7 +103,7 @@ export default function PartnerSessionAnnouncePage() {
             <div className="program-card green">
               <div className="num">PROGRAM A</div>
               <h3>紹介パートナー</h3>
-              <div className="reward">総支援金額（税抜）の2%<span style={{display:'block',fontSize:'12px',fontWeight:400,opacity:0.85,marginTop:'4px'}}>募集終了時に明細発行・翌々月末入金</span></div>
+              <div className="reward">対象額の2%<span style={{display:'block',fontSize:'12px',fontWeight:400,opacity:0.85,marginTop:'4px'}}>対象額＝総支援金額ー手数料ー消費税<br />募集終了時に明細発行・翌々月末入金</span></div>
               <p>クラファン掲載候補を紹介するだけ。ネットワークを活かす。</p>
               <span className="barrier barrier-low">登録のみ・無料</span>
             </div>
@@ -135,7 +135,7 @@ export default function PartnerSessionAnnouncePage() {
               </thead>
               <tbody>
                 <tr><td><strong>役割</strong></td><td>掲載候補を紹介</td><td>企画〜支援フルサポート</td><td>PR・集客支援</td></tr>
-                <tr><td><strong>報酬</strong></td><td>総支援金額の2%</td><td>KAMO手数料20%＋コンサル</td><td>コミュニティ特典＋成果報酬</td></tr>
+                <tr><td><strong>報酬</strong></td><td>対象額の2%<span style={{display:'block',fontSize:'11px',color:'#666'}}>総支援金額ー手数料ー消費税</span></td><td>KAMO手数料20%＋コンサル</td><td>コミュニティ特典＋成果報酬</td></tr>
                 <tr><td><strong>ハードル</strong></td><td>登録のみ（無料）</td><td>養成講座（¥128,000）</td><td>個別説明会</td></tr>
                 <tr><td><strong>想定月収</strong></td><td>数千円〜数十万円</td><td>10万〜50万+</td><td>特典メイン</td></tr>
                 <tr><td><strong>こんな方に</strong></td><td>紹介で副収入</td><td>がっつり稼ぎたい専門家</td><td>PR・事務局でプロジェクトを伴走サポート。成果報酬あり。※SNS発信、スケジュール管理、裏方業務得意な方！求む！</td></tr>

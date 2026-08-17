@@ -84,7 +84,7 @@ export default function HomePage() {
             <a href="/partners" className="link-card green">
               <div className="kamo-icon kamo-icon-handshake lg"></div>
               <h3>紹介パートナー</h3>
-              <p>紹介するだけ。総支援金額の2%が報酬。登録無料</p>
+              <p>紹介するだけ。対象額（総支援金額ー手数料ー消費税）の2%が報酬。登録無料</p>
             </a>
             <a href="/supporters" className="link-card gold">
               <div className="kamo-icon kamo-icon-star lg"></div>

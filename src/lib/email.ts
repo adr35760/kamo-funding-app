@@ -197,7 +197,7 @@ export async function sendPartnerConfirmationEmail(
           1. 説明会に参加（必須）<br />
           2. 紹介先にKAMOファンディングを紹介<br />
           3. 紹介コードを共有<br />
-          4. 掲載完了で報酬（総支援金額の約2%）
+          4. 掲載完了で報酬（対象額の約2%）
         </p>
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
@@ -282,7 +282,7 @@ export async function sendPartnerSessionConfirmationEmail(
         </div>` : ''}
         <p style="margin-top: 16px;">
           <strong>3つのプログラム：</strong><br />
-          1. 紹介パートナー — 紹介するだけで総支援金額の約2%<br />
+          1. 紹介パートナー — 紹介するだけで対象額（総支援金額ー手数料ー消費税）の約2%<br />
           2. アドバイザー養成講座 — KAMO手数料の20%＋コンサルフィー<br />
           3. プロジェクトサポーター — PR・事務局で伴走サポート
         </p>
@@ -326,7 +326,7 @@ export async function sendReferralRegistrationEmail(
         </div>
         <p style="margin-top: 16px; font-size: 14px;">
           この紹介は紹介コード経由であなたの紹介として記録されました。掲載が完了し募集が終了した時点で、
-          総支援金額（税抜）の<strong>2%</strong>が紹介料として確定し、登録メールアドレス宛に明細を発行のうえ、
+          対象額（総支援金額から手数料・手数料に係る消費税を控除した額）の<strong>2%</strong>が紹介料として確定し、登録メールアドレス宛に明細を発行のうえ、
           <strong>終了月の翌々月末</strong>に指定口座へお支払いします。
         </p>
         <p style="margin-top: 20px; font-size: 13px; color: #666;">

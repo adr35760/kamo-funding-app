@@ -5,7 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
  * POST /api/referrals
  * 
  * パートナーが紹介を記録する（紹介先企業情報を登録）。
- * 報酬はtriggerで自動計算される（紹介パートナー: 総支援金額×2%、アドバイザー: KAMO手数料×20%+コンサルフィー）
+ * 報酬はtriggerで自動計算される（紹介パートナー: 対象額（総支援金額−手数料−手数料に係る消費税）×2%、アドバイザー: KAMO手数料×20%+コンサルフィー）
  * 
  * Body: {
  *   partner_id, referred_company_name,
