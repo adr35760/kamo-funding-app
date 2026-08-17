@@ -22,8 +22,10 @@ function unauthorized(message = 'Authentication required') {
 }
 
 export function middleware(request: NextRequest) {
-  const expectedUser = process.env.ADMIN_USER || 'admin';
-  const expectedPassword = process.env.ADMIN_PASSWORD;
+  // 環境変数の値に空白・改行・引用符が混入していても認証できるよう正規化する
+  // （Vercelの入力欄でコピペすると末尾に改行や空白が入りがち）
+  const expectedUser = normalizeSecret(process.env.ADMIN_USER) || 'admin';
+  const expectedPassword = normalizeSecret(process.env.ADMIN_PASSWORD);
 
   // フェイルクローズ: パスワード未設定なら誰も入れない（個人情報を露出させない）
   if (!expectedPassword) {
@@ -51,11 +53,25 @@ export function middleware(request: NextRequest) {
   }
 
   // タイミング攻撃を避けるため、長さに依存しない比較を行う
-  if (!safeEqual(user, expectedUser) || !safeEqual(password, expectedPassword)) {
+  if (!safeEqual(user.trim(), expectedUser) || !safeEqual(password, expectedPassword)) {
     return unauthorized();
   }
 
   return NextResponse.next();
+}
+
+/**
+ * 環境変数の値を正規化する。
+ * - 前後の空白・改行（\n \r \t 全角スペース）を除去
+ * - 値全体を囲む引用符（" '）を除去
+ */
+function normalizeSecret(value: string | undefined): string {
+  if (!value) return '';
+  let v = value.replace(/^[\s\u3000]+|[\s\u3000]+$/g, '');
+  if (v.length >= 2 && ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'")))) {
+    v = v.slice(1, -1).replace(/^[\s\u3000]+|[\s\u3000]+$/g, '');
+  }
+  return v;
 }
 
 /** 定数時間に近い文字列比較 */
