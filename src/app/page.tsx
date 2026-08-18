@@ -15,7 +15,7 @@ export default function HomePage() {
             <a href="/partners">パートナー登録</a>
             <a href="/supporters">サポーター登録</a>
             <a href="/ai-tool">AIツール</a>
-            <a href="/lp" className="header-cta">詳細を見る</a>
+            <a href="/lp" className="header-cta">日程を確認する</a>
           </nav>
         </div>
       </header>
