@@ -42,6 +42,37 @@ export async function POST(request: NextRequest) {
 
     // Supabaseに申込をINSERT
     const supabaseAdmin = getSupabaseAdmin();
+
+    // 定員チェック（capacity が設定されているイベントのみ）
+    // capacity が NULL のイベントは上限なしとして扱う
+    try {
+      const { data: capEvent } = await supabaseAdmin
+        .from('events')
+        .select('capacity')
+        .eq('id', event_id)
+        .single();
+      const capacity = (capEvent?.capacity as number | null) ?? null;
+      if (capacity && capacity > 0) {
+        const { count } = await supabaseAdmin
+          .from('registrations')
+          .select('id', { count: 'exact', head: true })
+          .eq('event_id', event_id)
+          .eq('status', 'registered');
+        if (typeof count === 'number' && count >= capacity) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: '申し訳ありません。この回は定員に達したため受付を終了しました。別の回をご検討ください。',
+            },
+            { status: 409 }
+          );
+        }
+      }
+    } catch (e) {
+      // 定員チェックに失敗しても申込自体は妨げない（可用性優先）
+      console.error('Capacity check failed:', e);
+    }
+
     const { data, error } = await supabaseAdmin
       .from('registrations')
       .insert({

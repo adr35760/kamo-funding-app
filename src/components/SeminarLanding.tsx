@@ -21,7 +21,7 @@ interface EventRow {
  *
  * - 日程は events テーブルから pillar で絞って動的取得し、
  *   取得できない場合は設定ファイルの固定日程を表示する（フォールバック）
- * - 料金・定員は未確定なので「準備中」表示（seminar-config.ts で切替）
+ * - 料金・定員は seminar-config.ts が単一の情報源（未確定値は「準備中」表示になる）
  * - ヒーロー画像は届いてから heroImage を渡せばよい（未指定でも成立する）
  */
 export default function SeminarLanding({
