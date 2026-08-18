@@ -74,7 +74,7 @@ export default function SeminarInfoPage() {
   };
 
   return (
-    <>
+    <div className="seminar-info-page">
       <header className="header">
         <div className="header-inner">
           <a href="/"><img src="/kamo-logo-main.jpg" alt="KAMOファンディング" style={{height:'32px',width:'auto'}} /></a>
@@ -102,8 +102,7 @@ export default function SeminarInfoPage() {
       <section className="benefits">
         <div className="container">
           <div className="benefits-title">
-            <h2>なぜ<span className="accent">今</span>クラファンなのか？</h2>
-            <p>本業が停滞している方こそ、クラウドファンディングが武器になります。</p>
+            <h2>本業が停滞している<span className="accent">今だからこそ！</span><br />クラウドファンディングが<span className="accent">最高の武器</span>になります！</h2>
           </div>
           <div className="benefits-grid">
             <div className="benefit-card"><div className="kamo-icon kamo-icon-trending-up lg"></div><h3>短期キャンペーンで売上UP</h3><p>クラファンを「先行販売」「限定商品」の短期キャンペーンに使い、本業の売上を一気に引き上げる。</p></div>
@@ -259,6 +258,6 @@ export default function SeminarInfoPage() {
       </section>
 
       <footer className="footer"><div className="container">&copy; 2026 KAMO FUNDING. All rights reserved.</div></footer>
-    </>
+    </div>
   );
 }
