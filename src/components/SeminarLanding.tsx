@@ -112,7 +112,10 @@ export default function SeminarLanding({
               💰 参加費：{priceText}
               {config.priceNote && <span style={{ fontWeight: 400, opacity: .85 }}>（{config.priceNote}）</span>}
             </span>
-            <span>👥 定員：{capacityText}</span>
+            <span>
+              👥 定員：{capacityText}
+              {config.capacityParty && <> / {pendingLabel(config.capacityParty)}</>}
+            </span>
           </div>
           <a href="#apply" className="sl-cta">申し込む →</a>
           {heroImage && (
@@ -170,7 +173,9 @@ export default function SeminarLanding({
             {config.priceNote && <>（{config.priceNote}）</>}
             {PRICE_TAX_NOTE && <><br />{PRICE_TAX_NOTE}</>}
             <br />
-            定員：{capacityText}（決まり次第、このページと申込者の皆さまへご案内します）
+            定員：{capacityText}
+            {config.capacityParty && <> / {pendingLabel(config.capacityParty)}</>}
+            {config.capacity.status === 'pending' && <>（決まり次第、このページと申込者の皆さまへご案内します）</>}
           </p>
         </div>
       </section>

@@ -3,8 +3,9 @@
 --   pillar=2 … AI時代のクラウドファンディング活用セミナー（オンライン）
 --   pillar=3 … リアルセミナー＆懇親会
 --
--- 料金・定員は未確定のため capacity は NULL のままにしています。
--- 確定後は下部の「定員を設定する例」を実行してください。
+-- capacity: リアル回はセミナー本体の定員20名で確定（申込上限の基準）。
+--           オンライン回は定員未確定のため NULL のまま。
+-- 懇親会の定員35名は表示専用のため src/lib/seminar-config.ts 側で管理。
 -- ============================================
 
 -- 同じ回を二重登録しないよう、同一タイトル＋同一日時の既存行を消してから入れる
@@ -36,18 +37,18 @@ VALUES
   ('リアルセミナー＆懇親会（支援者と繋がる交流会） 第1回',
    'networking', 3,
    '鴨頭嘉人がリアル登壇。セミナーのあとは懇親会で支援者と直接つながれます。セミナー会場：エデュケーションギャラリー ／ 懇親会：YAKINIKUMAFIA',
-   '2026-10-25T15:00:00+09:00', 300, 'エデュケーションギャラリー（懇親会：YAKINIKUMAFIA）', NULL, 'upcoming', NULL),
+   '2026-10-25T15:00:00+09:00', 300, 'エデュケーションギャラリー（懇親会：YAKINIKUMAFIA）', 20, 'upcoming', NULL),
   ('リアルセミナー＆懇親会（支援者と繋がる交流会） 第2回',
    'networking', 3,
    '鴨頭嘉人がリアル登壇。セミナーのあとは懇親会で支援者と直接つながれます。セミナー会場：エデュケーションギャラリー ／ 懇親会：YAKINIKUMAFIA',
-   '2026-12-08T15:00:00+09:00', 300, 'エデュケーションギャラリー（懇親会：YAKINIKUMAFIA）', NULL, 'upcoming', NULL);
+   '2026-12-08T15:00:00+09:00', 300, 'エデュケーションギャラリー（懇親会：YAKINIKUMAFIA）', 20, 'upcoming', NULL);
 
 -- 確認
 SELECT title, pillar, event_date, duration_minutes, location, capacity, status
 FROM events WHERE pillar IN (2, 3) ORDER BY event_date;
 
 -- ============================================
--- 【参考】定員が確定したら実行する例（20名の場合）
--- UPDATE events SET capacity = 20 WHERE pillar = 2 AND event_date >= now();
--- UPDATE events SET capacity = 30 WHERE pillar = 3 AND event_date >= now();
+-- 【参考】オンラインセミナーの定員が確定したら実行する例
+-- UPDATE events SET capacity = <人数> WHERE pillar = 2 AND event_date >= now();
+-- リアル回はセミナー定員20名で設定済み（懇親会35名は表示専用のため設定ファイル側）
 -- ============================================

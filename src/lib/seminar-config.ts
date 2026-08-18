@@ -8,11 +8,11 @@
  *   例）定員20名に確定した場合:
  *     capacity: { status: 'fixed', label: '20名限定' }
  *
- * ■ 参加費は確定済み（オンライン9,800円／リアル19,800円）。
- *   税込・税別の指定がまだないため、label には税表記を入れず金額のみとし、
- *   注記（priceTaxNote）で「税表記は確認中」を示している。
- *   税区分が確定したら label を '9,800円（税込）' などに変え、
- *   priceTaxNote を空文字にすれば注記が消える。
+ * ■ 参加費・税表記は確定済み（オンライン9,800円（税込）／リアル19,800円（税込））。
+ * ■ 定員: リアルはセミナー20名・懇親会35名で確定。
+ *   events.capacity にはセミナー本体の20を入れており、申込上限の判定はこの20が基準。
+ *   懇親会の35名は capacityParty として表示専用に持つ。
+ *   オンラインの定員は未確定のため 'pending' のまま（/lp の「各会20名限定」を流用しない）。
  *
  * ■ 懇親会が別料金かは未確定のため、リアル回は料金の内訳を書かない方針。
  */
@@ -32,7 +32,7 @@ export function pendingLabel(v: PendingValue, fallback = '準備中（決まり�
  * 税区分（税込／税別）が確定したら、price の label に反映して
  * この定数を '' にすれば注記は表示されなくなる。
  */
-export const PRICE_TAX_NOTE = '※価格の税表記は確認中です';
+export const PRICE_TAX_NOTE = ''; // 税表記は「税込」で確定したため注記は不要
 
 export const ZOOM_NOTE = 'オンライン（Zoom）で開催します。参加URLは開催が近づきましたらメールでご案内します。';
 
@@ -67,6 +67,8 @@ export interface SeminarConfig {
   /** 価格に添える補足（例: セミナー＋懇親会込み） */
   priceNote?: string;
   capacity: PendingValue;
+  /** 懇親会の定員（リアル回のみ・表示専用。申込上限はセミナー側 capacity が基準） */
+  capacityParty?: PendingValue;
   contents: string[];
   sessions: SeminarSession[];
   /** 会場（オンラインは null） */
@@ -81,7 +83,7 @@ export const AI_SEMINAR: SeminarConfig = {
   lead:
     'AIを活用してクラウドファンディングのページを作り、夢を実現するための実践セミナー。鴨頭嘉人が特別参加します。',
   format: 'オンライン開催（Zoom）',
-  price: { status: 'fixed', label: '9,800円' },
+  price: { status: 'fixed', label: '9,800円（税込）' },
   // ★定員が確定したら status を 'fixed' にして label に人数を入れてください
   capacity: { status: 'pending' },
   contents: [
@@ -107,9 +109,10 @@ export const REAL_SEMINAR: SeminarConfig = {
     '鴨頭嘉人がリアル登壇。セミナーのあとは懇親会で、あなたの挑戦を応援してくれる支援者と直接つながれます。',
   format: 'リアル開催（セミナー＋懇親会）',
   // セミナー＋懇親会込みの金額（内訳は記載しない方針）
-  price: { status: 'fixed', label: '19,800円' },
+  price: { status: 'fixed', label: '19,800円（税込）' },
   priceNote: 'セミナー＋懇親会込み',
-  capacity: { status: 'pending' },
+  capacity: { status: 'fixed', label: 'セミナー 20名' },
+  capacityParty: { status: 'fixed', label: '懇親会 35名' },
   contents: [
     '夢実現のステップ',
     'AIでページを作成',

@@ -142,7 +142,8 @@ export async function sendApplyConfirmationEmail(
         ${isReal ? `
         <p style="margin-top: 16px; padding: 16px; background: #FFFBF0; border-radius: 8px; font-size: 14px;">
           🏢 会場開催（セミナー＋懇親会）<br />
-          💰 参加費：<strong>${pendingLabel(REAL_SEMINAR.price)}</strong>${REAL_SEMINAR.priceNote ? `（${REAL_SEMINAR.priceNote}）` : ''}
+          💰 参加費：<strong>${pendingLabel(REAL_SEMINAR.price)}</strong>${REAL_SEMINAR.priceNote ? `（${REAL_SEMINAR.priceNote}）` : ''}<br />
+          👥 定員：${pendingLabel(REAL_SEMINAR.capacity)}${REAL_SEMINAR.capacityParty ? ` / ${pendingLabel(REAL_SEMINAR.capacityParty)}` : ''}
           ${PRICE_TAX_NOTE ? `<br /><span style="font-size: 12px; color: #666;">${PRICE_TAX_NOTE}</span>` : ''}
         </p>` : isOnlineSeminar ? `
         <p style="margin-top: 16px; padding: 16px; background: #F4F8FF; border-radius: 8px; font-size: 14px;">
