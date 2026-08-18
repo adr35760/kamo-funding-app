@@ -173,9 +173,10 @@ export default function SeminarLanding({
             {config.priceNote && <>（{config.priceNote}）</>}
             {PRICE_TAX_NOTE && <><br />{PRICE_TAX_NOTE}</>}
             <br />
-            定員：{capacityText}
+            定員：{config.capacity.status === 'pending'
+              ? '準備中（決まり次第、このページと申込者の皆さまへご案内します）'
+              : capacityText}
             {config.capacityParty && <> / {pendingLabel(config.capacityParty)}</>}
-            {config.capacity.status === 'pending' && <>（決まり次第、このページと申込者の皆さまへご案内します）</>}
           </p>
         </div>
       </section>
