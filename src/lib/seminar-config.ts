@@ -5,9 +5,14 @@
  *   確定したら **このファイルの該当値を書き換えるだけ** で
  *   LP・確認メールの全箇所に反映される（他ファイルの修正は不要）。
  *
- *   例）AIセミナーの参加費が 11,000円、定員20名に確定した場合:
- *     price: { status: 'fixed', label: '11,000円（税込）' }
+ *   例）定員20名に確定した場合:
  *     capacity: { status: 'fixed', label: '20名限定' }
+ *
+ * ■ 参加費は確定済み（オンライン9,800円／リアル19,800円）。
+ *   税込・税別の指定がまだないため、label には税表記を入れず金額のみとし、
+ *   注記（priceTaxNote）で「税表記は確認中」を示している。
+ *   税区分が確定したら label を '9,800円（税込）' などに変え、
+ *   priceTaxNote を空文字にすれば注記が消える。
  *
  * ■ 懇親会が別料金かは未確定のため、リアル回は料金の内訳を書かない方針。
  */
@@ -21,6 +26,13 @@ export function pendingLabel(v: PendingValue, fallback = '準備中（決まり�
   if (v.status === 'fixed') return v.label;
   return v.label || fallback;
 }
+
+/**
+ * 価格の税表記が未確定のための注記。
+ * 税区分（税込／税別）が確定したら、price の label に反映して
+ * この定数を '' にすれば注記は表示されなくなる。
+ */
+export const PRICE_TAX_NOTE = '※価格の税表記は確認中です';
 
 export const ZOOM_NOTE = 'オンライン（Zoom）で開催します。参加URLは開催が近づきましたらメールでご案内します。';
 
@@ -52,6 +64,8 @@ export interface SeminarConfig {
   /** 開催形式の表示 */
   format: string;
   price: PendingValue;
+  /** 価格に添える補足（例: セミナー＋懇親会込み） */
+  priceNote?: string;
   capacity: PendingValue;
   contents: string[];
   sessions: SeminarSession[];
@@ -67,8 +81,7 @@ export const AI_SEMINAR: SeminarConfig = {
   lead:
     'AIを活用してクラウドファンディングのページを作り、夢を実現するための実践セミナー。鴨頭嘉人が特別参加します。',
   format: 'オンライン開催（Zoom）',
-  // ★料金が確定したら status を 'fixed' にして label に金額を入れてください
-  price: { status: 'pending' },
+  price: { status: 'fixed', label: '9,800円' },
   // ★定員が確定したら status を 'fixed' にして label に人数を入れてください
   capacity: { status: 'pending' },
   contents: [
@@ -93,7 +106,9 @@ export const REAL_SEMINAR: SeminarConfig = {
   lead:
     '鴨頭嘉人がリアル登壇。セミナーのあとは懇親会で、あなたの挑戦を応援してくれる支援者と直接つながれます。',
   format: 'リアル開催（セミナー＋懇親会）',
-  price: { status: 'pending' },
+  // セミナー＋懇親会込みの金額（内訳は記載しない方針）
+  price: { status: 'fixed', label: '19,800円' },
+  priceNote: 'セミナー＋懇親会込み',
   capacity: { status: 'pending' },
   contents: [
     '夢実現のステップ',

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import '@/styles/kamo-icons.css';
 import '@/styles/seminar-landing.css';
-import { pendingLabel, type SeminarConfig } from '@/lib/seminar-config';
+import { pendingLabel, PRICE_TAX_NOTE, type SeminarConfig } from '@/lib/seminar-config';
 import { formatEventDateJa } from '@/lib/event-format';
 
 interface EventRow {
@@ -108,7 +108,10 @@ export default function SeminarLanding({
           <h1>{config.title}</h1>
           <p className="sl-lead">{config.lead}</p>
           <div className="sl-hero-meta">
-            <span>💰 参加費：{priceText}</span>
+            <span>
+              💰 参加費：{priceText}
+              {config.priceNote && <span style={{ fontWeight: 400, opacity: .85 }}>（{config.priceNote}）</span>}
+            </span>
             <span>👥 定員：{capacityText}</span>
           </div>
           <a href="#apply" className="sl-cta">申し込む →</a>
@@ -163,7 +166,11 @@ export default function SeminarLanding({
             ))}
           </div>
           <p className="sl-note">
-            ※ 参加費・定員は{priceText === capacityText ? priceText : '準備中です'}。決まり次第、このページと申込者の皆さまへご案内します。
+            参加費：<strong>{priceText}</strong>
+            {config.priceNote && <>（{config.priceNote}）</>}
+            {PRICE_TAX_NOTE && <><br />{PRICE_TAX_NOTE}</>}
+            <br />
+            定員：{capacityText}（決まり次第、このページと申込者の皆さまへご案内します）
           </p>
         </div>
       </section>

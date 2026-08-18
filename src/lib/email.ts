@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { referralTermsHtml } from '@/lib/referral-terms';
+import { AI_SEMINAR, REAL_SEMINAR, PRICE_TAX_NOTE, pendingLabel } from '@/lib/seminar-config';
 
 /**
  * 確認メール送信ユーティリティ — Resend経由
@@ -141,11 +142,13 @@ export async function sendApplyConfirmationEmail(
         ${isReal ? `
         <p style="margin-top: 16px; padding: 16px; background: #FFFBF0; border-radius: 8px; font-size: 14px;">
           🏢 会場開催（セミナー＋懇親会）<br />
-          💰 参加費・詳細は追ってご案内します
+          💰 参加費：<strong>${pendingLabel(REAL_SEMINAR.price)}</strong>${REAL_SEMINAR.priceNote ? `（${REAL_SEMINAR.priceNote}）` : ''}
+          ${PRICE_TAX_NOTE ? `<br /><span style="font-size: 12px; color: #666;">${PRICE_TAX_NOTE}</span>` : ''}
         </p>` : isOnlineSeminar ? `
         <p style="margin-top: 16px; padding: 16px; background: #F4F8FF; border-radius: 8px; font-size: 14px;">
           💻 オンライン（Zoom）で開催<br />
-          💰 参加費・詳細は追ってご案内します
+          💰 参加費：<strong>${pendingLabel(AI_SEMINAR.price)}</strong>
+          ${PRICE_TAX_NOTE ? `<br /><span style="font-size: 12px; color: #666;">${PRICE_TAX_NOTE}</span>` : ''}
         </p>` : `
         <p style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; font-size: 14px;">
           💻 オンライン（Zoom）で開催<br />
