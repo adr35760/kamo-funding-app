@@ -559,6 +559,7 @@ export default function AdminPage() {
                       </th>
                       <Th>名前</Th>
                       <Th>メール</Th>
+                      <Th>申込イベント</Th>
                       <Th>会社</Th>
                       <Th>参加経路</Th>
                       <Th>挑戦内容</Th>
@@ -579,6 +580,20 @@ export default function AdminPage() {
                         </Td>
                         <Td>{reg.name}</Td>
                         <Td>{reg.email}</Td>
+                        <Td>
+                          {(() => {
+                            const ev = events.find(e => e.id === reg.event_id);
+                            if (!ev) return <span style={{ color: '#999' }}>-</span>;
+                            return (
+                              <span>
+                                {ev.title}
+                                <span style={{ display: 'block', fontSize: 11, color: '#666' }}>
+                                  {pillarLabels[ev.pillar] || `Pillar ${ev.pillar}`}
+                                </span>
+                              </span>
+                            );
+                          })()}
+                        </Td>
                         <Td>{reg.company || '-'}</Td>
                         <Td>{reg.referrer_source || '-'}</Td>
                         <Td style={{ maxWidth: 200, color: '#E60012', cursor: 'help' }}
