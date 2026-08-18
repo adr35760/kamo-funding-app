@@ -212,7 +212,7 @@ export default function SeminarLanding({
                           ))
                         : config.sessions.map(s => (
                             <option key={s.isoDate} value="" disabled>
-                              {s.dateLabel} {s.timeLabel}（準備中）
+                              {s.dateLabel} {s.timeLabel}（読み込み中）
                             </option>
                           ))}
                     </select>
