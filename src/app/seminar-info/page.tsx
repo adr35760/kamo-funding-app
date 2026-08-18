@@ -86,7 +86,7 @@ export default function SeminarInfoPage() {
         <div className="container">
           <div className="hero-inner">
             <div className="hero-badge"><span className="hero-badge-dot"></span>参加費無料・月2回オンライン開催</div>
-            <h1><span className="gold">KAMOファンディング</span>掲載説明会！<br />掲載方法から、<span className="gold">AIで企画を構築</span>する手法をお伝えします！</h1>
+            <h1><span className="hero-line1"><span className="gold">KAMOファンディング</span>掲載説明会！</span><br /><span className="hero-line2">掲載方法から、<span className="gold">AIで企画を構築</span>する手法をお伝えします！</span></h1>
             <p className="hero-sub">～夢を叶えたいなら！クラウドファンディングの活用方法を学ぶべし！</p>
             <a href="#apply" className="hero-cta">今すぐ無料で申し込む →</a>
             <div className="hero-meta">
@@ -102,7 +102,7 @@ export default function SeminarInfoPage() {
       <section className="benefits">
         <div className="container">
           <div className="benefits-title">
-            <h2>本業が停滞している<span className="accent">今だからこそ！</span><br />クラウドファンディングが<span className="accent">最高の武器</span>になります！</h2>
+            <h2><span className="bt-line1">本業が停滞している<span className="accent">今だからこそ！</span></span><br /><span className="bt-line2">クラウドファンディングが<span className="accent">最高の武器</span>になります！</span></h2>
           </div>
           <div className="benefits-grid">
             <div className="benefit-card"><div className="kamo-icon kamo-icon-trending-up lg"></div><h3>短期キャンペーンで売上UP</h3><p>クラファンを「先行販売」「限定商品」の短期キャンペーンに使い、本業の売上を一気に引き上げる。</p></div>
