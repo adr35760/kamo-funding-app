@@ -86,8 +86,8 @@ export default function SeminarInfoPage() {
         <div className="container">
           <div className="hero-inner">
             <div className="hero-badge"><span className="hero-badge-dot"></span>参加費無料・月2回オンライン開催</div>
-            <h1>本業の売上を上げる<br /><span className="gold">クラウドファンディング</span>の<br />使い方が学べる無料説明会</h1>
-            <p className="hero-sub">KAMOファンディングの無料掲載説明会。AIでクラファンページが自動作成できる新しい仕組みも体験できます。</p>
+            <h1><span className="gold">KAMOファンディング</span>掲載説明会！<br />掲載方法か<span className="gold">AIで企画を構築</span>する手法をお伝えします！</h1>
+            <p className="hero-sub">～夢を叶えたいなら！クラウドファンディングの活用方法を学ぶべし！</p>
             <a href="#apply" className="hero-cta">今すぐ無料で申し込む →</a>
             <div className="hero-meta">
               <div className="hero-meta-item"><span className="kamo-icon kamo-icon-calendar sm"></span> 月2回開催</div>

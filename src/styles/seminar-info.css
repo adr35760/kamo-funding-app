@@ -30,7 +30,7 @@ a { color: inherit; text-decoration: none; }
 .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 6px 18px; border-radius: 100px; font-size: 13px; font-weight: 700; margin-bottom: 24px; }
 .hero-badge-dot { width: 8px; height: 8px; background: var(--kamo-gold); border-radius: 50%; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.3); } }
-.hero h1 { font-size: 34px; font-weight: 900; line-height: 1.5; margin-bottom: 20px; letter-spacing: -0.02em; }
+.hero h1 { font-size: clamp(22px, 3.4vw, 34px); font-weight: 900; line-height: 1.55; margin-bottom: 20px; letter-spacing: -0.01em; }
 .hero h1 .gold { color: var(--kamo-gold-light); }
 .hero-sub { font-size: 17px; opacity: 0.9; margin-bottom: 32px; max-width: 600px; margin-left: auto; margin-right: auto; }
 .hero-cta { display: inline-flex; align-items: center; gap: 8px; background: var(--kamo-white); color: var(--kamo-red); padding: 18px 40px; border-radius: 100px; font-weight: 900; font-size: 18px; transition: all 0.3s; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
@@ -38,7 +38,7 @@ a { color: inherit; text-decoration: none; }
 .hero-meta { display: flex; justify-content: center; gap: 32px; margin-top: 32px; flex-wrap: wrap; }
 .hero-meta-item { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; }
 .hero-meta-item .icon { font-size: 18px; }
-@media (max-width: 768px) { .hero h1 { font-size: 24px; } .hero-meta { gap: 16px; } }
+@media (max-width: 768px) { .hero-meta { gap: 16px; } }
 
 /* BENEFITS — 3つの理由 */
 .benefits { padding: 64px 0; }
@@ -212,4 +212,18 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 400px) {
   /* 極小画面ではボタンの折り返しを許容してはみ出しを防ぐ */
   .seminar-info-page .hero-cta { white-space: normal; font-size: 16px; padding: 15px 22px; }
+}
+
+/* 新ヒーロー文言（長文）の折り返し調整 */
+.seminar-info-page .hero h1 {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow-wrap: break-word;
+}
+@media (max-width: 768px) {
+  /* スマホでは強制改行を解除し、画面幅に合わせて自然に折り返す */
+  .seminar-info-page .hero h1 { font-size: clamp(20px, 5.4vw, 26px); line-height: 1.6; }
+  .seminar-info-page .hero h1 br { display: none; }
+  .seminar-info-page .hero-sub { font-size: 16px; }
 }
