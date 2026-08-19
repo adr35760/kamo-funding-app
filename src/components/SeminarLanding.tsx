@@ -27,11 +27,16 @@ interface EventRow {
 export default function SeminarLanding({
   config,
   heroImage,
+  initialEvents = [],
 }: {
   config: SeminarConfig;
   heroImage?: string;
+  /** サーバー側で取得済みの日程（初期HTMLに含めるため） */
+  initialEvents?: EventRow[];
 }) {
-  const [events, setEvents] = useState<EventRow[]>([]);
+  const [events, setEvents] = useState<EventRow[]>(initialEvents);
+  // サーバーで取得できていれば追加取得は不要
+  const [loadingEvents, setLoadingEvents] = useState(initialEvents.length === 0);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -40,14 +45,16 @@ export default function SeminarLanding({
   const accent = isReal ? 'var(--kamo-gold)' : 'var(--kamo-red)';
 
   useEffect(() => {
+    if (initialEvents.length > 0) return; // サーバー取得済み
     fetch('/api/events')
       .then(r => r.json())
       .then(d => {
         const rows: EventRow[] = (d.events || []).filter((e: EventRow) => e.pillar === config.pillar);
         setEvents(rows);
       })
-      .catch(() => setEvents([]));
-  }, [config.pillar]);
+      .catch(() => setEvents([]))
+      .finally(() => setLoadingEvents(false));
+  }, [config.pillar, initialEvents.length]);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -131,14 +138,37 @@ export default function SeminarLanding({
       <section className="sl-section">
         <div className="sl-container">
           <h2>セミナーの<span style={{ color: accent }}>内容</span></h2>
-          <ol className="sl-contents">
-            {config.contents.map((c, i) => (
-              <li key={c}>
-                <span className="sl-num" style={{ background: accent }}>{i + 1}</span>
-                <span>{c}</span>
-              </li>
-            ))}
-          </ol>
+          {config.program ? (
+            <>
+              <div className="sl-program">
+                {config.program.map((b, i) => (
+                  <div className={b.special ? 'sl-program-item is-special' : 'sl-program-item'} key={b.label}>
+                    <div className="sl-program-label" style={b.special ? undefined : { background: accent }}>
+                      {b.special ? '特別セッション' : `第${i + 1}部`}
+                    </div>
+                    <div className="sl-program-body">
+                      <h3>{b.special ? `${b.title}` : b.title}</h3>
+                      <p>{b.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {config.programClosing && (
+                <div className="sl-program-closing">
+                  <p>{config.programClosing}</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <ol className="sl-contents">
+              {config.contents.map((c, i) => (
+                <li key={c}>
+                  <span className="sl-num" style={{ background: accent }}>{i + 1}</span>
+                  <span>{c}</span>
+                </li>
+              ))}
+            </ol>
+          )}
         </div>
       </section>
 
@@ -212,12 +242,17 @@ export default function SeminarLanding({
                           ))
                         : config.sessions.map(s => (
                             <option key={s.isoDate} value="" disabled>
-                              {s.dateLabel} {s.timeLabel}（読み込み中）
+                              {s.dateLabel} {s.timeLabel}
+                              {loadingEvents ? '（読み込み中）' : '（現在受付を準備中）'}
                             </option>
                           ))}
                     </select>
                     {events.length === 0 && (
-                      <p className="sl-hint">日程の読み込み中です。表示されない場合は少し待ってから再読み込みしてください。</p>
+                      <p className="sl-hint">
+                        {loadingEvents
+                          ? '日程を読み込んでいます...'
+                          : '日程を取得できませんでした。お手数ですが、ページを再読み込みしてください。'}
+                      </p>
                     )}
                   </div>
                   <div className="sl-form-row">
@@ -243,7 +278,7 @@ export default function SeminarLanding({
                     {submitting ? '送信中...' : '申し込む →'}
                   </button>
                   <p className="sl-hint" style={{ textAlign: 'center', marginTop: '12px' }}>
-                    参加費・持ち物などの詳細は、確定後にメールでご案内します。
+                    持ち物・当日の詳細は、開催前にメールでご案内します。
                   </p>
                 </form>
               </>

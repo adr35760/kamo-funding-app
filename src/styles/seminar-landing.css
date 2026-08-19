@@ -74,3 +74,55 @@
   .sl-hero { padding: 48px 0 56px; }
   .sl-section { padding: 48px 0; }
 }
+
+/* ============================================
+   詳細プログラム（第1部〜第5部＋特別セッション）
+   ============================================ */
+.sl-program { max-width: 780px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.sl-program-item {
+  display: flex; gap: 20px; align-items: flex-start;
+  background: #fff; border: 1px solid rgba(0,0,0,.08);
+  border-radius: var(--radius-lg); padding: 22px 24px;
+  box-shadow: 0 3px 12px rgba(11,29,58,.06);
+}
+.sl-program-label {
+  flex-shrink: 0; min-width: 76px; text-align: center;
+  color: #fff; font-weight: 900; font-size: 14px;
+  padding: 8px 12px; border-radius: 999px; line-height: 1.4;
+}
+.sl-program-body h3 { font-size: 19px; font-weight: 900; margin: 2px 0 8px; line-height: 1.45; }
+.sl-program-body p { font-size: 16px; color: #555; line-height: 1.85; margin: 0; }
+
+/* 特別セッション（鴨頭嘉人登壇）— 金枠＋紺背景で明確に差をつける */
+.sl-program-item.is-special {
+  background: linear-gradient(160deg, var(--kamo-navy) 0%, #16305c 100%);
+  border: 2px solid var(--kamo-gold);
+  box-shadow: 0 8px 28px rgba(212,160,23,.22);
+}
+.sl-program-item.is-special .sl-program-label {
+  background: var(--kamo-gold); color: var(--kamo-navy);
+  min-width: 104px; font-size: 13px;
+}
+.sl-program-item.is-special .sl-program-body h3 { color: var(--kamo-gold); font-size: 21px; }
+.sl-program-item.is-special .sl-program-body p { color: rgba(255,255,255,.9); }
+
+/* 締めの一文 */
+.sl-program-closing {
+  max-width: 780px; margin: 28px auto 0;
+  background: linear-gradient(135deg, var(--kamo-gold) 0%, #E8C25A 100%);
+  border-radius: var(--radius-lg); padding: 26px 28px; text-align: center;
+  box-shadow: 0 8px 24px rgba(212,160,23,.28);
+}
+.sl-program-closing p {
+  margin: 0; color: var(--kamo-navy);
+  font-size: clamp(17px, 2.2vw, 22px); font-weight: 900; line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .sl-program-item { flex-direction: column; gap: 12px; padding: 20px; }
+  .sl-program-label { min-width: 0; align-self: flex-start; padding: 6px 16px; }
+  .sl-program-item.is-special .sl-program-label { min-width: 0; }
+  .sl-program-body h3 { font-size: 18px; }
+  .sl-program-body p { font-size: 15px; }
+  .sl-program-closing { padding: 22px 18px; }
+}

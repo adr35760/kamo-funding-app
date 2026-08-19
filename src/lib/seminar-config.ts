@@ -53,6 +53,18 @@ export interface SeminarSession {
   isoDate: string;
 }
 
+/** 詳細プログラムの1ブロック（見出し＋説明文） */
+export interface ProgramBlock {
+  /** 「第1部」「特別セッション」などのラベル */
+  label: string;
+  /** 見出し */
+  title: string;
+  /** 説明文 */
+  body: string;
+  /** 特別枠として強調表示するか（鴨頭嘉人の登壇など） */
+  special?: boolean;
+}
+
 export interface SeminarConfig {
   slug: string;
   /** events.pillar（2=オンラインセミナー / 3=リアル懇親会） */
@@ -70,6 +82,10 @@ export interface SeminarConfig {
   /** 懇親会の定員（リアル回のみ・表示専用。申込上限はセミナー側 capacity が基準） */
   capacityParty?: PendingValue;
   contents: string[];
+  /** 詳細プログラム（設定されていれば contents より優先して表示） */
+  program?: ProgramBlock[];
+  /** プログラム末尾に強調表示する締めの一文 */
+  programClosing?: string;
   sessions: SeminarSession[];
   /** 会場（オンラインは null） */
   venue: { seminar: string; party?: string } | null;
@@ -92,6 +108,40 @@ export const AI_SEMINAR: SeminarConfig = {
     '鴨頭嘉人よりメッセージ',
     '掲載説明',
   ],
+  program: [
+    {
+      label: '第1部',
+      title: '夢を「応援される企画」に変える',
+      body: '実現したいこと、挑戦する理由、届けたい相手を整理し、プロジェクトの中心メッセージを作ります。',
+    },
+    {
+      label: '第2部',
+      title: '支援されるプロジェクトの共通点',
+      body: '支援を集めるために必要な「共感」「信頼」「ストーリー」の作り方を学びます。',
+    },
+    {
+      label: '第3部',
+      title: 'AIでクラファン企画を作る',
+      body: 'KAMOファンディングのAIツールを使い、コンセプト、ターゲット、タイトル、企画概要を作成します。',
+    },
+    {
+      label: '第4部',
+      title: 'AIで掲載ページを作る',
+      body: 'AIでページ構成と文章のたたき台を作り、自分の経験や想いを加えて、心が動く掲載ページへ仕上げます。',
+    },
+    {
+      label: '第5部',
+      title: 'リターンと支援戦略',
+      body: '応援型、商品・サービス、体験、スポンサーなどのリターンと、公開後の告知計画を設計します。',
+    },
+    {
+      label: '特別セッション',
+      title: '鴨頭嘉人',
+      body: '「挑戦する人に、共犯者が集まる理由」をテーマに、応援される人の考え方をお伝えします。参加者の企画への公開アドバイスと質疑応答も行います。',
+      special: true,
+    },
+  ],
+  programClosing: '4時間後には、あなたのクラウドファンディング企画と掲載ページのたたき台が完成します。',
   sessions: [
     { dateLabel: '10/5（月）', timeLabel: '16:00〜20:00', isoDate: '2026-10-05T16:00:00+09:00' },
     { dateLabel: '11/10（火）', timeLabel: '16:00〜20:00', isoDate: '2026-11-10T16:00:00+09:00' },
