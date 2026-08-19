@@ -34,6 +34,18 @@ export function pendingLabel(v: PendingValue, fallback = '準備中（決まり�
  */
 export const PRICE_TAX_NOTE = ''; // 税表記は「税込」で確定したため注記は不要
 
+/**
+ * 価格ラベルを「金額」と「補足（税込など）」に分解する。
+ * 例: '9,800円（税込）' → { amount: '9,800円', suffix: '税込' }
+ * 金額を大きく、税表記を小さく表示するために使う（税表記は必ず残す）。
+ */
+export function splitPriceLabel(v: PendingValue): { amount: string; suffix?: string } {
+  const label = pendingLabel(v);
+  const m = label.match(/^(.*?)（(.+?)）\s*$/);
+  if (m) return { amount: m[1].trim(), suffix: m[2].trim() };
+  return { amount: label };
+}
+
 export const ZOOM_NOTE = 'オンライン（Zoom）で開催します。参加URLは開催が近づきましたらメールでご案内します。';
 
 /** 会場情報（リアル回） */
@@ -78,6 +90,8 @@ export interface SeminarConfig {
   price: PendingValue;
   /** 価格に添える補足（例: セミナー＋懇親会込み） */
   priceNote?: string;
+  /** 参加費を大きく強調表示するか（申込判断に直結するため） */
+  emphasizePrice?: boolean;
   capacity: PendingValue;
   /** 懇親会の定員（リアル回のみ・表示専用。申込上限はセミナー側 capacity が基準） */
   capacityParty?: PendingValue;
@@ -100,6 +114,8 @@ export const AI_SEMINAR: SeminarConfig = {
     'AIを活用してクラウドファンディングのページを作り、夢を実現するための実践セミナー。鴨頭嘉人が特別参加します。',
   format: 'オンライン開催（Zoom）',
   price: { status: 'fixed', label: '9,800円（税込）' },
+  // 参加費を大きく強調（t iku指示。リアル側に揃えるかは確認中のため未設定）
+  emphasizePrice: true,
   capacity: { status: 'fixed', label: '20名' },
   contents: [
     '夢実現のステップ',

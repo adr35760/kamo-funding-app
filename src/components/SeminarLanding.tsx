@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import '@/styles/kamo-icons.css';
 import '@/styles/seminar-landing.css';
-import { pendingLabel, PRICE_TAX_NOTE, type SeminarConfig } from '@/lib/seminar-config';
+import { pendingLabel, splitPriceLabel, PRICE_TAX_NOTE, type SeminarConfig } from '@/lib/seminar-config';
 import { formatEventDateJa } from '@/lib/event-format';
 
 interface EventRow {
@@ -105,6 +105,7 @@ export default function SeminarLanding({
   };
 
   const priceText = pendingLabel(config.price);
+  const priceParts = splitPriceLabel(config.price);
   const capacityText = pendingLabel(config.capacity);
 
   return (
@@ -122,16 +123,31 @@ export default function SeminarLanding({
           <div className="sl-badge">{config.format}</div>
           <h1>{config.title}</h1>
           <p className="sl-lead">{config.lead}</p>
-          <div className="sl-hero-meta">
-            <span>
-              💰 参加費：{priceText}
-              {config.priceNote && <span style={{ fontWeight: 400, opacity: .85 }}>（{config.priceNote}）</span>}
-            </span>
-            <span>
-              👥 定員：{capacityText}
-              {config.capacityParty && <> / {pendingLabel(config.capacityParty)}</>}
-            </span>
-          </div>
+          {config.emphasizePrice ? (
+            <div className="sl-price-box">
+              <div className="sl-price-main">
+                <span className="sl-price-label">参加費</span>
+                <span className="sl-price-amount">{priceParts.amount}</span>
+                {priceParts.suffix && <span className="sl-price-suffix">（{priceParts.suffix}）</span>}
+              </div>
+              {config.priceNote && <div className="sl-price-note">{config.priceNote}</div>}
+              <div className="sl-price-capacity">
+                👥 定員：{capacityText}
+                {config.capacityParty && <> / {pendingLabel(config.capacityParty)}</>}
+              </div>
+            </div>
+          ) : (
+            <div className="sl-hero-meta">
+              <span>
+                💰 参加費：{priceText}
+                {config.priceNote && <span style={{ fontWeight: 400, opacity: .85 }}>（{config.priceNote}）</span>}
+              </span>
+              <span>
+                👥 定員：{capacityText}
+                {config.capacityParty && <> / {pendingLabel(config.capacityParty)}</>}
+              </span>
+            </div>
+          )}
           <a href="#apply" className="sl-cta">申し込む →</a>
           {heroImage && (
             <div className="sl-hero-image">
@@ -215,7 +231,15 @@ export default function SeminarLanding({
             ))}
           </div>
           <p className="sl-note">
-            参加費：<strong>{priceText}</strong>
+            参加費：
+            {config.emphasizePrice ? (
+              <>
+                <span className="sl-note-amount">{priceParts.amount}</span>
+                {priceParts.suffix && <span className="sl-note-suffix">（{priceParts.suffix}）</span>}
+              </>
+            ) : (
+              <strong>{priceText}</strong>
+            )}
             {config.priceNote && <>（{config.priceNote}）</>}
             {PRICE_TAX_NOTE && <><br />{PRICE_TAX_NOTE}</>}
             <br />

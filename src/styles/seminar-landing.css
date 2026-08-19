@@ -145,3 +145,56 @@
   .sl-hero-image { margin-top: 28px; border-radius: 12px; }
   .sl-hero-image img { width: 100%; height: auto; }
 }
+
+/* ============================================
+   参加費の強調表示（emphasizePrice が true のページのみ）
+   申込判断に直結する情報なので、金額を大きく金色で見せる。
+   「税込」表記はサイズを落としても必ず残す。
+   ============================================ */
+.sl-price-box {
+  display: inline-block;
+  margin: 4px auto 24px;
+  padding: 18px 34px;
+  background: rgba(255, 255, 255, .08);
+  border: 2px solid var(--kamo-gold);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 26px rgba(212, 160, 23, .22);
+}
+.sl-price-main { display: flex; align-items: baseline; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.sl-price-label {
+  font-size: 16px; font-weight: 700; color: rgba(255, 255, 255, .85);
+}
+.sl-price-amount {
+  font-size: clamp(38px, 6.4vw, 60px);
+  font-weight: 900;
+  color: var(--kamo-gold);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 12px rgba(212, 160, 23, .3);
+}
+/* 「（税込）」— 小さくても必ず表示する */
+.sl-price-suffix { font-size: 15px; font-weight: 700; color: rgba(255, 255, 255, .8); }
+.sl-price-note { margin-top: 4px; font-size: 14px; color: rgba(255, 255, 255, .8); }
+.sl-price-capacity {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, .18);
+  font-size: 15px; font-weight: 700; color: rgba(255, 255, 255, .9);
+}
+
+/* 日程セクション末尾（白背景側）— 同じ意匠で統一感を出す */
+.sl-note-amount {
+  font-size: clamp(26px, 3.6vw, 34px);
+  font-weight: 900;
+  color: #B8860B; /* 白背景で可読性を確保した金色 */
+  line-height: 1.2;
+  vertical-align: middle;
+}
+.sl-note-suffix { font-size: 14px; font-weight: 700; color: var(--kamo-gray); }
+
+@media (max-width: 768px) {
+  .sl-price-box { padding: 16px 22px; margin-bottom: 20px; width: 100%; max-width: 340px; }
+  .sl-price-amount { font-size: clamp(34px, 10vw, 46px); }
+  .sl-price-label { font-size: 15px; }
+  .sl-price-suffix { font-size: 14px; }
+  .sl-note-amount { font-size: clamp(24px, 7vw, 30px); }
+}
