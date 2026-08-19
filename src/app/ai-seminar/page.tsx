@@ -12,7 +12,7 @@ export default async function AiSeminarPage() {
       config={AI_SEMINAR}
       initialEvents={events}
       heroImage="/ai-seminar-hero.jpg"
-      heroImageAlt="AI時代のクラウドファンディング活用セミナーの様子"
+      heroImageAlt="AI時代のクラウドファンディング活用セミナーのオンライン開催の様子"
     />
   );
 }
