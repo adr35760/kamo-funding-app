@@ -13,6 +13,8 @@ export default async function AiSeminarPage() {
       initialEvents={events}
       heroImage="/ai-seminar-hero.jpg"
       heroImageAlt="AI時代のクラウドファンディング活用セミナーのオンライン開催の様子"
+      heroImageWidth={2048}
+      heroImageHeight={1280}
     />
   );
 }

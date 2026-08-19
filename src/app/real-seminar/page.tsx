@@ -7,6 +7,14 @@ export const revalidate = 60;
 
 export default async function RealSeminarPage() {
   const events = await fetchSeminarEvents(REAL_SEMINAR.pillar);
-  // ヒーロー画像が届いたら heroImage="/real-seminar-hero.jpg" のように渡すだけでよい
-  return <SeminarLanding config={REAL_SEMINAR} initialEvents={events} />;
+  return (
+    <SeminarLanding
+      config={REAL_SEMINAR}
+      initialEvents={events}
+      heroImage="/real-seminar-hero.jpg"
+      heroImageAlt="リアルセミナー＆懇親会の様子"
+      heroImageWidth={1632}
+      heroImageHeight={1224}
+    />
+  );
 }

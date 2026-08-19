@@ -29,11 +29,16 @@ export default function SeminarLanding({
   config,
   heroImage,
   heroImageAlt,
+  heroImageWidth = 2048,
+  heroImageHeight = 1280,
   initialEvents = [],
 }: {
   config: SeminarConfig;
   heroImage?: string;
   heroImageAlt?: string;
+  /** ヒーロー画像の実寸（比率が正しく保たれるよう画像ごとに指定する） */
+  heroImageWidth?: number;
+  heroImageHeight?: number;
   /** サーバー側で取得済みの日程（初期HTMLに含めるため） */
   initialEvents?: EventRow[];
 }) {
@@ -133,11 +138,11 @@ export default function SeminarLanding({
               <Image
                 src={heroImage}
                 alt={heroImageAlt || `${config.shortTitle}の様子`}
-                width={2048}
-                height={1280}
+                width={heroImageWidth}
+                height={heroImageHeight}
                 priority
                 quality={95}
-                sizes="(max-width: 768px) 100vw, (max-width: 1400px) 100vw, 2048px"
+                sizes={`(max-width: 768px) 100vw, (max-width: 1400px) 100vw, ${heroImageWidth}px`}
                 style={{ width: '100%', height: 'auto', display: 'block' }}
               />
             </div>
