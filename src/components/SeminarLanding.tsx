@@ -134,7 +134,7 @@ export default function SeminarLanding({
                 src={heroImage}
                 alt={heroImageAlt || `${config.shortTitle}の様子`}
                 width={2048}
-                height={1170}
+                height={1280}
                 priority
                 quality={95}
                 sizes="(max-width: 768px) 100vw, (max-width: 1400px) 100vw, 2048px"
