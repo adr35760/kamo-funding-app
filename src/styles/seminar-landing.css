@@ -192,9 +192,14 @@
 .sl-note-suffix { font-size: 14px; font-weight: 700; color: var(--kamo-gray); }
 
 @media (max-width: 768px) {
-  .sl-price-box { padding: 16px 22px; margin-bottom: 20px; width: 100%; max-width: 340px; }
-  .sl-price-amount { font-size: clamp(34px, 10vw, 46px); }
-  .sl-price-label { font-size: 15px; }
-  .sl-price-suffix { font-size: 14px; }
+  /* スマホでは「参加費」ラベルを金額の上に置き、桁数の多い金額（19,800円）でも
+     不自然な折り返しやはみ出しが起きないようにする */
+  .sl-price-box { padding: 16px 20px; margin-bottom: 20px; width: 100%; max-width: 360px; }
+  .sl-price-main { flex-direction: column; gap: 2px; }
+  .sl-price-label { font-size: 14px; }
+  .sl-price-amount { font-size: clamp(34px, 9.4vw, 46px); }
+  .sl-price-suffix { font-size: 13px; }
   .sl-note-amount { font-size: clamp(24px, 7vw, 30px); }
 }
+/* 金額は常に1行で表示（改行させない） */
+.sl-price-amount, .sl-note-amount { white-space: nowrap; }

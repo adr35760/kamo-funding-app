@@ -114,7 +114,7 @@ export const AI_SEMINAR: SeminarConfig = {
     'AIを活用してクラウドファンディングのページを作り、夢を実現するための実践セミナー。鴨頭嘉人が特別参加します。',
   format: 'オンライン開催（Zoom）',
   price: { status: 'fixed', label: '9,800円（税込）' },
-  // 参加費を大きく強調（t iku指示。リアル側に揃えるかは確認中のため未設定）
+  // 参加費を大きく強調（t iku指示・両ページ共通の意匠）
   emphasizePrice: true,
   capacity: { status: 'fixed', label: '20名' },
   contents: [
@@ -176,6 +176,8 @@ export const REAL_SEMINAR: SeminarConfig = {
   // セミナー＋懇親会込みの金額（内訳は記載しない方針）
   price: { status: 'fixed', label: '19,800円（税込）' },
   priceNote: 'セミナー＋懇親会込み',
+  // 参加費を大きく強調（/ai-seminar と統一意匠）
+  emphasizePrice: true,
   capacity: { status: 'fixed', label: 'セミナー 20名' },
   capacityParty: { status: 'fixed', label: '懇親会 35名' },
   contents: [
