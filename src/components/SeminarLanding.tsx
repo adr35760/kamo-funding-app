@@ -136,8 +136,8 @@ export default function SeminarLanding({
                 width={1632}
                 height={1224}
                 priority
-                quality={90}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 900px"
+                quality={95}
+                sizes="(max-width: 768px) 100vw, (max-width: 1400px) 100vw, 1632px"
                 style={{ width: '100%', height: 'auto', display: 'block' }}
               />
             </div>
