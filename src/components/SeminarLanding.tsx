@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import '@/styles/kamo-icons.css';
 import '@/styles/seminar-landing.css';
 import { pendingLabel, PRICE_TAX_NOTE, type SeminarConfig } from '@/lib/seminar-config';
@@ -27,10 +28,12 @@ interface EventRow {
 export default function SeminarLanding({
   config,
   heroImage,
+  heroImageAlt,
   initialEvents = [],
 }: {
   config: SeminarConfig;
   heroImage?: string;
+  heroImageAlt?: string;
   /** サーバー側で取得済みの日程（初期HTMLに含めるため） */
   initialEvents?: EventRow[];
 }) {
@@ -127,8 +130,16 @@ export default function SeminarLanding({
           <a href="#apply" className="sl-cta">申し込む →</a>
           {heroImage && (
             <div className="sl-hero-image">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={heroImage} alt={`${config.shortTitle}の様子`} />
+              <Image
+                src={heroImage}
+                alt={heroImageAlt || `${config.shortTitle}の様子`}
+                width={1632}
+                height={1224}
+                priority
+                quality={90}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 900px"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
             </div>
           )}
         </div>

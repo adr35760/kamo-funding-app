@@ -7,6 +7,12 @@ export const revalidate = 60;
 
 export default async function AiSeminarPage() {
   const events = await fetchSeminarEvents(AI_SEMINAR.pillar);
-  // ヒーロー画像が届いたら heroImage="/ai-seminar-hero.jpg" のように渡すだけでよい
-  return <SeminarLanding config={AI_SEMINAR} initialEvents={events} />;
+  return (
+    <SeminarLanding
+      config={AI_SEMINAR}
+      initialEvents={events}
+      heroImage="/ai-seminar-hero.jpg"
+      heroImageAlt="AI時代のクラウドファンディング活用セミナーの様子"
+    />
+  );
 }
