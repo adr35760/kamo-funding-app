@@ -227,6 +227,7 @@ export default function SeminarLanding({
                   <div className="sl-speaker-info">
                     <div className="sl-speaker-role">{sp.role}</div>
                     <div className="sl-speaker-name">{sp.name}</div>
+                    {sp.title && <p className="sl-speaker-title">{sp.title}</p>}
                   </div>
                 </div>
               ))}
