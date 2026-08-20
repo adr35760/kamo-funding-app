@@ -77,6 +77,18 @@ export interface ProgramBlock {
   special?: boolean;
 }
 
+/** 講師紹介の1名分 */
+export interface Speaker {
+  /** 役割・肩書き（例: メイン講師） */
+  role: string;
+  /** お名前 */
+  name: string;
+  /** 写真のパス（4:3に統一済み） */
+  image: string;
+  /** 特別枠として強調するか（鴨頭嘉人など） */
+  special?: boolean;
+}
+
 export interface SeminarConfig {
   slug: string;
   /** events.pillar（2=オンラインセミナー / 3=リアル懇親会） */
@@ -100,6 +112,8 @@ export interface SeminarConfig {
   program?: ProgramBlock[];
   /** プログラム末尾に強調表示する締めの一文 */
   programClosing?: string;
+  /** 講師紹介（プロフィール文は未提供のため役割＋お名前のみ） */
+  speakers?: Speaker[];
   sessions: SeminarSession[];
   /** 会場（オンラインは null） */
   venue: { seminar: string; party?: string } | null;
@@ -158,6 +172,12 @@ export const AI_SEMINAR: SeminarConfig = {
     },
   ],
   programClosing: '4時間後には、あなたのクラウドファンディング企画と掲載ページのたたき台が完成します。',
+  // プロフィール文は未提供のため、役割＋お名前のみ（勝手に作らない方針）
+  speakers: [
+    { role: 'メイン講師', name: '生島 正', image: '/speaker-ikushima.jpg' },
+    { role: 'AI導入講師', name: '堺 彬', image: '/speaker-sakai.jpg' },
+    { role: '特別登壇', name: '鴨頭嘉人', image: '/speaker-kamogashira.jpg', special: true },
+  ],
   sessions: [
     { dateLabel: '10/5（月）', timeLabel: '16:00〜20:00', isoDate: '2026-10-05T16:00:00+09:00' },
     { dateLabel: '11/10（火）', timeLabel: '16:00〜20:00', isoDate: '2026-11-10T16:00:00+09:00' },

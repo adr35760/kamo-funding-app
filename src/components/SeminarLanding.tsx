@@ -106,6 +106,7 @@ export default function SeminarLanding({
 
   const priceText = pendingLabel(config.price);
   const priceParts = splitPriceLabel(config.price);
+  const hasSpeakers = !!config.speakers && config.speakers.length > 0;
   const capacityText = pendingLabel(config.capacity);
 
   return (
@@ -204,8 +205,38 @@ export default function SeminarLanding({
         </div>
       </section>
 
-      {/* 日程 */}
-      <section className="sl-section sl-section-alt" id="schedule">
+      {/* 講師紹介 */}
+      {hasSpeakers && config.speakers && (
+        <section className="sl-section sl-section-alt">
+          <div className="sl-container">
+            <h2>講師<span style={{ color: accent }}>紹介</span></h2>
+            <div className="sl-speakers">
+              {config.speakers.map(sp => (
+                <div className={sp.special ? 'sl-speaker is-special' : 'sl-speaker'} key={sp.name}>
+                  <div className="sl-speaker-photo">
+                    <Image
+                      src={sp.image}
+                      alt={`${sp.role} ${sp.name}`}
+                      width={900}
+                      height={675}
+                      quality={90}
+                      sizes="(max-width: 768px) 100vw, 320px"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  </div>
+                  <div className="sl-speaker-info">
+                    <div className="sl-speaker-role">{sp.role}</div>
+                    <div className="sl-speaker-name">{sp.name}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 日程（背景は前セクションと交互になるよう切替） */}
+      <section className={hasSpeakers ? 'sl-section' : 'sl-section sl-section-alt'} id="schedule">
         <div className="sl-container">
           <h2>開催<span style={{ color: accent }}>日程</span></h2>
           <div className="sl-schedule">
