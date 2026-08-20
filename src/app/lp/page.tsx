@@ -306,16 +306,13 @@ export default function LPPage() {
                     <label>参加希望回 <span className="required">必須</span></label>
                     <select name="event_id" required>
                       <option value="">選択してください</option>
-                      {infoEvents.length > 0 ? (
-                        infoEvents.map(ev => (
-                          <option key={ev.id} value={ev.id}>{formatEventDateJa(ev.event_date, ev.duration_minutes)} — {cleanTitle(ev.title)}</option>
-                        ))
-                      ) : (
-                        <>
-                          <option value="0ae42e1f-1a2b-4c3d-8e5f-6a7b8c9d0e1f">8/18（火）19:30〜21:00 — 第1回 掲載説明会</option>
-                          <option value="851bfae5-2b3c-4d5e-9f6a-7b8c9d0e1f2a">8/28（金）19:30〜21:00 — 第2回 掲載説明会</option>
-                          <option value="94f5db1d-3c4d-4e6f-a7b8-c9d0e1f2a3b4">9/15（火）19:30〜21:00 — 第3回 掲載説明会</option>
-                        </>
+                      {/* 固定の選択肢を持つと終了した回に申込できてしまうため、
+                          選択肢は /api/events（終了回を除外済み）の結果のみとする */}
+                      {infoEvents.map(ev => (
+                        <option key={ev.id} value={ev.id}>{formatEventDateJa(ev.event_date, ev.duration_minutes)} — {cleanTitle(ev.title)}</option>
+                      ))}
+                      {eventsLoaded && infoEvents.length === 0 && (
+                        <option value="" disabled>現在募集中の日程はありません</option>
                       )}
                     </select>
                   </div>
