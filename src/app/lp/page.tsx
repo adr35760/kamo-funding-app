@@ -9,6 +9,7 @@ interface EventOption extends EventLike {}
 
 export default function LPPage() {
   const [events, setEvents] = useState<EventOption[]>([]);
+  const [eventsLoaded, setEventsLoaded] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -22,16 +23,13 @@ export default function LPPage() {
       .then(res => res.ok ? res.json() : [])
       .then(data => {
         const list: EventOption[] = (data.events || data || []).map((e: EventLike) => ({ ...e }));
-        if (list.length > 0) setEvents(list);
+        setEvents(list);
       })
       .catch(() => {
-        // フォールバック: 実際のイベント日程（API取得失敗時）
-        setEvents([
-          { id: '0ae42e1f-1a2b-4c3d-8e5f-6a7b8c9d0e1f', title: '第1回 KAMOファンディング無料掲載説明会', event_date: '2026-08-18T19:30:00+09:00', pillar: 1, duration_minutes: 90 },
-          { id: '851bfae5-2b3c-4d5e-9f6a-7b8c9d0e1f2a', title: '第2回 KAMOファンディング無料掲載説明会', event_date: '2026-08-28T19:30:00+09:00', pillar: 1, duration_minutes: 90 },
-          { id: '94f5db1d-3c4d-4e6f-a7b8-c9d0e1f2a3b4', title: '第3回 KAMOファンディング無料掲載説明会', event_date: '2026-09-15T19:30:00+09:00', pillar: 1, duration_minutes: 90 },
-        ]);
-      });
+        // 固定日程をフォールバックにすると過去日程が復活するため、何も出さない
+        setEvents([]);
+      })
+      .finally(() => setEventsLoaded(true));
   }, []);
 
   // ヘッダースクロール効果
@@ -251,67 +249,20 @@ export default function LPPage() {
                         <span className="tag tag-free">参加費無料</span>
                       </div>
                     </div>
-                    <div className="schedule-status status-open">募集中</div>
+                    <div className={ev.finished ? 'schedule-status' : 'schedule-status status-open'}
+                      style={ev.finished ? { background: '#9E9E9E', color: '#fff' } : undefined}>
+                      {ev.finished ? '終了' : '募集中'}
+                    </div>
                   </div>
                 );
               })
+            ) : eventsLoaded ? (
+              <div style={{ textAlign: 'center', padding: '40px 20px', background: '#FFF5F5', borderRadius: '16px', border: '2px solid #FFE0E0' }}>
+                <p style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>現在募集中の日程はありません</p>
+                <p style={{ fontSize: '15px', color: '#666' }}>次回日程は近日公開します。公開までお待ちください。</p>
+              </div>
             ) : (
-              <>
-                <div className="schedule-item">
-                  <div className="schedule-date">
-                    <div className="date-main">
-                      <span className="date-month">8月</span>
-                      <span className="date-day">18</span>
-                      <span className="date-weekday">（火）</span>
-                    </div>
-                    <div className="schedule-time">19:30〜21:00</div>
-                  </div>
-                  <div className="schedule-info">
-                    <h4>第1回 KAMOファンディング無料掲載説明会</h4>
-                    <div className="tags">
-                      <span className="tag tag-online">オンライン</span>
-                      <span className="tag tag-free">参加費無料</span>
-                    </div>
-                  </div>
-                  <div className="schedule-status status-open">募集中</div>
-                </div>
-                <div className="schedule-item">
-                  <div className="schedule-date">
-                    <div className="date-main">
-                      <span className="date-month">8月</span>
-                      <span className="date-day">28</span>
-                      <span className="date-weekday">（金）</span>
-                    </div>
-                    <div className="schedule-time">19:30〜21:00</div>
-                  </div>
-                  <div className="schedule-info">
-                    <h4>第2回 KAMOファンディング無料掲載説明会</h4>
-                    <div className="tags">
-                      <span className="tag tag-online">オンライン</span>
-                      <span className="tag tag-free">参加費無料</span>
-                    </div>
-                  </div>
-                  <div className="schedule-status status-open">募集中</div>
-                </div>
-                <div className="schedule-item">
-                  <div className="schedule-date">
-                    <div className="date-main">
-                      <span className="date-month">9月</span>
-                      <span className="date-day">15</span>
-                      <span className="date-weekday">（火）</span>
-                    </div>
-                    <div className="schedule-time">19:30〜21:00</div>
-                  </div>
-                  <div className="schedule-info">
-                    <h4>第3回 KAMOファンディング無料掲載説明会</h4>
-                    <div className="tags">
-                      <span className="tag tag-online">オンライン</span>
-                      <span className="tag tag-free">参加費無料</span>
-                    </div>
-                  </div>
-                  <div className="schedule-status status-open">募集中</div>
-                </div>
-              </>
+              <></>
             )}
           </div>
         </div>

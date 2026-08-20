@@ -240,6 +240,12 @@ export default function SeminarLanding({
       <section className={hasSpeakers ? 'sl-section' : 'sl-section sl-section-alt'} id="schedule">
         <div className="sl-container">
           <h2>開催<span style={{ color: accent }}>日程</span></h2>
+          {events.length === 0 && !loadingEvents && (
+            <div className="sl-empty-schedule">
+              <p className="sl-empty-title">現在募集中の日程はありません</p>
+              <p className="sl-empty-sub">次回日程は近日公開します。公開までお待ちください。</p>
+            </div>
+          )}
           <div className="sl-schedule">
             {config.sessions.map((s, i) => (
               <div className="sl-schedule-card" key={s.isoDate}>

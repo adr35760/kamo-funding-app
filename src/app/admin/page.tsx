@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 
 interface Event {
+  finished?: boolean;
   id: string;
   title: string;
   type: string;
@@ -115,7 +116,8 @@ export default function AdminPage() {
     setLoading(true);
     try {
     // イベント一覧取得
-    const eventsRes = await fetch('/api/events');
+    // 管理画面は過去日程も表示する必要があるため専用APIを使う（公開APIは終了回を除外）
+    const eventsRes = await fetch('/api/admin/events');
     if (eventsRes.ok) {
       const eventsData = await eventsRes.json();
       setEvents(eventsData.events || []);
@@ -494,7 +496,14 @@ export default function AdminPage() {
                         <Td>{ev.title}</Td>
                         <Td>{typeLabels[ev.type] || ev.type}</Td>
                         <Td>{pillarLabels[ev.pillar] || `Pillar ${ev.pillar}`}</Td>
-                        <Td>{new Date(ev.event_date).toLocaleString('ja-JP')}</Td>
+                        <Td>
+                          {new Date(ev.event_date).toLocaleString('ja-JP')}
+                          {ev.finished && (
+                            <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, color: '#666', background: '#eee', padding: '2px 6px', borderRadius: 4 }}>
+                              終了
+                            </span>
+                          )}
+                        </Td>
                         <Td>{ev.location || '-'}</Td>
                         <Td>{ev.capacity || '-'}</Td>
                         <Td>{ev.status}</Td>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendApplyConfirmationEmail } from '@/lib/email';
 import { formatEventDateJa } from '@/lib/event-format';
+import { isEventFinished } from '@/lib/event-visibility';
 
 /**
  * POST /api/apply
@@ -42,6 +43,27 @@ export async function POST(request: NextRequest) {
 
     // Supabaseに申込をINSERT
     const supabaseAdmin = getSupabaseAdmin();
+
+    // 開催終了済みの回への申込を拒否（サーバー側判定・フォームを迂回した送信も防ぐ）
+    try {
+      const { data: evCheck } = await supabaseAdmin
+        .from('events')
+        .select('event_date, duration_minutes')
+        .eq('id', event_id)
+        .single();
+      if (evCheck && isEventFinished({
+        event_date: evCheck.event_date as string,
+        duration_minutes: (evCheck.duration_minutes as number | null) ?? null,
+      })) {
+        return NextResponse.json(
+          { success: false, error: 'この回は開催が終了しました。別の日程をお選びください。' },
+          { status: 409 }
+        );
+      }
+    } catch (e) {
+      // 判定に失敗しても申込自体は妨げない（可用性優先）
+      console.error('Finished-event check failed:', e);
+    }
 
     // 定員チェック（capacity が設定されているイベントのみ）
     // capacity が NULL のイベントは上限なしとして扱う

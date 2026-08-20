@@ -261,3 +261,12 @@
   /* スマホは1列で横幅に余裕があるため高さ確保は不要 */
   .sl-speaker-title { font-size: 14px; min-height: 0; }
 }
+
+/* 募集中の日程が無い場合の案内 */
+.sl-empty-schedule {
+  max-width: 620px; margin: 0 auto 24px; text-align: center;
+  padding: 32px 24px; background: #fff;
+  border: 2px solid rgba(212, 160, 23, .35); border-radius: var(--radius-lg);
+}
+.sl-empty-title { margin: 0 0 6px; font-size: 18px; font-weight: 900; }
+.sl-empty-sub { margin: 0; font-size: 15px; color: var(--kamo-gray); }

@@ -9,21 +9,20 @@ export default function SeminarInfoPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
-  const [events, setEvents] = useState<Array<EventLike>>([
-    // フォールバック: API取得前の初期表示用
-    { id: '0ae42e1f-1a2b-4c3d-8e5f-6a7b8c9d0e1f', title: '第1回 KAMOファンディング無料掲載説明会', event_date: '2026-08-18T19:30:00+09:00', pillar: 1 },
-    { id: '851bfae5-2b3c-4d5e-9f6a-7b8c9d0e1f2a', title: '第2回 KAMOファンディング無料掲載説明会', event_date: '2026-08-28T19:30:00+09:00', pillar: 1 },
-    { id: '94f5db1d-3c4d-4e6f-a7b8-c9d0e1f2a3b4', title: '第3回 KAMOファンディング無料掲載説明会', event_date: '2026-09-15T19:30:00+09:00', pillar: 1 },
-  ]);
+  // 固定日程をフォールバックに持つと過去日程が復活してしまうため、
+  // 初期値は空にしてサーバー（/api/events）の結果だけを表示する
+  const [events, setEvents] = useState<Array<EventLike>>([]);
+  const [eventsLoaded, setEventsLoaded] = useState(false);
 
   useEffect(() => {
     fetch('/api/events')
       .then(res => res.ok ? res.json() : { events: [] })
       .then(data => {
         const filtered = (data.events || []).filter((e: { pillar?: number }) => !e.pillar || e.pillar === 1);
-        if (filtered.length > 0) setEvents(filtered);
+        setEvents(filtered);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setEventsLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -157,6 +156,12 @@ export default function SeminarInfoPage() {
         <div className="container">
           <div className="schedule-title"><h2>説明会の<span className="accent">開催日程</span></h2></div>
           <div className="schedule-list">
+            {eventsLoaded && events.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '40px 20px', background: '#FFF5F5', borderRadius: '16px', border: '2px solid #FFE0E0' }}>
+                <p style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>現在募集中の日程はありません</p>
+                <p style={{ fontSize: '15px', color: '#666' }}>次回日程は近日公開します。公開までお待ちください。</p>
+              </div>
+            )}
             {events.map(ev => {
               const p = eventCardParts(ev.event_date, ev.duration_minutes);
               return (
@@ -173,7 +178,9 @@ export default function SeminarInfoPage() {
                     <h4>{ev.title}</h4>
                     <p>オンライン（Zoom） | 参加費無料</p>
                   </div>
-                  <div className="schedule-status" style={{ background: '#E60012', color: '#fff' }}>募集中</div>
+                  <div className="schedule-status" style={ev.finished
+                    ? { background: '#9E9E9E', color: '#fff' }
+                    : { background: '#E60012', color: '#fff' }}>{ev.finished ? '終了' : '募集中'}</div>
                 </div>
               );
             })}

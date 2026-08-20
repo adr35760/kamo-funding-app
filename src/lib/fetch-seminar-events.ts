@@ -1,4 +1,5 @@
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { filterVisibleEvents, isEventFinished } from '@/lib/event-visibility';
 
 export interface SeminarEventRow {
   id: string;
@@ -8,6 +9,8 @@ export interface SeminarEventRow {
   duration_minutes?: number | null;
   location?: string | null;
   capacity?: number | null;
+  /** 開催終了済みか（mark_done モード時にバッジ表示で使う） */
+  finished?: boolean;
 }
 
 /**
@@ -26,7 +29,11 @@ export async function fetchSeminarEvents(pillar: number): Promise<SeminarEventRo
       .eq('pillar', pillar)
       .order('event_date', { ascending: true });
     if (error || !data) return [];
-    return data as SeminarEventRow[];
+    // 開催終了済みはサーバー側（JST基準の絶対時刻比較）で除外する
+    return filterVisibleEvents(data as SeminarEventRow[]).map(e => ({
+      ...e,
+      finished: isEventFinished(e),
+    }));
   } catch {
     return [];
   }

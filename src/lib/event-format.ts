@@ -10,6 +10,8 @@ export interface EventLike {
   event_date: string;
   pillar?: number;
   duration_minutes?: number | null;
+  /** 開催終了済みか（/api/events がサーバー判定して返す） */
+  finished?: boolean;
 }
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
