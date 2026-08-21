@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
-import { sendPartnerSessionConfirmationEmail } from '@/lib/email';
+import { sendPartnerSessionConfirmationEmail, sendPartnerSessionAdminNotification } from '@/lib/email';
 import { formatSlotJa } from '@/lib/event-format';
 
 /**
@@ -84,8 +84,30 @@ export async function POST(request: NextRequest) {
       result = { id: `mock-session-${Date.now()}` };
     }
 
-    // 確認メール送信（希望日時を本文に記載）
+    // 確認メール送信（希望日時を本文に記載）— 従来どおり申込者宛
     sendPartnerSessionConfirmationEmail(name.trim(), email.trim(), preferredSlots || undefined).catch(() => {});
+
+    // 運営宛の申込通知（対応漏れ防止）。
+    // ★通知の失敗は申込処理を絶対に止めない：await せず、失敗はログのみ。
+    sendPartnerSessionAdminNotification({
+      name: name.trim(),
+      email: email.trim(),
+      company: body.company?.trim() || null,
+      profession: body.profession?.trim() || null,
+      programInterest: body.program_interest || null,
+      preferredSlot1: slot1 || null,
+      preferredSlot2: slot2 || null,
+      message: body.message?.trim() || null,
+      registrationId: result.id,
+    })
+      .then(r => {
+        if (!r.success) {
+          console.error('Admin notification failed (application still succeeded):', r.error);
+        }
+      })
+      .catch(e => {
+        console.error('Admin notification threw (application still succeeded):', e);
+      });
 
     return NextResponse.json({
       success: true,

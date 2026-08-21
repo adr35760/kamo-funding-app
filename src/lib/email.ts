@@ -68,7 +68,8 @@ interface EmailResult {
 }
 
 async function sendEmail(
-  to: string,
+  /** 単一アドレス、または複数宛先（Resendは配列を受け付ける） */
+  to: string | string[],
   subject: string,
   html: string
 ): Promise<EmailResult> {
@@ -382,4 +383,118 @@ export async function sendReferralRegistrationEmail(
     </div>
   `;
   return sendEmail(partnerEmail, subject, html);
+}
+
+/**
+ * 通知先メールアドレスを解決する。
+ * 環境変数 ADMIN_NOTIFY_EMAIL（カンマ区切りで複数指定可）を優先し、
+ * 未設定の場合は info@local-creation.com にフォールバックする。
+ * → 宛先の変更・追加をコード修正なしで行える。
+ */
+export function resolveAdminNotifyEmails(): string[] {
+  const raw = (process.env.ADMIN_NOTIFY_EMAIL || '').trim();
+  const fallback = 'info@local-creation.com';
+  if (!raw) return [fallback];
+  const list = raw
+    .split(',')
+    .map(s => s.trim())
+    .filter(s => s.includes('@'));
+  return list.length > 0 ? list : [fallback];
+}
+
+/** JSTの「YYYY年M月D日(曜) HH:MM」表記を返す */
+function formatJstDateTime(d: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false,
+  }).formatToParts(d).reduce((a, p) => {
+    if (p.type !== 'literal') a[p.type] = p.value;
+    return a;
+  }, {} as Record<string, string>);
+  const wd = ['日', '月', '火', '水', '木', '金', '土'][
+    new Date(Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day))).getUTCDay()
+  ];
+  return `${Number(parts.year)}年${Number(parts.month)}月${Number(parts.day)}日(${wd}) ${parts.hour}:${parts.minute}`;
+}
+
+export interface PartnerSessionNotifyInfo {
+  name: string;
+  email: string;
+  company?: string | null;
+  profession?: string | null;
+  programInterest?: string | null;
+  /** 第1希望（日本語整形済み。例: 2026/8/25（月）14:00） */
+  preferredSlot1?: string | null;
+  /** 第2希望（同上） */
+  preferredSlot2?: string | null;
+  message?: string | null;
+  registrationId?: string | null;
+}
+
+const PROGRAM_INTEREST_LABELS: Record<string, string> = {
+  partner: '紹介パートナー',
+  advisor: 'アドバイザー養成講座',
+  supporter: 'プロジェクトサポーター',
+  all: 'すべて聞いてから決めたい',
+};
+
+/**
+ * 個別説明会（1対1）の新規申込を運営に通知するメール。
+ * 申込者への確認メールとは別に送る（運営の対応漏れ防止）。
+ */
+export async function sendPartnerSessionAdminNotification(
+  info: PartnerSessionNotifyInfo
+): Promise<EmailResult> {
+  const to = resolveAdminNotifyEmails();
+  const appliedAt = formatJstDateTime();
+  const slot1 = info.preferredSlot1?.trim() || '（未入力）';
+  const slot2 = info.preferredSlot2?.trim() || '（未入力）';
+  const programLabel = info.programInterest
+    ? (PROGRAM_INTEREST_LABELS[info.programInterest] || info.programInterest)
+    : '（未選択）';
+
+  const subject = `【個別説明会】新規申込：${info.name}様（第1希望 ${slot1}）`;
+
+  const row = (label: string, value: string) => `
+    <tr>
+      <th style="text-align:left; padding:8px 12px; background:#F4F6FA; border:1px solid #E3E8F0; font-size:13px; color:#0B1D3A; white-space:nowrap; vertical-align:top;">${label}</th>
+      <td style="padding:8px 12px; border:1px solid #E3E8F0; font-size:14px;">${value || '（未入力）'}</td>
+    </tr>`;
+
+  const html = `
+    <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 640px; margin: 0 auto; padding: 20px;">
+      <div style="background: #0B1D3A; color: #fff; padding: 18px 20px; border-radius: 8px 8px 0 0;">
+        <h1 style="margin: 0; font-size: 19px;">🤝 個別説明会 新規申込</h1>
+        <p style="margin: 4px 0 0; font-size: 13px; color: #D4AF37;">申込日時: ${appliedAt}（JST）</p>
+      </div>
+      <div style="background: #fff; padding: 20px; border: 1px solid #eee; border-top: none;">
+        <div style="margin-bottom: 16px; padding: 14px 16px; background: #FFFBF0; border: 1px solid #E6D9A8; border-radius: 8px;">
+          <p style="margin: 0 0 4px; font-size: 13px; font-weight: 700; color: #8A6D1F;">📅 ご希望日時</p>
+          <p style="margin: 0; font-size: 15px;"><strong>第1希望:</strong> ${slot1}</p>
+          <p style="margin: 2px 0 0; font-size: 15px;"><strong>第2希望:</strong> ${slot2}</p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+          ${row('お名前', info.name)}
+          ${row('メールアドレス', `<a href="mailto:${info.email}" style="color:#1A73E8;">${info.email}</a>`)}
+          ${row('会社・団体名', info.company || '')}
+          ${row('職業・専門分野', info.profession || '')}
+          ${row('興味のあるプログラム', programLabel)}
+          ${row('質問・メッセージ', (info.message || '').replace(/\n/g, '<br />'))}
+        </table>
+        <p style="margin: 18px 0 0;">
+          <a href="https://kamo-funding-app.vercel.app/admin"
+             style="display:inline-block; background:#0B1D3A; color:#fff; padding:12px 24px; border-radius:6px; font-weight:700; font-size:14px; text-decoration:none;">
+            管理画面で確認する →
+          </a>
+        </p>
+        <p style="margin: 14px 0 0; font-size: 12px; color: #999;">
+          日程調整のご連絡をお願いします。${info.registrationId ? `<br />申込ID: ${info.registrationId}` : ''}
+        </p>
+      </div>
+    </div>
+  `;
+
+  // 複数宛先に対応（Resend は to に配列を渡せる）
+  return sendEmail(to.length === 1 ? to[0] : to, subject, html);
 }
