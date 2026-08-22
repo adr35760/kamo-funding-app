@@ -66,7 +66,14 @@ a { color: inherit; text-decoration: none; }
   .hero { padding: 80px 0 0; }
   .hero-inner { grid-template-columns: 1fr; }
   .hero-text { padding: 32px 24px; }
-  .hero-image-wrap { align-self: stretch; padding-top: 0; }
+  /* スマホ・タブレットではバッジを画像の外（下）に出し、
+     キャッチコピー「諦めた夢は今から叶えろ！」を隠さない。PCは従来どおり画像内左下。 */
+  .hero-image-wrap { align-self: stretch; padding-top: 0; flex-direction: column; }
+  .hero-achievement { position: static; width: auto; height: auto; border-radius: 0;
+    flex-direction: row; gap: 10px; align-self: stretch; padding: 12px 24px;
+    box-shadow: none; animation: none; }
+  .hero-achievement .num { font-size: 28px; }
+  .hero-achievement .label { margin-top: 0; font-size: 14px; }
   .hero-quote { font-size: 28px; }
   .hero-seminar-bar { flex-direction: column; text-align: center; }
 }
