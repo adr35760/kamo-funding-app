@@ -54,8 +54,8 @@ export default function HomePage() {
           <div className="hero-image-wrap">
             <img src="/kamogashira-hero.png" alt="鴨頭嘉人 — 挑戦なくして、未来は明るくならない。" className="hero-image" />
             <div className="hero-achievement">
-              <div className="num">95%</div>
-              <div className="label">初日達成率</div>
+              <div className="num">達成率<span className="pct">95%</span></div>
+              <div className="label">※業界No1</div>
             </div>
           </div>
         </div>
