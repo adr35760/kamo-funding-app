@@ -11,23 +11,39 @@ const NAV_ITEMS = [
   { href: '/ai-tool', label: 'AIツール' },
 ];
 
-const CTA = { href: '/lp', label: '日程を確認する' };
+const DEFAULT_CTA = { href: '/lp', label: '日程を確認する' };
+
+export interface SiteHeaderLink {
+  href: string;
+  label: string;
+}
 
 interface SiteHeaderProps {
   /** 現在のページのパス。該当ナビ項目を強調する（任意） */
   current?: string;
+  /**
+   * ページ固有のCTA。指定すると既定の「日程を確認する」を差し替える。
+   * 例: { href: '#apply', label: '今すぐ申し込む' }
+   */
+  cta?: SiteHeaderLink;
+  /**
+   * ページ内アンカー等の追加リンク（LPの「説明会とは」「4本柱」など）。
+   * PCではサイトナビの前に、スマホではドロワー上部に表示する。
+   */
+  pageLinks?: SiteHeaderLink[];
 }
 
 /**
  * 全ページ共通のヘッダー。
  * 各ページで個別実装せず、このコンポーネントを使う。
- * 直後に <div className="site-header-spacer" /> を置くと固定ヘッダー分の余白が入る。
  *
- * - 769px以上: ナビを横並びで表示
- * - 768px以下: ハンバーガーメニューに格納（全項目にアクセス可能）
+ * - 769px以上: リンクを横並びで表示
+ * - 768px以下: ハンバーガーメニューに格納（全項目にアクセス可能）／CTAは常時表示
  */
-export default function SiteHeader({ current }: SiteHeaderProps) {
+export default function SiteHeader({ current, cta, pageLinks }: SiteHeaderProps) {
   const [open, setOpen] = useState(false);
+  const actionCta = cta ?? DEFAULT_CTA;
+  const extras = pageLinks ?? [];
 
   return (
     <>
@@ -39,6 +55,9 @@ export default function SiteHeader({ current }: SiteHeaderProps) {
 
           {/* PC: 横並びナビ */}
           <nav className="site-header-nav">
+            {extras.map(item => (
+              <a key={item.href} href={item.href} className="is-page-link">{item.label}</a>
+            ))}
             {NAV_ITEMS.map(item => (
               <a
                 key={item.href}
@@ -48,12 +67,12 @@ export default function SiteHeader({ current }: SiteHeaderProps) {
                 {item.label}
               </a>
             ))}
-            <a href={CTA.href} className="site-header-cta">{CTA.label}</a>
+            <a href={actionCta.href} className="site-header-cta">{actionCta.label}</a>
           </nav>
 
           {/* スマホ: CTAは常時表示し、その他はハンバーガーへ */}
           <div className="site-header-mobile">
-            <a href={CTA.href} className="site-header-cta">{CTA.label}</a>
+            <a href={actionCta.href} className="site-header-cta">{actionCta.label}</a>
             <button
               type="button"
               className="site-header-toggle"
@@ -71,6 +90,11 @@ export default function SiteHeader({ current }: SiteHeaderProps) {
         {/* スマホ用ドロワー */}
         {open && (
           <nav className="site-header-drawer">
+            {extras.map(item => (
+              <a key={item.href} href={item.href} className="is-page-link" onClick={() => setOpen(false)}>
+                {item.label}
+              </a>
+            ))}
             {NAV_ITEMS.map(item => (
               <a
                 key={item.href}

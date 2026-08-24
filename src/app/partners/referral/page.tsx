@@ -4,6 +4,7 @@ import { useState } from 'react';
 import '@/styles/kamo-icons.css';
 import '@/styles/partner-register.css';
 import { REFERRAL_TERMS, REFERRAL_TERMS_TITLE, REFERRAL_TERMS_VERSION } from '@/lib/referral-terms';
+import SiteHeader from '@/components/SiteHeader';
 
 const RELATIONSHIP_OPTIONS = ['知人・友人', '取引先', '親族', 'SNS経由', '同僚・仕事仲間', 'その他'];
 
@@ -48,11 +49,7 @@ export default function ReferralRegisterPage() {
 
   return (
     <>
-      <div className="header">
-        <div className="header-inner">
-          <a href="/"><img src="/kamo-logo-main.jpg" alt="KAMOファンディング" style={{ height: '32px', width: 'auto' }} /></a>
-        </div>
-      </div>
+      <SiteHeader current="/partners" />
 
       <section className="hero">
         <div className="container">

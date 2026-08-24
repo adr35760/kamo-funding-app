@@ -610,3 +610,9 @@ img { max-width: 100%; height: auto; }
 /* ===== UTILITY ===== */
 .text-center { text-align: center; }
 .mt-48 { margin-top: 48px; }
+
+/* PCでは1行に収め、スマホでは折り返す（nowrapによる横スクロールを防ぐ） */
+.nowrap-pc { white-space: nowrap; font-size: 14px; }
+@media (max-width: 768px) {
+  .nowrap-pc { white-space: normal; }
+}

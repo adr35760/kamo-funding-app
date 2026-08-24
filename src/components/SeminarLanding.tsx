@@ -6,6 +6,7 @@ import '@/styles/kamo-icons.css';
 import '@/styles/seminar-landing.css';
 import { pendingLabel, splitPriceLabel, PRICE_TAX_NOTE, type SeminarConfig } from '@/lib/seminar-config';
 import { formatEventDateJa } from '@/lib/event-format';
+import SiteHeader from '@/components/SiteHeader';
 
 interface EventRow {
   id: string;
@@ -111,12 +112,7 @@ export default function SeminarLanding({
 
   return (
     <div className={isReal ? 'seminar-lp theme-real' : 'seminar-lp theme-online'}>
-      <header className="sl-header">
-        <div className="sl-container sl-header-inner">
-          <a href="/"><img src="/kamo-logo-main.jpg" alt="KAMOファンディング" style={{ height: '32px', width: 'auto' }} /></a>
-          <a href="#apply" className="sl-header-cta">申し込む</a>
-        </div>
-      </header>
+      <SiteHeader cta={{ href: '#apply', label: '申し込む' }} />
 
       {/* Hero */}
       <section className="sl-hero">

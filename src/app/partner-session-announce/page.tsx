@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { preferredSlotRange } from '@/lib/event-format';
 import '@/styles/kamo-icons.css';
 import '@/styles/partner-session-announce.css';
+import SiteHeader from '@/components/SiteHeader';
 
 export default function PartnerSessionAnnouncePage() {
   const [submitting, setSubmitting] = useState(false);
@@ -53,12 +54,7 @@ export default function PartnerSessionAnnouncePage() {
 
   return (
     <>
-      <header className="header">
-        <div className="header-inner">
-          <a href="/"><img src="/kamo-logo-main.jpg" alt="KAMOファンディング" style={{height:'32px',width:'auto'}} /></a>
-          <a href="#apply" className="header-cta">今すぐ申し込む</a>
-        </div>
-      </header>
+      <SiteHeader current="/partner-session-announce" cta={{ href: '#apply', label: '今すぐ申し込む' }} />
 
       <section className="hero">
         <div className="container">

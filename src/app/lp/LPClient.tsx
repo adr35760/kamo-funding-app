@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import '@/styles/kamo-icons.css';
 import '@/styles/kamo-lp.css';
 import { formatEventDateJa, eventCardParts, cleanTitle, EventLike } from '@/lib/event-format';
+import SiteHeader from '@/components/SiteHeader';
 
 interface EventOption extends EventLike {}
 
@@ -93,20 +94,15 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
   return (
     <>
       {/* ===== HEADER ===== */}
-      <header className="header" id="header">
-        <div className="header-inner">
-          <a href="/" className="logo">
-            <img src="/kamo-logo-main.jpg" alt="KAMOファンディング" style={{height:'36px',width:'auto'}} />
-          </a>
-          <nav className="header-nav">
-            <a href="#about">説明会とは</a>
-            <a href="#pillars">4本柱</a>
-            <a href="#schedule">開催日程</a>
-            <a href="#faq">よくある質問</a>
-            <a href="#apply" className="header-cta">お申込み</a>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader
+        cta={{ href: '#apply', label: 'お申込み' }}
+        pageLinks={[
+          { href: '#about', label: '説明会とは' },
+          { href: '#pillars', label: '4本柱' },
+          { href: '#schedule', label: '開催日程' },
+          { href: '#faq', label: 'よくある質問' },
+        ]}
+      />
 
       {/* ===== HERO ===== */}
       <section className="hero" id="about">
@@ -170,7 +166,7 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
           <div className="section-title">
             <span className="label">PROJECT STRUCTURE</span>
             <h2>今の現状を突破したいと思ってる方へ！<span className="accent">４つの具体策</span>提案します！</h2>
-            <p style={{ whiteSpace: 'nowrap', fontSize: '14px' }}>認知からコミット、そして伝道者へ。見込み客を段階的に引き上げるファネル構造。</p>
+            <p className="nowrap-pc">認知からコミット、そして伝道者へ。見込み客を段階的に引き上げるファネル構造。</p>
           </div>
           <div className="pillars-grid">
             <div className="pillar-card">

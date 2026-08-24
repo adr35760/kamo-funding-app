@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import SiteHeader from '@/components/SiteHeader';
 
 interface GeneratedPage {
   project: {
@@ -123,6 +124,8 @@ export default function AIToolPage() {
     };
 
     return (
+      <>
+      <SiteHeader current="/ai-tool" />
       <div style={{
         fontFamily: "'Noto Sans JP', sans-serif",
         minHeight: '100vh',
@@ -186,10 +189,13 @@ export default function AIToolPage() {
           </p>
         </div>
       </div>
+      </>
     );
   }
 
   return (
+    <>
+      <SiteHeader current="/ai-tool" />
     <div style={{ fontFamily: "'Noto Sans JP', sans-serif", maxWidth: 900, margin: '0 auto', padding: 20 }}>
       {/* Brand Header */}
       <div style={{ marginBottom: 30 }}>
@@ -484,6 +490,7 @@ export default function AIToolPage() {
         </div>
       )}
     </div>
+    </>
   );
 }
 

@@ -2,23 +2,12 @@
 
 import '@/styles/kamo-icons.css';
 import '@/styles/homepage.css';
+import SiteHeader from '@/components/SiteHeader';
 
 export default function HomePage() {
   return (
     <>
-      <header className="header">
-        <div className="header-inner">
-          <a href="/"><img src="/kamo-logo-main.jpg" alt="KAMOファンディング" className="header-logo" /></a>
-          <nav className="header-nav">
-            <a href="/seminar-info">掲載説明会</a>
-            <a href="/partner-session-announce">パートナーシップ</a>
-            <a href="/partners">パートナー登録</a>
-            <a href="/supporters">サポーター登録</a>
-            <a href="/ai-tool">AIツール</a>
-            <a href="/lp" className="header-cta">日程を確認する</a>
-          </nav>
-        </div>
-      </header>
+      <SiteHeader current="/" />
 
       {/* ===== HERO with Kamogashira Image ===== */}
       <section className="hero">

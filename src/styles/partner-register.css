@@ -157,3 +157,20 @@ a { color: inherit; text-decoration: none; }
 .reward-detail > summary::-webkit-details-marker { display: none; }
 .reward-detail > summary::after { content: '＋'; font-size: 11px; }
 .reward-detail[open] > summary::after { content: '−'; }
+
+/* 注記（警告調ではなく案内調。登録は自由・報酬受取に条件） */
+.hero-note { font-size: 13.5px; color: #5B6B63; font-weight: 500; margin-top: 12px; line-height: 1.6; }
+.form-note-top { font-size: 12.5px; color: #7A8781; margin: -4px 0 18px; line-height: 1.6; }
+
+/* ===== コミュニティ写真（縦横比1.453を維持・歪ませない） ===== */
+.community { padding: 8px 0 0; }
+.community-figure { margin: 0; }
+.community-image {
+  display: block; width: 100%; height: auto; /* aspect比は width/height 属性で保持 */
+  border-radius: var(--radius);
+}
+.community-caption { margin-top: 10px; font-size: 12.5px; color: #8A8A8A; text-align: center; }
+@media (max-width: 768px) {
+  .community-image { border-radius: 0; }
+  .community-caption { padding: 0 16px; }
+}

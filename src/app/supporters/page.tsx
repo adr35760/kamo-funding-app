@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import '@/styles/supporter-register.css';
+import SiteHeader from '@/components/SiteHeader';
 
 export default function SupporterRegisterPage() {
   const [submitting, setSubmitting] = useState(false);
@@ -35,11 +36,7 @@ export default function SupporterRegisterPage() {
 
   return (
     <>
-      <div className="header">
-        <div className="header-inner">
-          <a href="/"><img src="/kamo-logo-main.jpg" alt="KAMOファンディング" style={{height:'32px',width:'auto'}} /></a>
-        </div>
-      </div>
+      <SiteHeader current="/supporters" />
 
       <section className="hero">
         <div className="container">

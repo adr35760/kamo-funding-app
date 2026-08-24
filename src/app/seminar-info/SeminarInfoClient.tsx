@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import '@/styles/kamo-icons.css';
 import '@/styles/seminar-info.css';
 import { formatEventDateJa, eventCardParts, EventLike } from '@/lib/event-format';
+import SiteHeader from '@/components/SiteHeader';
 
 export default function SeminarInfoClient({ initialEvents = [] }: { initialEvents?: EventLike[] }) {
   const [submitting, setSubmitting] = useState(false);
@@ -76,12 +77,7 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
 
   return (
     <div className="seminar-info-page">
-      <header className="header">
-        <div className="header-inner">
-          <a href="/"><img src="/kamo-logo-main.jpg" alt="KAMOファンディング" style={{height:'32px',width:'auto'}} /></a>
-          <a href="#apply" className="header-cta">今すぐ申し込む</a>
-        </div>
-      </header>
+      <SiteHeader current="/seminar-info" cta={{ href: '#apply', label: '今すぐ申し込む' }} />
 
       <section className="hero">
         <div className="container">

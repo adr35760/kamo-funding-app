@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import SiteHeader from '@/components/SiteHeader';
 import '@/styles/kamo-icons.css';
 import '@/styles/partner-register.css';
@@ -43,8 +44,8 @@ export default function PartnerRegisterPage() {
         <div className="container">
           <div className="hero-badge"><span className="kamo-icon kamo-icon-pin sm" style={{marginRight:'4px'}}></span> 参入ハードル：最も低い・登録無料</div>
           <h1><span className="green">紹介するだけ</span>で<br />月数万円の副収入</h1>
-          <p>KAMOファンディングの紹介パートナー。ネットワークを活かして、クラファン掲載候補を紹介するだけ。登録は無料・即日発行。</p>
-          <p style={{ color: '#E60012', fontWeight: '700', fontSize: '15px', marginTop: '12px' }}>※説明会参加必須（紹介報酬規程の承諾が必要）</p>
+          <p>KAMOファンディングの紹介パートナー。ネットワークを活かして、クラファン掲載候補を紹介するだけ。<strong>登録は無料・即日で紹介コードを発行</strong>します。</p>
+          <p className="hero-note">※ 紹介料のお受け取りには、説明会への参加（紹介報酬規程の承諾）が必要です</p>
           <div className="hero-cta-row">
             <a href="#register" className="hero-cta-main">無料で登録する →</a>
             <a href="#reward" className="hero-cta-sub">紹介料のしくみを見る</a>
@@ -55,7 +56,7 @@ export default function PartnerRegisterPage() {
       <section className="benefits">
         <div className="container">
           <div className="benefits-grid">
-            <div className="benefit-card"><h4><span className="kamo-icon kamo-icon-pen sm" style={{marginRight:'6px'}}></span>登録だけ・無料</h4><p>オンラインフォームに登録するだけ。即日で紹介コードが発行されます。<br />※紹介報酬規定にチェック必要</p></div>
+            <div className="benefit-card"><h4><span className="kamo-icon kamo-icon-pen sm" style={{marginRight:'6px'}}></span>登録だけ・無料</h4><p>オンラインフォームに登録するだけ。どなたでも登録でき、即日で紹介コードが発行されます。<br />※紹介料のお受け取りには紹介報酬規程の承諾（説明会参加）が必要です</p></div>
             <div className="benefit-card" id="reward"><h4><span className="kamo-icon kamo-icon-yen sm" style={{marginRight:'6px'}}></span>紹介料：対象額の2%</h4><p>対象額＝総支援金額ー手数料ー手数料に係る消費税。その2%が報酬です。</p>
               <div className="reward-examples">
                 <div className="reward-example">
@@ -75,6 +76,22 @@ export default function PartnerRegisterPage() {
             </div>
             <div className="benefit-card"><h4><span className="kamo-icon kamo-icon-handshake sm" style={{marginRight:'6px'}}></span>新しいスキル不要</h4><p>あなたのネットワークを活かすだけ。クラファンの専門知識は必要ありません。</p></div>
             <div className="benefit-card"><h4><span className="kamo-icon kamo-icon-flame sm" style={{marginRight:'6px'}}></span>KAMOブランド力</h4><p>鴨頭義人さん・嘉人さんのブランド力で紹介しやすい。企業からの感謝も得られる。</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="community">
+        <div className="container">
+          <div className="community-figure">
+            <Image
+              src="/partners-community.jpg"
+              alt="KAMOファンディングのコミュニティメンバー"
+              width={1400}
+              height={963}
+              sizes="(max-width: 768px) 100vw, 720px"
+              className="community-image"
+            />
+            <p className="community-caption">全国から集まる KAMOファンディングのコミュニティメンバー</p>
           </div>
         </div>
       </section>
@@ -111,7 +128,8 @@ export default function PartnerRegisterPage() {
         <div className="container">
           <div className="form-card">
             <h2>紹介<span className="green">パートナー登録</span></h2>
-            <p className="form-sub">登録は無料・即日発行。以下の情報をご入力ください。</p>
+            <p className="form-sub">登録は無料・即日で紹介コードを発行します。以下の情報をご入力ください。</p>
+            <p className="form-note-top">※ 紹介料のお受け取りには、説明会への参加（紹介報酬規程の承諾）が必要です</p>
             {submitted ? (
               <div style={{textAlign:'center',padding:'48px 24px'}}>
                 <div className="kamo-icon kamo-icon-check-lg" style={{width:'48px',height:'48px',marginBottom:'16px'}}></div>
@@ -154,7 +172,7 @@ export default function PartnerRegisterPage() {
       {!submitted && (
         <div className="sticky-cta">
           <div className="sticky-cta-inner">
-            <span className="sticky-cta-text">登録は無料・即日発行</span>
+            <span className="sticky-cta-text">登録は無料・即日で紹介コード発行</span>
             <a href="#register" className="sticky-cta-btn">無料で登録する →</a>
           </div>
         </div>
