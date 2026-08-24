@@ -39,12 +39,6 @@ export default function HomePage() {
                 支援者と繋がる交流会に申し込む →
               </a>
             </div>
-            <p className="hero-success-link">
-              <a href="/success" className="btn-success">
-                <span className="btn-success-sub">支援総額2億円超の実績。</span>
-                <span className="btn-success-main">成功事例を見る →</span>
-              </a>
-            </p>
           </div>
           <div className="hero-image-wrap">
             <img src="/kamogashira-hero.png" alt="鴨頭嘉人 — 挑戦なくして、未来は明るくならない。" className="hero-image" />

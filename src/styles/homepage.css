@@ -27,44 +27,30 @@ a { color: inherit; text-decoration: none; }
 /* ===== HERO with Kamogashira Image ===== */
 .hero { padding: 100px 0 0; background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 50%, #F5F5F5 100%); position: relative; overflow: hidden; }
 .hero::before { content: ''; position: absolute; top: 0; right: 0; width: 50%; height: 60%; background: linear-gradient(135deg, transparent 0%, rgba(212,160,23,0.08) 100%); clip-path: polygon(30% 0, 100% 0, 100% 100%, 0 100%); }
-.hero-inner { max-width: var(--max-width); margin: 0 auto; padding: 0 24px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0; align-items: center; position: relative; z-index: 1; }
-.hero-text { padding: 40px 32px 40px 0; }
-.hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--kamo-white); border: 1px solid var(--kamo-border); padding: 6px 18px; border-radius: 100px; font-size: 15px; font-weight: 700; color: var(--kamo-red); margin-bottom: 20px; box-shadow: var(--shadow); }
+/* 左右カラムの高さ差を詰めるため非対称にしている。画像は正方形なので
+   右を広げた分だけ高さが伸びる。左は最長ボタンが折り返さない幅を確保。 */
+.hero-inner { max-width: var(--max-width); margin: 0 auto; padding: 0 24px 0; display: grid; grid-template-columns: 472px 1fr; gap: 0; align-items: start; position: relative; z-index: 1; }
+.hero-text { padding: 40px 32px 32px 0; }
+.hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--kamo-white); border: 1px solid var(--kamo-border); padding: 6px 18px; border-radius: 100px; font-size: 15px; font-weight: 700; color: var(--kamo-red); margin-bottom: 14px; box-shadow: var(--shadow); }
 .hero-badge-dot { width: 8px; height: 8px; background: var(--kamo-red); border-radius: 50%; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.3); } }
-.hero-quote { font-size: 38px; font-weight: 900; line-height: 1.5; margin-bottom: 20px; letter-spacing: -0.01em; }
+.hero-quote { font-size: 38px; font-weight: 900; line-height: 1.42; margin-bottom: 14px; letter-spacing: -0.01em; }
 .hero-quote .red { color: var(--kamo-red); }
 .hero-quote .gold { color: var(--kamo-gold); }
-.hero-divider { width: 80px; height: 3px; background: var(--kamo-gold); margin-bottom: 20px; border-radius: 2px; }
-.hero-bullets { list-style: none; margin-bottom: 24px; }
-.hero-bullets li { font-size: 19px; padding: 8px 0; padding-left: 28px; position: relative; }
+.hero-divider { width: 80px; height: 3px; background: var(--kamo-gold); margin-bottom: 14px; border-radius: 2px; }
+.hero-bullets { list-style: none; margin-bottom: 18px; }
+.hero-bullets li { font-size: 19px; padding: 5px 0; padding-left: 28px; position: relative; }
 .hero-bullets li::before { content: '▸'; position: absolute; left: 0; color: var(--kamo-gold); font-weight: 900; }
 .hero-bullets li .red { color: var(--kamo-red); font-weight: 700; }
 .hero-cta-group { display: flex; gap: 12px; flex-wrap: wrap; }
-/* 成功事例への副CTA（ボタン表示。ただし申込CTA4つより控えめな配色・サイズ） */
-.hero-success-link { margin-top: 14px; }
-.btn-success {
-  display: inline-flex; flex-direction: column; align-items: center; gap: 1px;
-  background: #FFFDF5; color: var(--kamo-dark);
-  border: 2px solid var(--kamo-gold);
-  padding: 10px 26px; border-radius: 100px;
-  line-height: 1.35; transition: all 0.25s;
-}
-.btn-success:hover { background: var(--kamo-gold); color: var(--kamo-dark); transform: translateY(-1px); }
-.btn-success-sub { font-size: 11.5px; font-weight: 700; color: #8A6D1F; letter-spacing: 0.01em; }
-.btn-success:hover .btn-success-sub { color: var(--kamo-dark); }
-.btn-success-main { font-size: 15px; font-weight: 900; }
-@media (max-width: 768px) {
-  .btn-success { width: 100%; padding: 11px 20px; }
-  .btn-success-main { font-size: 14.5px; }
-}
+/* 成功事例への導線は共通ヘッダーの副CTAに集約（ヒーロー内のボタンは削除済み） */
 .btn-primary { display: inline-flex; align-items: center; gap: 6px; background: var(--kamo-red); color: var(--kamo-white); padding: 18px 36px; border-radius: 100px; font-weight: 700; font-size: 19px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(230,0,18,0.3); }
 .btn-primary:hover { background: var(--kamo-red-dark); transform: translateY(-2px); }
 .btn-secondary { display: inline-flex; align-items: center; gap: 6px; background: var(--kamo-white); color: var(--kamo-dark); border: 2px solid var(--kamo-dark); padding: 16px 34px; border-radius: 100px; font-weight: 700; font-size: 19px; transition: all 0.3s; }
 .btn-secondary:hover { background: var(--kamo-dark); color: var(--kamo-white); transform: translateY(-2px); }
 
 /* Hero image section */
-.hero-image-wrap { position: relative; align-self: center; display: flex; flex-direction: column; align-items: stretch; justify-content: center; padding-top: 0; background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%); }
+.hero-image-wrap { position: relative; align-self: start; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; padding-top: 40px; background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%); }
 .hero-image { width: 100%; height: auto; display: block; }
 /* Achievement badge overlay */
 .hero-achievement { align-self: stretch; background: var(--kamo-gold); display: flex; flex-direction: row; align-items: baseline; justify-content: center; gap: 10px; padding: 12px 24px; text-align: center; }
