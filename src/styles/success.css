@@ -1,0 +1,152 @@
+/* ===== 成功事例ページ（/success） =====
+   既存サイトのトーン（赤×金・力強い）に合わせる。 */
+
+.sc-container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+/* ---- HERO ---- */
+.sc-hero {
+  background: linear-gradient(135deg, #0B1D3A 0%, #14294F 55%, #0B1D3A 100%);
+  color: #fff; padding: 56px 0 48px; text-align: center; position: relative; overflow: hidden;
+}
+.sc-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at 80% 0%, rgba(212,175,55,0.18) 0%, transparent 55%);
+}
+.sc-hero > * { position: relative; }
+.sc-hero-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.18em;
+  color: var(--kamo-gold); margin-bottom: 10px;
+}
+.sc-hero-title { font-size: 46px; font-weight: 900; line-height: 1.15; margin-bottom: 16px; }
+.sc-gold { color: var(--kamo-gold); }
+.sc-hero-lead { font-size: 16px; line-height: 1.85; color: rgba(255,255,255,0.82); }
+
+.sc-stats {
+  display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; margin-top: 32px;
+}
+.sc-stat {
+  flex: 1 1 220px; max-width: 300px;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(212,175,55,0.35);
+  border-radius: 12px; padding: 18px 16px;
+}
+.sc-stat-num {
+  font-family: var(--font-en); font-size: 27px; font-weight: 900;
+  color: var(--kamo-gold); line-height: 1.1; white-space: nowrap;
+}
+.sc-unit { font-size: 18px; margin-left: 2px; }
+.sc-stat-label { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 6px; font-weight: 600; }
+
+/* ---- CATEGORY ---- */
+.sc-category { padding: 48px 0 8px; }
+.sc-category:nth-of-type(even) { background: #FAFAFA; }
+.sc-category-head {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+  padding-left: 14px; border-left: 5px solid var(--kamo-red);
+}
+.sc-category-title { font-size: 26px; font-weight: 900; color: var(--kamo-dark); }
+.sc-category-count {
+  font-size: 12px; font-weight: 700; color: var(--kamo-gray);
+  background: #fff; border: 1px solid var(--kamo-border);
+  padding: 4px 12px; border-radius: 100px;
+}
+
+.sc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
+
+/* ---- CARD ---- */
+.sc-card {
+  background: #fff; border: 1px solid var(--kamo-border); border-radius: 14px;
+  padding: 0 22px 22px; display: flex; flex-direction: column; height: 100%; overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05); transition: transform 0.25s, box-shadow 0.25s;
+}
+.sc-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(0,0,0,0.1); }
+
+/* サムネイル。画像内に文字が焼き込まれているため切り抜かず全体を表示する */
+.sc-card-thumb {
+  display: block; margin: 0 -22px 16px; background: #F2F2F2;
+}
+.sc-card-image {
+  display: block; width: 100%; height: auto; /* 比率は width/height 属性で保持 */
+}
+.sc-card-rate {
+  display: inline-flex; align-items: baseline; gap: 2px; align-self: flex-start;
+  background: linear-gradient(135deg, var(--kamo-red) 0%, #B8000E 100%);
+  color: #fff; border-radius: 100px; padding: 8px 18px; margin-bottom: 14px;
+  box-shadow: 0 4px 14px rgba(230,0,18,0.28);
+}
+.sc-card-rate-num { font-family: var(--font-en); font-size: 30px; font-weight: 900; line-height: 1; }
+.sc-card-rate-unit { font-size: 17px; font-weight: 900; }
+.sc-card-rate-label { font-size: 12px; font-weight: 700; margin-left: 4px; }
+
+.sc-card-title { font-size: 17px; font-weight: 900; line-height: 1.5; margin-bottom: 8px; color: var(--kamo-dark); }
+.sc-card-owner { font-size: 14px; font-weight: 700; color: var(--kamo-red); margin-bottom: 12px; }
+.sc-card-owner-note { font-size: 12px; font-weight: 500; color: var(--kamo-gray); }
+.sc-card-desc { font-size: 13.5px; line-height: 1.8; color: var(--kamo-gray); margin-bottom: 18px; }
+
+.sc-card-foot {
+  margin-top: auto; padding-top: 16px; border-top: 1px dashed var(--kamo-border);
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+}
+.sc-card-raised { display: flex; flex-direction: column; gap: 2px; }
+.sc-card-raised-label { font-size: 11px; font-weight: 700; color: #9AA0A6; }
+.sc-card-raised-num {
+  font-family: var(--font-en); font-size: 21px; font-weight: 900;
+  color: var(--kamo-dark); line-height: 1.1; white-space: nowrap;
+}
+.sc-card-link { font-size: 13px; font-weight: 700; color: var(--kamo-red); white-space: nowrap; }
+.sc-card-link:hover { text-decoration: underline; }
+
+/* ---- CTA ---- */
+.sc-cta {
+  margin-top: 48px; padding: 52px 0;
+  background: linear-gradient(135deg, #0B1D3A 0%, #14294F 100%);
+  color: #fff; text-align: center;
+}
+.sc-cta-title { font-size: 30px; font-weight: 900; line-height: 1.35; margin-bottom: 14px; }
+.sc-cta-lead { font-size: 15.5px; line-height: 1.85; color: rgba(255,255,255,0.8); margin-bottom: 26px; }
+.sc-cta-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
+.sc-cta-main {
+  background: var(--kamo-red); color: #fff; font-weight: 700; font-size: 17px;
+  padding: 17px 36px; border-radius: 100px; box-shadow: 0 6px 20px rgba(230,0,18,0.35);
+  transition: all 0.25s;
+}
+.sc-cta-main:hover { background: #B8000E; transform: translateY(-2px); }
+.sc-cta-sub {
+  background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.5);
+  font-weight: 700; font-size: 15px; padding: 15px 28px; border-radius: 100px; transition: all 0.25s;
+}
+.sc-cta-sub:hover { border-color: var(--kamo-gold); color: var(--kamo-gold); }
+
+/* ---- FOOTER ---- */
+.sc-footer {
+  background: var(--kamo-dark); color: rgba(255,255,255,0.45);
+  text-align: center; padding: 26px 24px; font-size: 12px; line-height: 1.9;
+}
+.sc-source a { color: rgba(255,255,255,0.75); text-decoration: underline; }
+
+@media (max-width: 768px) {
+  .sc-container { padding: 0 16px; }
+  .sc-hero { padding: 40px 0 36px; }
+  .sc-hero-title { font-size: 34px; }
+  .sc-hero-lead { font-size: 14.5px; }
+  .sc-stats { gap: 10px; }
+  .sc-stat { flex: 1 1 100%; max-width: none; padding: 14px; }
+  .sc-stat-num { font-size: 23px; }
+
+  .sc-category { padding: 36px 0 4px; }
+  .sc-category-title { font-size: 21px; }
+  .sc-grid { grid-template-columns: 1fr; gap: 16px; }
+
+  .sc-card { padding: 0 18px 18px; }
+  .sc-card-thumb { margin: 0 -18px 14px; }
+  .sc-card-rate-num { font-size: 26px; }
+  .sc-card-title { font-size: 16px; }
+  .sc-card-desc { font-size: 13px; }
+  .sc-card-foot { align-items: flex-start; }
+  .sc-card-raised-num { font-size: 19px; }
+
+  .sc-cta { margin-top: 36px; padding: 40px 0; }
+  .sc-cta-title { font-size: 23px; }
+  .sc-cta-lead { font-size: 14.5px; }
+  .sc-br-pc { display: none; }
+  .sc-cta-main, .sc-cta-sub { width: 100%; text-align: center; }
+}

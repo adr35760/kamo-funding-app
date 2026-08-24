@@ -4,6 +4,7 @@ import { useState } from 'react';
 import '@/styles/site-header.css';
 
 const NAV_ITEMS = [
+  { href: '/success', label: '成功事例' },
   { href: '/seminar-info', label: '掲載説明会' },
   { href: '/partner-session-announce', label: 'パートナーシップ' },
   { href: '/partners', label: 'パートナー登録' },
