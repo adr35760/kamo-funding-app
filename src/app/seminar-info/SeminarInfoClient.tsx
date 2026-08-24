@@ -5,6 +5,7 @@ import '@/styles/kamo-icons.css';
 import '@/styles/seminar-info.css';
 import { formatEventDateJa, eventCardParts, EventLike } from '@/lib/event-format';
 import SiteHeader from '@/components/SiteHeader';
+import Image from 'next/image';
 
 export default function SeminarInfoClient({ initialEvents = [] }: { initialEvents?: EventLike[] }) {
   const [submitting, setSubmitting] = useState(false);
@@ -92,6 +93,18 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
               <div className="hero-meta-item"><span className="kamo-icon kamo-icon-yen sm"></span> 参加費¥0</div>
               <div className="hero-meta-item"><span className="kamo-icon kamo-icon-clock sm"></span> 約90分</div>
             </div>
+            <figure className="hero-community">
+              <Image
+                src="/seminar-community.jpg"
+                alt="KAMOファンディング掲載説明会の参加者"
+                width={1400}
+                height={1055}
+                sizes="(max-width: 768px) 100vw, 720px"
+                className="hero-community-image"
+                priority
+              />
+              <figcaption className="hero-community-caption">オンラインで全国から参加できます</figcaption>
+            </figure>
           </div>
         </div>
       </section>

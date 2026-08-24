@@ -285,3 +285,18 @@ a { color: inherit; text-decoration: none; }
 /* 横スクロール防止（nowrap時の保険・ページ全体） */
 .seminar-info-page { overflow-x: hidden; }
 .seminar-info-page .benefits-title h2 { max-width: 100%; }
+
+/* ===== ヒーロー内の集合写真（比率1.327を維持・CTAを押し出さない） ===== */
+.seminar-info-page .hero-community { margin: 28px auto 0; max-width: 720px; }
+.seminar-info-page .hero-community-image {
+  display: block; width: 100%; height: auto; /* 比率は width/height 属性で保持 */
+  border-radius: 14px; box-shadow: 0 10px 34px rgba(0,0,0,0.18);
+}
+.seminar-info-page .hero-community-caption {
+  margin-top: 10px; font-size: 13px; color: rgba(255,255,255,0.75); text-align: center;
+}
+@media (max-width: 768px) {
+  .seminar-info-page .hero-community { margin-top: 22px; max-width: 100%; }
+  .seminar-info-page .hero-community-image { border-radius: 10px; }
+  .seminar-info-page .hero-community-caption { font-size: 12px; }
+}
