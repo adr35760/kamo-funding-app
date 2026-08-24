@@ -81,6 +81,10 @@
 .sc-card.is-noimage { padding-top: 22px; }
 .sc-card.is-noimage .sc-card-title { font-size: 19px; }
 .sc-card.is-noimage .sc-card-desc { font-size: 14.5px; }
+/* 画像がない分、達成率を大きく見せて情報量の差を埋める */
+.sc-card.is-noimage .sc-card-rate { padding: 10px 22px; }
+.sc-card.is-noimage .sc-card-rate-num { font-size: 36px; }
+.sc-card.is-noimage .sc-card-rate-unit { font-size: 19px; }
 
 /* 本家記載の実績バッジ（例: 歴代女性1位） */
 .sc-card-badge {
