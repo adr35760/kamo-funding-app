@@ -7,7 +7,9 @@
   border-bottom: 1px solid var(--kamo-border);
 }
 .site-header-inner {
-  max-width: 1200px; margin: 0 auto;
+  /* 本文コンテナ（--max-width: 1080px）と左右を揃える。
+     ロゴ左端＝本文左端、CTA右端＝本文右端になる。 */
+  max-width: 1080px; margin: 0 auto;
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 24px; gap: 16px;
 }

@@ -6,7 +6,6 @@ import {
   projectUrl,
   totalRaised,
   CUMULATIVE_RAISED_ALL,
-  totalCaseCount,
   maxAchievementRate,
   formatYen,
   caseImage,
@@ -47,7 +46,6 @@ export const metadata: Metadata = {
 
 export default function SuccessPage() {
   const raised = totalRaised();
-  const count = totalCaseCount();
   const maxRate = maxAchievementRate();
 
   return (
@@ -82,13 +80,6 @@ export default function SuccessPage() {
                 <span className="sc-unit">%</span>
               </div>
               <div className="sc-stat-label">最高達成率</div>
-            </div>
-            <div className="sc-stat">
-              <div className="sc-stat-num">
-                {count}
-                <span className="sc-unit">件</span>
-              </div>
-              <div className="sc-stat-label">掲載中の挑戦</div>
             </div>
           </div>
         </div>
