@@ -33,10 +33,10 @@ export default function HomePage() {
             </div>
             <div className="hero-cta-group hero-cta-seminars">
               <a href="/ai-seminar" className="btn-seminar btn-seminar-online">
-                オンライン・リアルセミナーに申し込む →
+                オンラインセミナーに申し込む
               </a>
               <a href="/real-seminar" className="btn-seminar btn-seminar-real">
-                支援者と繋がる交流会に申し込む →
+                リアルセミナー＆繋がる交流会に申し込む →
               </a>
             </div>
           </div>
