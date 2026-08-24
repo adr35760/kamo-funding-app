@@ -40,7 +40,7 @@ export default function HomePage() {
               </a>
             </div>
             <p className="hero-success-link">
-              <a href="/success">達成率3905%の実績も。成功事例を見る →</a>
+              <a href="/success">支援総額2億円超の実績。成功事例を見る →</a>
             </p>
           </div>
           <div className="hero-image-wrap">

@@ -15,10 +15,24 @@ import {
 import '@/styles/kamo-icons.css';
 import '@/styles/success.css';
 
+/** メタ説明は必ずデータから生成する（案件差し替え時に古い数値が残らないようにするため） */
+const META_DESCRIPTION =
+  `KAMOファンディングで実現した挑戦の記録。出版記念講演会・店舗開設・新サービスローンチなど、` +
+  `最高達成率${maxAchievementRate().toLocaleString('ja-JP')}%・支援総額${formatYen(totalRaised())}の実績をご紹介します。`;
+
 export const metadata: Metadata = {
   title: '成功事例 | KAMOファンディング',
-  description:
-    'KAMOファンディングで実現した挑戦の記録。出版記念講演会・店舗開設・新サービスローンチなど、達成率3905%を含む実績をご紹介します。',
+  description: META_DESCRIPTION,
+  openGraph: {
+    title: '成功事例 | KAMOファンディング',
+    description: META_DESCRIPTION,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '成功事例 | KAMOファンディング',
+    description: META_DESCRIPTION,
+  },
 };
 
 export default function SuccessPage() {
