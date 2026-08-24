@@ -5,6 +5,7 @@ import {
   SUCCESS_CATEGORIES,
   projectUrl,
   totalRaised,
+  CUMULATIVE_RAISED_ALL,
   totalCaseCount,
   maxAchievementRate,
   formatYen,
@@ -25,8 +26,9 @@ const SHOW_CARD_IMAGES = false;
 
 /** メタ説明は必ずデータから生成する（案件差し替え時に古い数値が残らないようにするため） */
 const META_DESCRIPTION =
-  `KAMOファンディングで実現した挑戦の記録。出版記念講演会・店舗開設・新サービスローンチなど、` +
-  `最高達成率${maxAchievementRate().toLocaleString('ja-JP')}%・支援総額${formatYen(totalRaised())}の実績をご紹介します。`;
+  `KAMOファンディングで実現した挑戦の記録。累計支援総額${formatYen(CUMULATIVE_RAISED_ALL)}。` +
+  `出版記念講演会・店舗開設・新サービスローンチなど、` +
+  `最高達成率${maxAchievementRate().toLocaleString('ja-JP')}%・掲載事例の支援金合計${formatYen(totalRaised())}の実績をご紹介します。`;
 
 export const metadata: Metadata = {
   title: '成功事例 | KAMOファンディング',
@@ -67,8 +69,12 @@ export default function SuccessPage() {
 
           <div className="sc-stats">
             <div className="sc-stat">
+              <div className="sc-stat-num">{formatYen(CUMULATIVE_RAISED_ALL)}</div>
+              <div className="sc-stat-label">累計支援総額</div>
+            </div>
+            <div className="sc-stat">
               <div className="sc-stat-num">{formatYen(raised)}</div>
-              <div className="sc-stat-label">集まった支援金の合計</div>
+              <div className="sc-stat-label">掲載事例の支援金合計</div>
             </div>
             <div className="sc-stat">
               <div className="sc-stat-num">

@@ -40,7 +40,10 @@ export default function HomePage() {
               </a>
             </div>
             <p className="hero-success-link">
-              <a href="/success">支援総額2億円超の実績。成功事例を見る →</a>
+              <a href="/success" className="btn-success">
+                <span className="btn-success-sub">支援総額2億円超の実績。</span>
+                <span className="btn-success-main">成功事例を見る →</span>
+              </a>
             </p>
           </div>
           <div className="hero-image-wrap">

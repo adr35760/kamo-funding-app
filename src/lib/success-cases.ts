@@ -134,6 +134,13 @@ export function totalCaseCount(): number {
 }
 
 /** 集まった金額の合計（計算値。合計は事実として表示可） */
+/**
+ * KAMOファンディング全体の累計支援総額（掲載事例だけの合計ではない）。
+ * 16億8751万5999円 = 1,600,000,000 + 87,510,000 + 5,999
+ * 掲載事例の合計は totalRaised() を使う（この2つは別物なので混同しないこと）。
+ */
+export const CUMULATIVE_RAISED_ALL = 1_687_515_999;
+
 export function totalRaised(): number {
   return allSuccessCases().reduce((sum, c) => sum + c.raised, 0);
 }

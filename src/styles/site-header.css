@@ -29,6 +29,15 @@
 }
 .site-header-cta:hover { background: var(--kamo-red-dark); }
 
+/* 副ボタン（成功事例）。主CTAの赤と役割を区別するため金系にする */
+.site-header-cta-secondary {
+  background: #FFFDF5; color: #8A6D1F !important;
+  border: 1.5px solid var(--kamo-gold);
+  padding: 7px 16px; border-radius: 100px; font-weight: 700; font-size: 12.5px;
+  white-space: nowrap; transition: all 0.2s;
+}
+.site-header-cta-secondary:hover { background: var(--kamo-gold); color: var(--kamo-dark) !important; }
+
 /* スマホ用の塊はPCでは隠す */
 .site-header-mobile { display: none; }
 .site-header-drawer { display: none; }
@@ -43,6 +52,12 @@
 
   /* 横スクロールでは項目に到達できないため、ハンバーガーへ格納する */
   .site-header-nav { display: none; }
+  /* 副ボタンは主CTAと並べると390pxで窮屈になるためドロワー先頭に置く */
+  .site-header-drawer-secondary {
+    display: block; padding: 14px 20px; font-size: 14.5px; font-weight: 800;
+    color: #8A6D1F; background: #FFFDF5;
+    border-bottom: 1px solid var(--kamo-border);
+  }
   .site-header-mobile { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .site-header-cta { padding: 8px 14px; font-size: 12.5px; }
 

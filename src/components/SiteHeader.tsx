@@ -4,7 +4,6 @@ import { useState } from 'react';
 import '@/styles/site-header.css';
 
 const NAV_ITEMS = [
-  { href: '/success', label: '成功事例' },
   { href: '/seminar-info', label: '掲載説明会' },
   { href: '/partner-session-announce', label: 'パートナーシップ' },
   { href: '/partners', label: 'パートナー登録' },
@@ -13,6 +12,17 @@ const NAV_ITEMS = [
 ];
 
 const DEFAULT_CTA = { href: '/lp', label: '日程を確認する' };
+
+/**
+ * 主CTA（日程を確認する）の左横に置く副ボタン。
+ * 位置や文言の変更はこの定数と SECONDARY_IN_DRAWER_ONLY だけで完結する。
+ */
+const SECONDARY_CTA = { href: '/success', label: '成功事例を見る →' };
+/**
+ * true にすると、狭い画面（768px以下）では副ボタンをヘッダーに出さず
+ * ドロワーの先頭に入れる。390pxで主CTAと並べると窮屈なため既定で有効。
+ */
+const SECONDARY_IN_DRAWER_ONLY = true;
 
 export interface SiteHeaderLink {
   href: string;
@@ -68,6 +78,7 @@ export default function SiteHeader({ current, cta, pageLinks }: SiteHeaderProps)
                 {item.label}
               </a>
             ))}
+            <a href={SECONDARY_CTA.href} className="site-header-cta-secondary">{SECONDARY_CTA.label}</a>
             <a href={actionCta.href} className="site-header-cta">{actionCta.label}</a>
           </nav>
 
@@ -91,6 +102,15 @@ export default function SiteHeader({ current, cta, pageLinks }: SiteHeaderProps)
         {/* スマホ用ドロワー */}
         {open && (
           <nav className="site-header-drawer">
+            {SECONDARY_IN_DRAWER_ONLY && (
+              <a
+                href={SECONDARY_CTA.href}
+                className="site-header-drawer-secondary"
+                onClick={() => setOpen(false)}
+              >
+                {SECONDARY_CTA.label}
+              </a>
+            )}
             {extras.map(item => (
               <a key={item.href} href={item.href} className="is-page-link" onClick={() => setOpen(false)}>
                 {item.label}

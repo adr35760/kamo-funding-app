@@ -41,14 +41,23 @@ a { color: inherit; text-decoration: none; }
 .hero-bullets li::before { content: '▸'; position: absolute; left: 0; color: var(--kamo-gold); font-weight: 900; }
 .hero-bullets li .red { color: var(--kamo-red); font-weight: 700; }
 .hero-cta-group { display: flex; gap: 12px; flex-wrap: wrap; }
-/* 成功事例への副CTA（既存ボタン群を崩さないテキストリンク調） */
+/* 成功事例への副CTA（ボタン表示。ただし申込CTA4つより控えめな配色・サイズ） */
 .hero-success-link { margin-top: 14px; }
-.hero-success-link a {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 15px; font-weight: 700; color: var(--kamo-dark);
-  border-bottom: 2px solid var(--kamo-gold); padding-bottom: 2px; transition: color 0.2s;
+.btn-success {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 1px;
+  background: #FFFDF5; color: var(--kamo-dark);
+  border: 2px solid var(--kamo-gold);
+  padding: 10px 26px; border-radius: 100px;
+  line-height: 1.35; transition: all 0.25s;
 }
-.hero-success-link a:hover { color: var(--kamo-red); }
+.btn-success:hover { background: var(--kamo-gold); color: var(--kamo-dark); transform: translateY(-1px); }
+.btn-success-sub { font-size: 11.5px; font-weight: 700; color: #8A6D1F; letter-spacing: 0.01em; }
+.btn-success:hover .btn-success-sub { color: var(--kamo-dark); }
+.btn-success-main { font-size: 15px; font-weight: 900; }
+@media (max-width: 768px) {
+  .btn-success { width: 100%; padding: 11px 20px; }
+  .btn-success-main { font-size: 14.5px; }
+}
 .btn-primary { display: inline-flex; align-items: center; gap: 6px; background: var(--kamo-red); color: var(--kamo-white); padding: 18px 36px; border-radius: 100px; font-weight: 700; font-size: 19px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(230,0,18,0.3); }
 .btn-primary:hover { background: var(--kamo-red-dark); transform: translateY(-2px); }
 .btn-secondary { display: inline-flex; align-items: center; gap: 6px; background: var(--kamo-white); color: var(--kamo-dark); border: 2px solid var(--kamo-dark); padding: 16px 34px; border-radius: 100px; font-weight: 700; font-size: 19px; transition: all 0.3s; }
