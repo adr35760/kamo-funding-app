@@ -192,3 +192,31 @@ a { color: inherit; text-decoration: none; }
   .community-image { border-radius: 0; }
   .community-caption { padding: 0 16px; }
 }
+
+/* ===== 既存パートナー向け「紹介者登録」ボックス =====
+   新規向けCTA（緑）が主導線。ここは登録済みの人が見落とさない程度の強調に留める。
+   赤は枠線だけに使う（紺背景に赤文字はコントラスト比3.5でAA未達のため）。 */
+.existing-partner-box {
+  margin-top: 32px; padding: 32px 28px;
+  background: #0B1D3A; border: 3px solid var(--kamo-red);
+  border-radius: var(--radius); text-align: center;
+}
+.existing-partner-title {
+  color: #fff; font-weight: 700; font-size: 20px; line-height: 1.5; margin-bottom: 8px;
+}
+.existing-partner-lead {
+  color: rgba(255,255,255,0.78); font-size: 16px; line-height: 1.7; margin-bottom: 20px;
+}
+.existing-partner-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--kamo-gold); color: #0B1D3A;
+  padding: 17px 34px; border-radius: 8px; font-weight: 700; font-size: 17px;
+  transition: all 0.25s;
+}
+.existing-partner-btn:hover { background: #E0AF25; transform: translateY(-1px); }
+@media (max-width: 768px) {
+  .existing-partner-box { padding: 26px 20px; border-width: 2px; }
+  .existing-partner-title { font-size: 18px; }
+  .existing-partner-lead { font-size: 15px; }
+  .existing-partner-btn { width: 100%; font-size: 16px; padding: 16px 24px; }
+}

@@ -110,14 +110,14 @@ export default function PartnerRegisterPage() {
               <details className="step-more"><summary>くわしく</summary><p>紹介した企業のクラファン掲載が完了し、募集終了した時点で、対象額（総支援金額から手数料・手数料に係る消費税を控除した額）の2%が報酬として確定します。その時点で、登録メールアドレスまでに明細を発行。</p></details></div></div>
             <div className="step-item"><div className="step-num">6</div><div className="step-content"><h3>紹介料のお支払い</h3><p>終了月の翌々月末に、指定口座へ入金します。</p></div></div>
           </div>
-          <div style={{ marginTop: '32px', padding: '24px', background: '#0B1D3A', borderRadius: '12px', textAlign: 'center' }}>
-            <p style={{ color: '#fff', fontWeight: 700, fontSize: '16px', marginBottom: '6px' }}>
-              すでに紹介パートナーとして登録済みの方へ
+          {/* 既存パートナー向けの導線。新規登録（緑CTA）が主導線なので、
+              見落とされない程度の強調に留める（赤枠＋紺背景） */}
+          <div className="existing-partner-box">
+            <p className="existing-partner-title">すでに紹介パートナーとして登録済みの方へ</p>
+            <p className="existing-partner-lead">
+              紹介コードをお持ちの方は、こちらから「紹介者登録」をお願いします。
             </p>
-            <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '14px', marginBottom: '16px' }}>
-              紹介コードをお持ちの方は、こちらから紹介者を登録できます。
-            </p>
-            <a href="/partners/referral" style={{ display: 'inline-block', background: 'var(--kamo-gold)', color: '#0B1D3A', padding: '14px 28px', borderRadius: '8px', fontWeight: 700, fontSize: '15px' }}>
+            <a href="/partners/referral" className="existing-partner-btn">
               紹介者を登録する →
             </a>
           </div>
