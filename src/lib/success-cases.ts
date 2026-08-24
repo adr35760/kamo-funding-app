@@ -62,7 +62,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         slug: 'nakajima01',
         title:
           '発信力で人生を変える！中島侑子の新刊『ビジネスInstagramの黄金律』を多くの人に届けたい！！',
-        owner: '中島侑子',
+        owner: '中島侑子さん',
         ownerNote: 'ナカジマユウコ',
         raised: 25061400,
         achievementRate: 8353,
@@ -73,7 +73,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
       {
         slug: 'yamamoto02',
         title: '出版記念講演会を憧れの鴨さんとコラボでやりたい',
-        owner: '山本隆司',
+        owner: '山本隆司さん',
         ownerNote: 'ヤマモトリュウジ／JOZY',
         raised: 40380680,
         achievementRate: 8076,
@@ -90,7 +90,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
       {
         slug: 'ooshimakeisuke01',
         title: '鮨てっぺん！大嶋啓介が世界へ挑戦！渋谷にてグランドオープン',
-        owner: '大嶋啓介',
+        owner: '大嶋啓介さん',
         ownerNote: 'おおしまけいすけ',
         raised: 135124559,
         achievementRate: 103,
