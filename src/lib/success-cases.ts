@@ -104,26 +104,15 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
     label: '新サービスローンチ',
     cases: [
       {
-        slug: 'tonaki05',
-        hasImage: true,
-        title: '時代の挑戦者を記録し、伝える。『月刊カモガシラランド』を継続×進化させたい！',
-        owner: '渡名喜守勇',
-        ownerNote: 'トナキ シュウ',
-        raised: 1293000,
-        achievementRate: 430,
+        // 一覧に同名「焚き火の会」名義が2件ある。採用するのは slug=takibinokai の方
+        // （もう一方の「焚火の会！〜社長選出プロジェクト！」¥5,619,939/1123% は不採用）
+        slug: 'takibinokai',
+        title: '全国統一 焚き火の会 〜狼煙（のろし）編〜',
+        owner: '焚き火の会',
+        raised: 16112162,
+        achievementRate: 3222,
         description:
-          '2年以上発刊し続けたコミュニティ誌をバージョンアップ。公式SNS連動でリアルタイム共有を実現し、挑戦者の公式メディアとして全国へ発信。',
-      },
-      {
-        slug: 'yuka01',
-        hasImage: true,
-        title: '大切な人とお金を語り合える社会へ。〜親子にお金の学びを届ける挑戦を、みんなで実現したい！〜',
-        owner: '駒沢友香',
-        ownerNote: 'コマザワユカ',
-        raised: 2185700,
-        achievementRate: 728,
-        description:
-          '2026年8月10日開催『夏休みだよ！親子でお金の自由研究』。親子でお金を学ぶイベント、こども横丁体験、地域の親子へのチケット寄贈に挑戦。',
+          '全国の仲間が集う「焚き火の会」の全国統一プロジェクト。ディナーショーなどを通じて繋がりを広げる挑戦。',
       },
     ],
   },

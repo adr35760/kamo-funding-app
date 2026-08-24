@@ -15,6 +15,14 @@ import {
 import '@/styles/kamo-icons.css';
 import '@/styles/success.css';
 
+/**
+ * カード画像の表示スイッチ。
+ * 現在は4件中1件しか本家サムネイルが取得できておらず、1件だけ画像があると
+ * 隣のカードに大きな余白ができて不揃いに見えるため、全カード画像なしで統一している。
+ * 残りの画像が揃ったら true にすれば、hasImage を持つ案件から画像が表示される。
+ */
+const SHOW_CARD_IMAGES = false;
+
 /** メタ説明は必ずデータから生成する（案件差し替え時に古い数値が残らないようにするため） */
 const META_DESCRIPTION =
   `KAMOファンディングで実現した挑戦の記録。出版記念講演会・店舗開設・新サービスローンチなど、` +
@@ -95,7 +103,7 @@ export default function SuccessPage() {
                   className={`sc-card${item.hasImage ? '' : ' is-noimage'}`}
                   key={item.slug}
                 >
-                  {item.hasImage && (
+                  {SHOW_CARD_IMAGES && item.hasImage && (
                     <a
                       className="sc-card-thumb"
                       href={projectUrl(item.slug)}
