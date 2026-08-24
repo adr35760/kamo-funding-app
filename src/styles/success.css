@@ -77,6 +77,18 @@
 .sc-card-rate-unit { font-size: 17px; font-weight: 900; }
 .sc-card-rate-label { font-size: 12px; font-weight: 700; margin-left: 4px; }
 
+/* 画像なしカード: 上部余白を確保し、文字を大きめにして見劣りしないようにする */
+.sc-card.is-noimage { padding-top: 22px; }
+.sc-card.is-noimage .sc-card-title { font-size: 19px; }
+.sc-card.is-noimage .sc-card-desc { font-size: 14.5px; }
+
+/* 本家記載の実績バッジ（例: 歴代女性1位） */
+.sc-card-badge {
+  display: inline-block; align-self: flex-start;
+  background: linear-gradient(135deg, #D4AF37 0%, #B8942C 100%); color: #fff;
+  font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 100px; margin-bottom: 12px;
+}
+
 .sc-card-title { font-size: 17px; font-weight: 900; line-height: 1.5; margin-bottom: 8px; color: var(--kamo-dark); }
 .sc-card-owner { font-size: 14px; font-weight: 700; color: var(--kamo-red); margin-bottom: 12px; }
 .sc-card-owner-note { font-size: 12px; font-weight: 500; color: var(--kamo-gray); }
@@ -137,6 +149,9 @@
   .sc-grid { grid-template-columns: 1fr; gap: 16px; }
 
   .sc-card { padding: 0 18px 18px; }
+  .sc-card.is-noimage { padding-top: 18px; }
+  .sc-card.is-noimage .sc-card-title { font-size: 17.5px; }
+  .sc-card.is-noimage .sc-card-desc { font-size: 13.5px; }
   .sc-card-thumb { margin: 0 -18px 14px; }
   .sc-card-rate-num { font-size: 26px; }
   .sc-card-title { font-size: 16px; }

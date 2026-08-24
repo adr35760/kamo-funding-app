@@ -77,23 +77,28 @@ export default function SuccessPage() {
 
             <div className="sc-grid">
               {category.cases.map(item => (
-                <article className="sc-card" key={item.slug}>
-                  <a
-                    className="sc-card-thumb"
-                    href={projectUrl(item.slug)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${item.title}（プロジェクトページを開く）`}
-                  >
-                    <Image
-                      src={caseImage(item.slug)}
-                      alt={item.title}
-                      width={CASE_IMAGE_WIDTH}
-                      height={CASE_IMAGE_HEIGHT}
-                      sizes="(max-width: 768px) 100vw, 520px"
-                      className="sc-card-image"
-                    />
-                  </a>
+                <article
+                  className={`sc-card${item.hasImage ? '' : ' is-noimage'}`}
+                  key={item.slug}
+                >
+                  {item.hasImage && (
+                    <a
+                      className="sc-card-thumb"
+                      href={projectUrl(item.slug)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${item.title}（プロジェクトページを開く）`}
+                    >
+                      <Image
+                        src={caseImage(item.slug)}
+                        alt={item.title}
+                        width={CASE_IMAGE_WIDTH}
+                        height={CASE_IMAGE_HEIGHT}
+                        sizes="(max-width: 768px) 100vw, 520px"
+                        className="sc-card-image"
+                      />
+                    </a>
+                  )}
                   <div className="sc-card-rate">
                     <span className="sc-card-rate-num">
                       {item.achievementRate.toLocaleString('ja-JP')}
@@ -108,6 +113,8 @@ export default function SuccessPage() {
                     {item.owner}
                     {item.ownerNote && <span className="sc-card-owner-note">（{item.ownerNote}）</span>}
                   </p>
+
+                  {item.badge && <p className="sc-card-badge">{item.badge}</p>}
 
                   <p className="sc-card-desc">{item.description}</p>
 

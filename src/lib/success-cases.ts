@@ -23,6 +23,14 @@ export interface SuccessCase {
   achievementRate: number;
   /** 挑戦内容 */
   description: string;
+  /**
+   * サムネイル画像を持つか。
+   * 本家のプロジェクトサムネイルが取得できた案件のみ true。
+   * （リターン一覧の画像しか無い案件は載せない＝意味不明・不適切になるため）
+   */
+  hasImage?: boolean;
+  /** 補足の実績表記（本家記載の事実のみ。例「歴代女性1位」） */
+  badge?: string;
 }
 
 /**
@@ -51,24 +59,27 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
     label: '出版記念講演会',
     cases: [
       {
-        slug: 'matsukura02',
-        title: '熱狂ゴリラ社長 出版前記念コラボ講演会',
-        owner: '松倉裕規',
-        ownerNote: '熱狂ゴリラ社長',
-        raised: 11717500,
-        achievementRate: 3905,
+        slug: 'nakajima01',
+        title:
+          '発信力で人生を変える！中島侑子の新刊『ビジネスInstagramの黄金律』を多くの人に届けたい！！',
+        owner: '中島侑子',
+        ownerNote: 'ナカジマユウコ',
+        raised: 25061400,
+        achievementRate: 8353,
+        badge: 'カモファンディング歴代女性1位',
         description:
-          '書籍出版前の記念コラボ講演会（スペシャルゲスト鴨頭嘉人）。「完全燃焼！大人の大運動会」などのイベント開催を通じて、完全燃焼人間500人の増加を目指す挑戦。',
+          '新刊『ビジネスInstagramの黄金律』を多くの人に届けるための53日間の挑戦。カモファンディング歴代女性1位の実績を記録。',
       },
       {
-        slug: 'hyouma01',
-        title: '"4K"を広める講演会を大成功させたい！',
-        owner: '多賀谷兵馬',
-        ownerNote: '株式会社イオス 代表取締役社長・福岡県飯塚市',
-        raised: 10509000,
-        achievementRate: 2101,
+        slug: 'yamamoto02',
+        title: '出版記念講演会を憧れの鴨さんとコラボでやりたい',
+        owner: '山本隆司',
+        ownerNote: 'ヤマモトリュウジ／JOZY',
+        raised: 40380680,
+        achievementRate: 8076,
+        hasImage: true,
         description:
-          '建設業界の「きつい・汚い・危険」な現場で戦う4K crewを応援。初出版となる書籍の販売と、東京・大阪での講演会開催に挑戦。',
+          '人生初の出版にあたり、師事する鴨頭嘉人さんとのコラボで出版記念講演会を開催する挑戦。',
       },
     ],
   },
@@ -77,14 +88,14 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
     label: '店舗開設',
     cases: [
       {
-        slug: 'hama01',
-        title: '『いい店見ぃつけた♪』と笑顔で帰れるレストランを芝公園につくりたい！',
-        owner: '濵賢治',
-        ownerNote: 'はまけんじ',
-        raised: 1578000,
-        achievementRate: 315,
+        slug: 'ooshimakeisuke01',
+        title: '鮨てっぺん！大嶋啓介が世界へ挑戦！渋谷にてグランドオープン',
+        owner: '大嶋啓介',
+        ownerNote: 'おおしまけいすけ',
+        raised: 135124559,
+        achievementRate: 103,
         description:
-          '24年間の飲食業経験を活かし、芝公園に料理・空間・会話を楽しめるレストランをオープン。『粋』な大人が集う場所を目指す挑戦。',
+          '15年ぶりの本気の挑戦。渋谷に「鮨てっぺん」をグランドオープンし、世界へ向けて打って出る挑戦。',
       },
     ],
   },
@@ -94,6 +105,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
     cases: [
       {
         slug: 'tonaki05',
+        hasImage: true,
         title: '時代の挑戦者を記録し、伝える。『月刊カモガシラランド』を継続×進化させたい！',
         owner: '渡名喜守勇',
         ownerNote: 'トナキ シュウ',
@@ -104,6 +116,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
       },
       {
         slug: 'yuka01',
+        hasImage: true,
         title: '大切な人とお金を語り合える社会へ。〜親子にお金の学びを届ける挑戦を、みんなで実現したい！〜',
         owner: '駒沢友香',
         ownerNote: 'コマザワユカ',
