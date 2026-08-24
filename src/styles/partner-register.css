@@ -11,6 +11,7 @@ body { font-family: var(--font-jp); color: var(--kamo-dark); line-height: 1.8; }
 a { color: inherit; text-decoration: none; }
 .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
 
+/* .header はSiteHeader（.site-header）へ移行済み。他ページ用に定義のみ残す */
 .header { padding: 24px 0; border-bottom: 1px solid var(--kamo-border); }
 .header-inner { max-width: 720px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 8px; }
 .logo-mark { width: 36px; height: 36px; background: var(--kamo-red); border-radius: 50% 50% 50% 10px; transform: rotate(-5deg); position: relative; }
@@ -55,10 +56,102 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .form-card { padding: 32px 24px; } }
 
 .benefits { padding: 60px 0; background: var(--kamo-light-bg); }
-.benefits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.benefit-card { background: var(--kamo-white); border-radius: var(--radius); padding: 24px; border-left: 4px solid #27AE60; }
+.benefits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
+/* 報酬カードは情報量が多いため横1行を占有させ、最初に表示する（他カードとの高さ差をなくす） */
+.benefits-grid > #reward { grid-column: 1 / -1; order: -1; }
+/* 単独行になるカードも他と極端な差が出ないよう最低高さを確保 */
+.benefit-card:not(#reward) { min-height: 150px; }
+.benefit-card { background: var(--kamo-white); border-radius: var(--radius); padding: 24px; border-left: 4px solid #27AE60; display: flex; flex-direction: column; height: 100%; }
 .benefit-card h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
 .benefit-card p { font-size: 14px; color: var(--kamo-gray); }
 @media (max-width: 768px) { .benefits-grid { grid-template-columns: 1fr; } }
 
 .footer { background: var(--kamo-dark); padding: 32px 0; text-align: center; color: rgba(255,255,255,0.4); font-size: 12px; }
+
+
+/* ===== ヒーロー内CTA（ファーストビューから登録できるように） ===== */
+.hero-cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 24px; }
+.hero-cta-main {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #27AE60; color: #fff; font-weight: 700; font-size: 17px;
+  padding: 16px 32px; border-radius: 100px;
+  box-shadow: 0 4px 16px rgba(39,174,96,0.3); transition: all 0.25s;
+}
+.hero-cta-main:hover { background: #219150; transform: translateY(-2px); }
+.hero-cta-sub {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; color: var(--kamo-dark); border: 2px solid var(--kamo-border);
+  font-weight: 700; font-size: 15px; padding: 14px 24px; border-radius: 100px; transition: all 0.25s;
+}
+.hero-cta-sub:hover { border-color: #27AE60; color: #27AE60; }
+
+/* ===== 報酬額の見せ方（金額・計算式・注記は変更なし。表示だけ強調） ===== */
+.reward-examples { display: flex; flex-direction: row; gap: 10px; margin: 14px 0 12px; }
+.reward-example {
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  background: #F2FBF6; border: 1px solid #CFEBDA; border-radius: 10px; padding: 12px 14px;
+}
+.reward-raised, .reward-fee { display: flex; flex-direction: column; gap: 2px; }
+.reward-label { font-size: 11px; font-weight: 700; color: #6B7A72; letter-spacing: 0.02em; }
+.reward-amount { font-size: 17px; font-weight: 900; color: var(--kamo-dark); line-height: 1.15; white-space: nowrap; }
+.reward-amount.is-fee { font-size: 22px; color: #1E9B57; }
+.reward-arrow { font-size: 13px; font-weight: 900; color: #27AE60; line-height: 1; align-self: center; }
+.reward-example .reward-arrow { font-size: 0; }
+.reward-example .reward-arrow::before { content: '↓'; font-size: 14px; }
+.reward-notes { font-size: 11px; color: #8A8A8A; line-height: 1.55; margin-top: 10px; }
+
+/* ===== 手順の詳細（折りたたみ・情報は削除せず格納） ===== */
+.step-more { margin-top: 8px; }
+.step-more > summary {
+  cursor: pointer; font-size: 13px; font-weight: 700; color: #27AE60;
+  list-style: none; display: inline-flex; align-items: center; gap: 4px;
+}
+.step-more > summary::-webkit-details-marker { display: none; }
+.step-more > summary::after { content: '＋'; font-size: 12px; }
+.step-more[open] > summary::after { content: '−'; }
+.step-more > p { font-size: 13.5px; color: var(--kamo-gray); line-height: 1.7; margin-top: 8px; }
+
+/* ===== 追従CTA（スクロール後も常に登録できる） ===== */
+.sticky-cta {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+  background: rgba(255,255,255,0.97); backdrop-filter: blur(10px);
+  border-top: 1px solid var(--kamo-border); box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  padding: 10px 16px;
+}
+.sticky-cta-inner {
+  max-width: 720px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.sticky-cta-text { font-size: 14px; font-weight: 700; color: var(--kamo-dark); }
+.sticky-cta-btn {
+  background: #27AE60; color: #fff; font-weight: 700; font-size: 15px;
+  padding: 12px 24px; border-radius: 100px; white-space: nowrap; transition: background 0.25s;
+}
+.sticky-cta-btn:hover { background: #219150; }
+/* 追従CTAでフッターが隠れないための余白 */
+.footer { padding-bottom: 84px; }
+
+@media (max-width: 768px) {
+  .hero-cta-row { gap: 10px; }
+  .hero-cta-main { width: 100%; font-size: 16px; padding: 15px 24px; }
+  .hero-cta-sub { width: 100%; font-size: 14px; padding: 12px 20px; }
+  .reward-examples { flex-direction: column; }
+  .reward-example { flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .reward-example .reward-arrow::before { content: '→'; font-size: 15px; }
+  .reward-amount { font-size: 17px; }
+  .reward-amount.is-fee { font-size: 21px; }
+  .sticky-cta-text { display: none; }
+  .sticky-cta-inner { justify-content: center; }
+  .sticky-cta-btn { width: 100%; text-align: center; font-size: 16px; padding: 14px 24px; }
+}
+
+/* 報酬カードの計算方法・注記（折りたたみ。情報は保持したままカード高さを抑える） */
+.reward-detail { margin-top: 4px; }
+.reward-detail > summary {
+  cursor: pointer; font-size: 12px; font-weight: 700; color: #6B7A72;
+  list-style: none; display: inline-flex; align-items: center; gap: 4px;
+}
+.reward-detail > summary::-webkit-details-marker { display: none; }
+.reward-detail > summary::after { content: '＋'; font-size: 11px; }
+.reward-detail[open] > summary::after { content: '−'; }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import SiteHeader from '@/components/SiteHeader';
 import '@/styles/kamo-icons.css';
 import '@/styles/partner-register.css';
 
@@ -36,11 +37,7 @@ export default function PartnerRegisterPage() {
 
   return (
     <>
-      <div className="header">
-        <div className="header-inner">
-          <a href="/"><img src="/kamo-logo-main.jpg" alt="KAMOファンディング" style={{height:'32px',width:'auto'}} /></a>
-        </div>
-      </div>
+      <SiteHeader current="/partners" />
 
       <section className="hero">
         <div className="container">
@@ -48,6 +45,10 @@ export default function PartnerRegisterPage() {
           <h1><span className="green">紹介するだけ</span>で<br />月数万円の副収入</h1>
           <p>KAMOファンディングの紹介パートナー。ネットワークを活かして、クラファン掲載候補を紹介するだけ。登録は無料・即日発行。</p>
           <p style={{ color: '#E60012', fontWeight: '700', fontSize: '15px', marginTop: '12px' }}>※説明会参加必須（紹介報酬規程の承諾が必要）</p>
+          <div className="hero-cta-row">
+            <a href="#register" className="hero-cta-main">無料で登録する →</a>
+            <a href="#reward" className="hero-cta-sub">紹介料のしくみを見る</a>
+          </div>
         </div>
       </section>
 
@@ -55,7 +56,23 @@ export default function PartnerRegisterPage() {
         <div className="container">
           <div className="benefits-grid">
             <div className="benefit-card"><h4><span className="kamo-icon kamo-icon-pen sm" style={{marginRight:'6px'}}></span>登録だけ・無料</h4><p>オンラインフォームに登録するだけ。即日で紹介コードが発行されます。<br />※紹介報酬規定にチェック必要</p></div>
-            <div className="benefit-card"><h4><span className="kamo-icon kamo-icon-yen sm" style={{marginRight:'6px'}}></span>紹介料：対象額の2%</h4><p>対象額＝総支援金額ー手数料ー手数料に係る消費税。その2%が報酬です。<br />例：総支援金額¥1,000,000→対象額¥780,000→紹介料約¥15,600／¥10,000,000→¥7,800,000→約¥156,000<br />※手数料20%・消費税10%で試算した参考値です<br />※募集終了時に明細を発行し、終了月の翌々月末に指定口座へお支払い</p></div>
+            <div className="benefit-card" id="reward"><h4><span className="kamo-icon kamo-icon-yen sm" style={{marginRight:'6px'}}></span>紹介料：対象額の2%</h4><p>対象額＝総支援金額ー手数料ー手数料に係る消費税。その2%が報酬です。</p>
+              <div className="reward-examples">
+                <div className="reward-example">
+                  <div className="reward-raised"><span className="reward-label">総支援金額</span><span className="reward-amount">¥1,000,000</span></div>
+                  <div className="reward-arrow">→</div>
+                  <div className="reward-fee"><span className="reward-label">紹介料</span><span className="reward-amount is-fee">約¥15,600</span></div>
+                </div>
+                <div className="reward-example">
+                  <div className="reward-raised"><span className="reward-label">総支援金額</span><span className="reward-amount">¥10,000,000</span></div>
+                  <div className="reward-arrow">→</div>
+                  <div className="reward-fee"><span className="reward-label">紹介料</span><span className="reward-amount is-fee">約¥156,000</span></div>
+                </div>
+              </div>
+              <details className="reward-detail"><summary>計算方法と注意事項</summary>
+                <p className="reward-notes">計算例：総支援金額¥1,000,000→対象額¥780,000→紹介料約¥15,600／¥10,000,000→¥7,800,000→約¥156,000<br />※手数料20%・消費税10%で試算した参考値です<br />※募集終了時に明細を発行し、終了月の翌々月末に指定口座へお支払い</p>
+              </details>
+            </div>
             <div className="benefit-card"><h4><span className="kamo-icon kamo-icon-handshake sm" style={{marginRight:'6px'}}></span>新しいスキル不要</h4><p>あなたのネットワークを活かすだけ。クラファンの専門知識は必要ありません。</p></div>
             <div className="benefit-card"><h4><span className="kamo-icon kamo-icon-flame sm" style={{marginRight:'6px'}}></span>KAMOブランド力</h4><p>鴨頭義人さん・嘉人さんのブランド力で紹介しやすい。企業からの感謝も得られる。</p></div>
           </div>
@@ -66,12 +83,15 @@ export default function PartnerRegisterPage() {
         <div className="container">
           <h2 style={{textAlign:'center',fontSize:'24px',fontWeight:900,marginBottom:'32px'}}>紹介パートナーの<span style={{color:'#27AE60'}}>フロー</span></h2>
           <div className="steps-list">
-            <div className="step-item"><div className="step-num">1</div><div className="step-content"><h3>登録（オンラインフォーム・無料）</h3><p>以下のフォームに登録情報を入力。即日に紹介コードが発行されます。</p></div></div>
-            <div className="step-item"><div className="step-num">2</div><div className="step-content"><h3>紹介コード発行</h3><p>パートナー固有の紹介コードが発行されます。このコード経由の掲載が自動的にあなたの紹介として紐付きます。</p></div></div>
-            <div className="step-item"><div className="step-num">3</div><div className="step-content"><h3>掲載説明会へ紹介</h3><p>メールで届いた掲載説明会のリンクを紹介者へ送信。</p></div></div>
-            <div className="step-item"><div className="step-num">4</div><div className="step-content"><h3>実績トラッキング</h3><p>紹介コード経由の掲載をシステムが自動追跡。紹介者が実施した場合、リマインドメールが届きます。</p></div></div>
-            <div className="step-item"><div className="step-num">5</div><div className="step-content"><h3>報酬確定</h3><p>紹介した企業のクラファン掲載が完了し、募集終了した時点で、対象額（総支援金額から手数料・手数料に係る消費税を控除した額）の2%が報酬として確定します。その時点で、登録メールアドレスまでに明細を発行。</p></div></div>
-            <div className="step-item"><div className="step-num">6</div><div className="step-content"><h3>紹介料のお支払い</h3><p>終了月の翌々月末に指定の口座へ入金します。</p></div></div>
+            <div className="step-item"><div className="step-num">1</div><div className="step-content"><h3>登録（無料）</h3><p>フォームに入力するだけ。即日で紹介コードが届きます。</p></div></div>
+            <div className="step-item"><div className="step-num">2</div><div className="step-content"><h3>紹介コード発行</h3><p>あなた専用のコードを発行します。</p>
+              <details className="step-more"><summary>くわしく</summary><p>パートナー固有の紹介コードが発行されます。このコード経由の掲載が自動的にあなたの紹介として紐付きます。</p></details></div></div>
+            <div className="step-item"><div className="step-num">3</div><div className="step-content"><h3>掲載説明会へ紹介</h3><p>メールで届いたリンクを紹介先へ送るだけです。</p></div></div>
+            <div className="step-item"><div className="step-num">4</div><div className="step-content"><h3>実績トラッキング</h3><p>コード経由の掲載はシステムが自動で追跡します。</p>
+              <details className="step-more"><summary>くわしく</summary><p>紹介コード経由の掲載をシステムが自動追跡。紹介者が実施した場合、リマインドメールが届きます。</p></details></div></div>
+            <div className="step-item"><div className="step-num">5</div><div className="step-content"><h3>報酬確定</h3><p>募集終了の時点で対象額の2%が確定し、明細をお送りします。</p>
+              <details className="step-more"><summary>くわしく</summary><p>紹介した企業のクラファン掲載が完了し、募集終了した時点で、対象額（総支援金額から手数料・手数料に係る消費税を控除した額）の2%が報酬として確定します。その時点で、登録メールアドレスまでに明細を発行。</p></details></div></div>
+            <div className="step-item"><div className="step-num">6</div><div className="step-content"><h3>紹介料のお支払い</h3><p>終了月の翌々月末に、指定口座へ入金します。</p></div></div>
           </div>
           <div style={{ marginTop: '32px', padding: '24px', background: '#0B1D3A', borderRadius: '12px', textAlign: 'center' }}>
             <p style={{ color: '#fff', fontWeight: 700, fontSize: '16px', marginBottom: '6px' }}>
@@ -87,7 +107,7 @@ export default function PartnerRegisterPage() {
         </div>
       </section>
 
-      <section className="form-section">
+      <section className="form-section" id="register">
         <div className="container">
           <div className="form-card">
             <h2>紹介<span className="green">パートナー登録</span></h2>
@@ -130,6 +150,15 @@ export default function PartnerRegisterPage() {
           </div>
         </div>
       </section>
+
+      {!submitted && (
+        <div className="sticky-cta">
+          <div className="sticky-cta-inner">
+            <span className="sticky-cta-text">登録は無料・即日発行</span>
+            <a href="#register" className="sticky-cta-btn">無料で登録する →</a>
+          </div>
+        </div>
+      )}
 
       <div className="footer">&copy; 2026 KAMO FUNDING. All rights reserved.</div>
     </>
