@@ -156,7 +156,7 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
                   <path d="M12 2V4" />
                 </svg>
               </div>
-              <h3>AIクラファン支援ツール</h3>
+              <h3>AIクラファンページ作成ツール</h3>
               <p>セミナー参加者がその場で<br />クラファンページのひな形を作れる</p>
             </div>
           </div>

@@ -152,7 +152,7 @@ export default function AIToolPage() {
             <span style={{fontSize: '24px', fontWeight: 900, color: '#fff'}}>AI</span>
           </div>
           <h1 style={{ color: '#E60012', fontSize: 20, fontWeight: 900, marginBottom: 8 }}>
-            AIクラファン支援ツール
+            AIクラファンページ作成ツール
           </h1>
           <p style={{ color: '#666', fontSize: 13, marginBottom: 24 }}>
             このツールは限定公開です。<br />パスワードを入力してください。
@@ -200,7 +200,7 @@ export default function AIToolPage() {
       {/* Brand Header */}
       <div style={{ marginBottom: 30 }}>
         <h1 style={{ color: '#E60012', fontSize: 28, margin: '0 0 8px' }}>
-          🔥 KAMOファンディング AIクラファン支援ツール
+          🔥 KAMOファンディング AIクラファンページ作成ツール
         </h1>
         <p style={{ color: '#666', fontSize: 14 }}>
           ヒアリングに答えるだけで、クラファンページのひな形を自動生成します

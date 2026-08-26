@@ -370,7 +370,7 @@ export default function AdminPage() {
         <a href="/ai-tool" style={{
           padding: '8px 16px', background: '#E60012', color: '#fff', borderRadius: 6, fontSize: 13,
         }}>
-          🔥 AIクラファン支援ツール
+          🔥 AIクラファンページ作成ツール
         </a>
         <a href="/partners" style={{
           padding: '8px 16px', background: '#D4A017', color: '#fff', borderRadius: 6, fontSize: 13,

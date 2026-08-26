@@ -90,7 +90,7 @@ export default function HomePage() {
             </a>
             <a href="/ai-tool" className="link-card red">
               <div className="kamo-icon kamo-icon-robot lg"></div>
-              <h3>AIクラファン支援ツール</h3>
+              <h3>AIクラファンページ作成ツール</h3>
               <p>AIがクラファンページのひな形を自動生成（LIVE動作中）</p>
             </a>
             <a href="/partner-session-announce" className="link-card red">
