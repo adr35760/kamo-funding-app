@@ -104,7 +104,7 @@ a { color: inherit; text-decoration: none; }
 .link-card.gold { border-color: var(--kamo-gold); background: #FFFAF0; }
 .link-card.gold:hover { background: #FFF5E0; }
 .link-card .icon { font-size: 40px; margin-bottom: 10px; }
-.link-card h3 { font-size: 21px; font-weight: 900; margin-bottom: 6px; }
+.link-card h3 { font-size: 21px; font-weight: 900; margin-bottom: 6px; text-wrap: balance; }
 .link-card.red h3 { color: var(--kamo-red); }
 .link-card.green h3 { color: var(--partner-green); }
 .link-card.gold h3 { color: var(--kamo-gold); }
