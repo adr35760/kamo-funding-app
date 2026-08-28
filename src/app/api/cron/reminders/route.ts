@@ -146,6 +146,11 @@ export async function GET(request: NextRequest) {
       reminded++;
     }
 
+    // ---- 開催済みイベントを completed に落とす（リマインド送信の「後」に実行） ----
+    // 順序が重要: 先にステータスを更新すると当日のイベントが送信対象から消える。
+    // 対象は「日本時間の当日0:00より前に開始したイベント」= 当日分は絶対に含めない。
+    const completed = await markPastEventsCompleted(supabase, now);
+
     return NextResponse.json({
       ok: true,
       mode,
@@ -154,6 +159,7 @@ export async function GET(request: NextRequest) {
       targetRegistrations: (registrations || []).length,
       reminded,
       failed,
+      completedEvents: completed,
     });
   } catch (err) {
     console.error('Reminder cron error:', err);
@@ -161,6 +167,49 @@ export async function GET(request: NextRequest) {
       { ok: false, error: err instanceof Error ? err.message : 'リマインド処理に失敗しました' },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * 開催が終わったイベントの status を 'upcoming' → 'completed' にする。
+ *
+ * - 判定境界は「日本時間の当日 0:00」。当日開催のイベントは対象外なので、
+ *   リマインド送信対象を消してしまう事故が起きない。
+ * - status の値は events テーブルの CHECK 制約
+ *   ('draft','upcoming','live','completed','cancelled') に合わせている。
+ * - 必ずリマインド送信処理の「後」に呼ぶこと。
+ */
+async function markPastEventsCompleted(
+  supabase: ReturnType<typeof getSupabaseAdmin>,
+  now: Date
+): Promise<{ count: number; ids: string[] }> {
+  try {
+    const tokyoFmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Tokyo', year: 'numeric', month: 'numeric', day: 'numeric',
+    });
+    const parts = tokyoFmt.formatToParts(now);
+    const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+    // 日本時間の当日 0:00 を UTC で表した時刻（= UTC 前日 15:00）
+    const todayStartUtc = new Date(
+      Date.UTC(get('year'), get('month') - 1, get('day')) - 9 * 60 * 60 * 1000
+    ).toISOString();
+
+    const { data, error } = await supabase
+      .from('events')
+      .update({ status: 'completed' })
+      .eq('status', 'upcoming')
+      .lt('event_date', todayStartUtc)
+      .select('id');
+
+    if (error) {
+      console.error('markPastEventsCompleted failed:', error);
+      return { count: 0, ids: [] };
+    }
+    const ids = (data || []).map((e: { id: string }) => e.id);
+    return { count: ids.length, ids };
+  } catch (err) {
+    console.error('markPastEventsCompleted error:', err);
+    return { count: 0, ids: [] };
   }
 }
 
