@@ -302,7 +302,7 @@ export default function AIToolPage() {
       <SiteHeader current="/ai-tool" />
     <div style={{ fontFamily: "'Noto Sans JP', sans-serif", maxWidth: 900, margin: '0 auto', padding: 20 }}>
       {/* Brand Header */}
-      <div style={{ marginBottom: 30 }}>
+      <div className="print-brand" style={{ marginBottom: 30 }}>
         <h1 style={{ color: '#E60012', fontSize: 28, margin: '0 0 8px' }}>
           🔥 KAMOファンディング AIクラファンページ作成ツール
         </h1>
@@ -312,7 +312,7 @@ export default function AIToolPage() {
       </div>
 
       {/* Step Indicator */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 30 }}>
+      <div className="no-print" style={{ display: 'flex', gap: 8, marginBottom: 30 }}>
         {['ヒアリング', '確認', '生成中', 'プレビュー'].map((label, i) => (
           <div key={i} style={{
             flex: 1,
@@ -463,7 +463,7 @@ export default function AIToolPage() {
       {/* Step 4: プレビュー */}
       {step === 4 && result && (
         <div>
-          <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="no-print" style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontSize: 18, margin: 0 }}>生成結果プレビュー</h2>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               {mode && (
@@ -504,6 +504,8 @@ export default function AIToolPage() {
             }
             @media print {
               .no-print, .site-header, .site-header-spacer { display: none !important; }
+              .print-brand p { display: none !important; }
+              .print-brand { margin-bottom: 12px !important; }
               body { background: #fff; }
               details { display: block; }
               details > div { display: block !important; }
