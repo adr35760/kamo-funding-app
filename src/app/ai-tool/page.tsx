@@ -2,12 +2,11 @@
 
 import { useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
+import GeneratedPageDoc, { generatedDocStyles } from '@/components/GeneratedPageDoc';
 import {
   REWARD_CATEGORIES,
   REWARD_CATEGORY_LABELS,
-  REWARD_CATEGORY_STYLES,
   normalizeRewardCategory,
-  type RewardCategory,
 } from '@/lib/ai-prompts';
 
 interface GeneratedPage {
@@ -199,20 +198,6 @@ export default function AIToolPage() {
    */
   const downloadPDF = () => {
     window.print();
-  };
-
-  const rewardsByCategory = (page: GeneratedPage) =>
-    REWARD_CATEGORIES.map(cat => ({
-      category: cat as RewardCategory,
-      items: page.rewards.filter(r => normalizeRewardCategory(r.category, r.tier) === cat),
-    })).filter(g => g.items.length > 0); // 空カテゴリは見出しごと出さない
-
-  const tierLabels: Record<string, string> = {
-    entry: 'エントリー',
-    standard: 'スタンダード',
-    premium: 'プレミアム',
-    vip: 'VIP',
-    sponsor: 'スポンサー',
   };
 
   // パスワード認証画面
@@ -484,152 +469,9 @@ export default function AIToolPage() {
 
           {/* 生成結果の表示・印刷用スタイル（PDFはブラウザのPDF保存を使うため
               日本語フォントの埋め込み事故が起きない） */}
-          <style jsx global>{`
-            .result-actions {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 12px;
-            }
-            .reward-head {
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-start;
-              gap: 12px;
-            }
-            /* 狭い幅では横並びをやめて縦積みにする（確立パターン） */
-            @media (max-width: 768px) {
-              .result-actions { flex-direction: column; }
-              .result-actions button { width: 100%; }
-              .reward-head { flex-direction: column; gap: 4px; }
-            }
-            @media print {
-              .no-print, .site-header, .site-header-spacer { display: none !important; }
-              .print-brand p { display: none !important; }
-              .print-brand { margin-bottom: 12px !important; }
-              body { background: #fff; }
-              details { display: block; }
-              details > div { display: block !important; }
-            }
-          `}</style>
+          <style jsx global>{generatedDocStyles}</style>
 
-          {/* Project Header */}
-          <div style={{ border: '2px solid #E60012', borderRadius: 8, overflow: 'hidden', marginBottom: 20 }}>
-            <div style={{ background: '#E60012', color: '#fff', padding: 20 }}>
-              <h3 style={{ margin: '0 0 4px', fontSize: 22 }}>{result.project.title}</h3>
-              <p style={{ margin: 0, fontSize: 14, opacity: 0.9 }}>{result.project.subtitle}</p>
-            </div>
-            <div style={{ padding: 20, background: '#fff' }}>
-              <div style={{ display: 'flex', gap: 20, marginBottom: 16 }}>
-                <div>
-                  <span style={{ fontSize: 12, color: '#999' }}>目標金額</span>
-                  <div style={{ fontSize: 24, fontWeight: 'bold', color: '#E60012' }}>
-                    ¥{result.project.goal_amount.toLocaleString()}
-                  </div>
-                </div>
-                <div>
-                  <span style={{ fontSize: 12, color: '#999' }}>起案者</span>
-                  <div style={{ fontSize: 18 }}>{result.project.creator.name}</div>
-                  <div style={{ fontSize: 12, color: '#999' }}>{result.project.creator.organization}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Story */}
-          <div style={{ marginBottom: 20 }}>
-            <h3 style={{ color: '#E60012', borderBottom: '2px solid #E60012', paddingBottom: 8, fontSize: 16 }}>
-              📖 ストーリー
-            </h3>
-            <StorySection title="リード" content={result.project.story.lead} />
-            <StorySection title="背景・現状" content={result.project.story.background} />
-            <StorySection title="ビジョン" content={result.project.story.vision} />
-            <StorySection title="資金使途" content={result.project.story.use_of_funds} />
-            <StorySection title="スケジュール" content={result.project.story.schedule} />
-            <StorySection title="訴求メッセージ" content={result.project.story.appeal} />
-          </div>
-
-          {/* Rewards — 商品 / 体験 / サービス / スポンサー の4カテゴリ */}
-          <div style={{ marginBottom: 20 }}>
-            <h3 style={{ color: '#E60012', borderBottom: '2px solid #E60012', paddingBottom: 8, fontSize: 16 }}>
-              🎁 リターン（商品・体験・サービス・スポンサー）
-            </h3>
-            {rewardsByCategory(result).map(group => {
-              const st = REWARD_CATEGORY_STYLES[group.category];
-              return (
-                <div key={group.category} style={{ marginTop: 16 }}>
-                  <h4 style={{
-                    margin: '0 0 10px',
-                    fontSize: 15,
-                    color: st.color,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                  }}>
-                    <span aria-hidden="true">{st.icon}</span>
-                    {REWARD_CATEGORY_LABELS[group.category]}
-                    <span style={{ fontSize: 12, color: '#999', fontWeight: 'normal' }}>
-                      {group.items.length}件
-                    </span>
-                  </h4>
-                  {group.items.map((reward, i) => (
-                    <div key={i} style={{
-                      border: '1px solid #e0e0e0',
-                      borderRadius: 8,
-                      padding: 16,
-                      marginBottom: 12,
-                      borderLeft: `4px solid ${st.color}`,
-                    }}>
-                      <div className="reward-head" style={{ marginBottom: 8 }}>
-                        <div>
-                          <span style={{
-                            fontSize: 11,
-                            padding: '2px 8px',
-                            borderRadius: 4,
-                            background: '#f0f0f0',
-                            color: '#666',
-                            marginRight: 8,
-                          }}>
-                            {tierLabels[reward.tier] || reward.tier}
-                          </span>
-                          <strong style={{ fontSize: 16 }}>{reward.title}</strong>
-                          {reward.sponsor_name && (
-                            <span style={{ marginLeft: 8, fontSize: 12, color: '#D4A017', fontWeight: 'bold' }}>
-                              ({reward.sponsor_name})
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: 20, fontWeight: 'bold', color: st.color, whiteSpace: 'nowrap' }}>
-                          ¥{reward.price.toLocaleString()}
-                        </div>
-                      </div>
-                      <p style={{ fontSize: 14, color: '#555', margin: '4px 0', whiteSpace: 'pre-wrap' }}>{reward.description}</p>
-                      <div style={{ fontSize: 12, color: '#999' }}>
-                        提供時期: {reward.estimated_delivery}
-                        {reward.stock_limit && ` / 在庫: ${reward.stock_limit}個`}
-                        {reward.shipping_included && ' / 送料込'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Legal Info */}
-          <div style={{ marginBottom: 20 }}>
-            <details>
-              <summary style={{ cursor: 'pointer', color: '#666', fontSize: 14 }}>
-                特定商取引法に基づく表示
-              </summary>
-              <div style={{ background: '#f9f9f9', borderRadius: 8, padding: 16, marginTop: 8, fontSize: 13 }}>
-                {Object.entries(result.project.legal_info).map(([key, val]) => (
-                  val && <div key={key} style={{ marginBottom: 4 }}>
-                    <strong>{key}:</strong> {val}
-                  </div>
-                ))}
-              </div>
-            </details>
-          </div>
+          <GeneratedPageDoc page={result} />
 
           {/* 生成結果の3アクション（印刷時は非表示） */}
           <div className="result-actions no-print">
@@ -733,11 +575,3 @@ function ConfirmRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StorySection({ title, content }: { title: string; content: string }) {
-  return (
-    <div style={{ marginBottom: 12 }}>
-      <strong style={{ fontSize: 14, color: '#333' }}>{title}</strong>
-      <p style={{ fontSize: 14, color: '#555', lineHeight: 1.6, margin: '4px 0 0' }}>{content}</p>
-    </div>
-  );
-}

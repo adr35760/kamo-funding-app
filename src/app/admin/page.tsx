@@ -945,6 +945,18 @@ function AIGenerationsPanel() {
                 }}>
                   JSONをコピー
                 </button>
+                <a
+                  href={`/admin/ai-print/${detail.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-block',
+                    padding: '10px 18px', borderRadius: 6, border: '1px solid #E60012',
+                    background: '#fff', color: '#E60012', fontSize: 13, textDecoration: 'none',
+                  }}
+                >
+                  PDFでダウンロード
+                </a>
                 {copied && <span style={{ alignSelf: 'center', color: '#27AE60', fontSize: 13, fontWeight: 'bold' }}>✅ コピーしました</span>}
               </div>
               <pre style={{
@@ -972,6 +984,7 @@ function AIGenerationsPanel() {
                 <Th>目標金額</Th>
                 <Th>生成</Th>
                 <Th>詳細</Th>
+                <Th>PDF</Th>
               </tr>
             </thead>
             <tbody>
@@ -994,6 +1007,21 @@ function AIGenerationsPanel() {
                     }}>
                       表示
                     </button>
+                  </td>
+                  <td style={{ padding: '10px 12px' }}>
+                    <a
+                      href={`/admin/ai-print/${r.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-block',
+                        padding: '6px 12px', borderRadius: 6, border: 'none',
+                        background: '#E60012', color: '#fff', fontSize: 12,
+                        textDecoration: 'none', whiteSpace: 'nowrap',
+                      }}
+                    >
+                      PDF
+                    </a>
                   </td>
                 </tr>
               ))}
