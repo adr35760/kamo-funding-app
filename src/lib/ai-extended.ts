@@ -149,48 +149,111 @@ function buildSuffix(need: number): string | null {
 }
 
 /**
- * 400文字級の本文を許容範囲に収める。
- * 長すぎる場合は文末（。）で切り詰め、短すぎる場合は補助テキストから文を足す。
- * それでも下限に届かない場合は呼び出し側が再生成を判断できるよう、結果と併せて判定できる。
+ * 400文字級の本文を仕上げる。
+ *
+ * 方針（PM決定 2026-08-30）:
+ *   **短い場合に他テキストを連結して字数を稼ぐことはしない。**
+ *   継ぎ接ぎの400字より、自然な360字のほうが原稿として良い。
+ *   不足時は呼び出し側が「1回だけ再生成」で対応し、それでも足りなければ短いまま出す。
+ *
+ * ここでやるのは次の2つだけ:
+ *   1. 長すぎる場合に**文末（句点）で**切り詰める
+ *   2. 「言いかけで途切れた文」を落として、必ず句点で終わる形にする
  */
-export function adjustLongText(raw: string, supplements: string[]): string {
+export function adjustLongText(raw: string): string {
   let s = String(raw ?? '').replace(/\r/g, '').trim();
+  if (!s) return '';
 
-  // 長すぎ: 文末で切る（句点が見つからなければ単純切り）
+  // 長すぎ: 文の途中で切らないよう、句点の位置で切る。
+  // 上限内の最後の句点で切ると大幅に短くなる場合は、上限を少し超えてでも
+  // 次の句点まで含める（文章として自然な長さを優先する）。
   if (charLength(s) > LONG_TEXT_MAX) {
     const cut = sliceChars(s, LONG_TEXT_MAX);
-    const lastPeriod = cut.lastIndexOf('。');
-    s = lastPeriod >= Math.floor(LONG_TEXT_MIN * 0.8) ? cut.slice(0, lastPeriod + 1) : cut;
-    return s;
+    const inside = lastSentenceEnd(cut);
+    if (inside > 0 && charLength(cut.slice(0, inside)) >= LONG_TEXT_MIN) {
+      s = cut.slice(0, inside);
+    } else {
+      // 上限内に十分な長さの文末が無い場合は、上限を越えた直後の句点までで切る
+      const extended = sliceChars(s, LONG_TEXT_MAX + 120);
+      const after = firstSentenceEndAfter(extended, charLength(cut));
+      s = after > 0 ? extended.slice(0, after) : (inside > 0 ? cut.slice(0, inside) : cut);
+    }
   }
 
-  // 短すぎ: 補助テキストの文を足して下限を超えさせる（重複文は足さない）
-  if (charLength(s) < LONG_TEXT_MIN) {
-    for (const sup of supplements) {
-      if (charLength(s) >= LONG_TEXT_MIN) break;
-      const sentences = String(sup ?? '')
-        .split(/(?<=。)/)
-        .map(t => t.trim())
-        .filter(Boolean);
-      for (const sent of sentences) {
-        if (charLength(s) >= LONG_TEXT_MIN) break;
-        if (s.includes(sent)) continue;
-        s = s ? `${s}\n${sent}` : sent;
-      }
-    }
-    // 重複文だけで下限に届かない場合は、補助テキストを丸ごと足して下限を超えさせる。
-    // 材料が尽きたらそこで止める（同じ文を機械的に繰り返して字数を稼がない）。
-    if (charLength(s) < LONG_TEXT_MIN) {
-      for (const sup of supplements) {
-        if (charLength(s) >= LONG_TEXT_MIN) break;
-        const add = String(sup ?? '').trim();
-        if (!add || s.includes(add)) continue;
-        s = s ? `${s}\n${add}` : add;
-      }
-    }
-    if (charLength(s) > LONG_TEXT_MAX) return adjustLongText(s, []);
+  return trimIncompleteTail(s);
+}
+
+/** from 文字目以降で最初に現れる文末記号の直後の位置。無ければ -1 */
+function firstSentenceEndAfter(s: string, from: number): number {
+  const chars = toChars(s);
+  for (let i = Math.max(0, from - 1); i < chars.length; i++) {
+    if ('。！？'.includes(chars[i])) return i + 1;
   }
-  return s;
+  return -1;
+}
+
+/** 文末記号（。！？）の直後の位置を返す。無ければ -1 */
+function lastSentenceEnd(s: string): number {
+  let idx = -1;
+  for (const mark of ['。', '！', '？', '.']) {
+    const i = s.lastIndexOf(mark);
+    if (i > idx) idx = i;
+  }
+  return idx >= 0 ? idx + 1 : -1;
+}
+
+/**
+ * 末尾が句点で終わっていない（生成がトークン上限などで途切れた）場合、
+ * 最後の完全な文までで打ち切る。「三つの価値です。第一に、〜」のように
+ * **言いかけで終わった文が原稿に残らない**ようにするための担保。
+ */
+export function trimIncompleteTail(raw: string): string {
+  const s = String(raw ?? '').trim();
+  if (!s) return '';
+  if (/[。！？]$/.test(s)) return s;
+  const end = lastSentenceEnd(s);
+  // 完全な文が1つも無い場合は、切ると空になるのでそのまま返す（呼び出し側が再生成を判断する）
+  if (end <= 0) return s;
+  return s.slice(0, end).trim();
+}
+
+/**
+ * 「◯つの」と列挙を宣言したのに項目が足りない、末尾が句点でない等、
+ * 文章として破綻しているかを判定する。true なら再生成の対象。
+ */
+export function isTruncatedText(raw: string): boolean {
+  const s = String(raw ?? '').trim();
+  if (!s) return true;
+  // 末尾が句点等で終わっていない = 途中で切れている
+  if (!/[。！？]$/.test(s)) return true;
+
+  // 「三つの価値」と宣言したのに「第三に」が無い等の言いかけを検出する
+  const numerals: Record<string, number> = {
+    一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6,
+    '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6,
+    '１': 1, '２': 2, '３': 3, '４': 4, '５': 5, '６': 6,
+  };
+  const declare = s.match(/([一二三四五六1-6１-６])\s*[つ点]の/);
+  if (declare) {
+    const expected = numerals[declare[1]];
+    const ordinals = ['第一', '第二', '第三', '第四', '第五', '第六'];
+    const found = ordinals.filter(o => s.includes(o)).length;
+    // 序数を使って列挙し始めている場合のみ、宣言数に届いているかを見る
+    if (found > 0 && expected && found < expected) return true;
+  }
+  return false;
+}
+
+/**
+ * LLM本文とフォールバック文から、原稿として出せるものを選ぶ。
+ * - 破綻している（言いかけ・空）本文は採用しない
+ * - 短いだけなら**そのまま採用**する（360字の自然な文 ＞ 400字の継ぎ接ぎ）
+ */
+function pickLongText(raw: string | undefined, fallback: string): string {
+  const candidate = adjustLongText(String(raw ?? ''));
+  if (candidate && !isTruncatedText(candidate)) return candidate;
+  // LLM本文が破綻している場合のみ、フォールバック文（ヒアリングから組んだ完全な文章）に差し替える
+  return adjustLongText(fallback);
 }
 
 /** 本文が許容範囲（下限以上）に収まっているか */
@@ -243,11 +306,17 @@ export function normalizeCostBreakdown(
     }
   }
 
+  // 割合は補正後の金額から再計算する（表示と金額が食い違わないように）。
+  // 小数第1位に丸めると合計が 100.0% からずれるため、
+  // 端数は最大の費目に寄せて**割合の合計も必ず 100.0%** にする。
+  const ratios = scaled.map(v => Math.round((v / goal) * 1000) / 10);
+  const ratioDiff = Math.round((100 - ratios.reduce((a, b) => a + b, 0)) * 10) / 10;
+  if (ratioDiff !== 0) ratios[maxIdx] = Math.round((ratios[maxIdx] + ratioDiff) * 10) / 10;
+
   return src.map((s, i) => ({
     item: s.item,
     amount: scaled[i],
-    // 割合は補正後の金額から再計算する（表示と金額が食い違わないように）
-    ratio: Math.round((scaled[i] / goal) * 1000) / 10,
+    ratio: ratios[i],
   }));
 }
 
@@ -269,8 +338,11 @@ export function normalizeExtended(
     goalAmount: number;
     title?: string;
     industry?: string;
-    /** 文字数が足りないときの補助テキスト（ストーリー本文など） */
-    supplements: string[];
+    /**
+     * @deprecated 連結による字数稼ぎは廃止したため使用しない。
+     * 呼び出し側の互換のため受け取るだけ。
+     */
+    supplements?: string[];
     /** 項目が丸ごと欠けていたときの代替 */
     fallback: ProjectExtended;
   }
@@ -286,9 +358,12 @@ export function normalizeExtended(
   }
 
   // 2-4. 400文字級の本文
-  const overview = adjustLongText(raw?.overview || fb.overview, [fb.overview, ...ctx.supplements]);
-  const whyStarted = adjustLongText(raw?.why_started || fb.why_started, [fb.why_started, ...ctx.supplements]);
-  const whatCreates = adjustLongText(raw?.what_creates || fb.what_creates, [fb.what_creates, ...ctx.supplements]);
+  // 2-4. 400文字級の本文。
+  // 足りない場合に他テキストを連結して字数を稼ぐことはしない（継ぎ接ぎ防止）。
+  // 破綻している場合のみ、丸ごとフォールバック文に差し替える。
+  const overview = pickLongText(raw?.overview, fb.overview);
+  const whyStarted = pickLongText(raw?.why_started, fb.why_started);
+  const whatCreates = pickLongText(raw?.what_creates, fb.what_creates);
 
   // 5. 発表会の企画
   const ev = raw?.announcement_event;

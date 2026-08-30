@@ -12,9 +12,9 @@ import {
 import {
   normalizeExtended,
   parseActivityHistory,
-  isLongTextOk,
+  isTruncatedText,
   charLength,
-  TITLE_PROPOSAL_LENGTH,
+  LONG_TEXT_MIN,
   type ProjectExtended,
 } from '@/lib/ai-extended';
 
@@ -60,13 +60,18 @@ export async function POST(request: NextRequest) {
     // 追加7項目（400文字×3・費用内訳など）で出力が長くなったため、
     // 途中で切れた壊れたJSONを避けるために上限を明示的に引き上げる。
     let parsed: CrowdfundingPage | null = null;
+    let best: CrowdfundingPage | null = null;
     let lastError = '';
-    // 文字数が大きく足りない場合のみ1回だけ再生成する（毎回2回叩かない）
+
+    // 再生成は**1回だけ**。発火条件は「文章として使えない」ときに限る:
+    //   - 言いかけで途切れている（末尾が句点でない／「三つの」と言って第三が無い）
+    //   - 極端に短い（下限の3/4未満）
+    // 単に400字に少し足りないだけなら再生成しない（PM決定: 自然な360字 > 継ぎ接ぎの400字）。
     for (let attempt = 0; attempt < 2; attempt++) {
       const userPrompt =
         attempt === 0
           ? prompt
-          : `${prompt}\n\n【再生成の注意】前回の出力は指定文字数を満たしていませんでした。extended.overview / why_started / what_creates は**各400文字**（360文字以上）で書き、title_proposals は**各20文字ちょうど**にしてください。`;
+          : `${prompt}\n\n【再生成の注意】前回の出力は文章として不完全でした（途中で切れている、または短すぎる）。extended.overview / why_started / what_creates は**各400文字前後（360文字以上）**で、**必ず文を言い切って句点で終える**こと。「三つの価値」等と数を宣言したら**その数だけ必ず列挙**してください。title_proposals は**各20文字ちょうど**にしてください。`;
 
       const result = await callLLM({
         apiBaseUrl, apiKey, model,
@@ -77,13 +82,14 @@ export async function POST(request: NextRequest) {
       if (!result.ok) { lastError = result.error; break; }
 
       parsed = result.page;
-      const ext = (parsed?.project as { extended?: Partial<ProjectExtended> } | undefined)?.extended;
-      const longOk =
-        ext && isLongTextOk(String(ext.overview ?? '')) &&
-        isLongTextOk(String(ext.why_started ?? '')) &&
-        isLongTextOk(String(ext.what_creates ?? ''));
-      if (longOk) break; // 十分な品質。再生成しない
+      if (!best) best = result.page;
+      if (!needsRegeneration(result.page)) { best = result.page; break; }
+      // 文章が不完全だったので1回だけ書き直させる（何が起きたか追えるようにログを残す）
+      console.info(`ai/generate: regenerating extended texts (attempt ${attempt + 1})`);
+      // 破綻していた場合は best を更新せず、次の試行結果を優先する
+      if (attempt === 1) best = result.page;
     }
+    parsed = best ?? parsed;
 
     if (!parsed) {
       console.error('OpenAI API error:', lastError);
@@ -115,6 +121,19 @@ export async function POST(request: NextRequest) {
   }
 }
 
+
+/**
+ * 再生成が必要かを判定する。
+ * 「文章として使えない」場合だけ true にする（少し短いだけでは再生成しない）。
+ */
+function needsRegeneration(page: CrowdfundingPage): boolean {
+  const ext = (page.project as { extended?: Partial<ProjectExtended> } | undefined)?.extended;
+  if (!ext) return true;
+  const texts = [ext.overview, ext.why_started, ext.what_creates].map(t => String(t ?? ''));
+  // 下限（360字）未満か、言いかけで途切れているものがあれば1回だけ再生成する。
+  // 再生成後も足りなければ**短いまま出す**（他テキストの連結による字数稼ぎはしない）。
+  return texts.some(t => !t || charLength(t) < LONG_TEXT_MIN || isTruncatedText(t));
+}
 
 /**
  * LLMを1回呼び出してJSONをパースする。
@@ -171,18 +190,10 @@ async function callLLM(args: {
  */
 function withNormalizedExtended(page: CrowdfundingPage, input: HearingInput): CrowdfundingPage {
   const raw = (page.project as { extended?: Partial<ProjectExtended> }).extended;
-  const story = page.project.story;
   const extended = normalizeExtended(raw, {
     goalAmount: page.project.goal_amount || input.goalAmount,
     title: page.project.title,
     industry: input.industry,
-    // 文字数が足りないときに足す材料（既存ストーリー本文）
-    supplements: [
-      story?.background ?? '',
-      story?.vision ?? '',
-      story?.use_of_funds ?? '',
-      story?.appeal ?? '',
-    ].filter(Boolean),
     fallback: buildFallbackExtended(input, page),
   });
 
