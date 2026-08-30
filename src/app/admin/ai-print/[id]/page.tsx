@@ -27,7 +27,8 @@ export default function AIPrintPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`/api/admin/ai-generations?id=${encodeURIComponent(params.id)}`);
+        // view=print: 口座情報を含まないレスポンスを取得する（PDFに載せないため）
+        const res = await fetch(`/api/admin/ai-generations?id=${encodeURIComponent(params.id)}&view=print`);
         const data = await res.json();
         if (!res.ok || !data.generation) {
           setError(data.error || '対象の生成結果が見つかりませんでした');

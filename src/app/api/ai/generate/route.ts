@@ -9,6 +9,14 @@ import {
   type CrowdfundingPage,
   type RewardCategory,
 } from '@/lib/ai-prompts';
+import {
+  normalizeExtended,
+  parseActivityHistory,
+  isLongTextOk,
+  charLength,
+  TITLE_PROPOSAL_LENGTH,
+  type ProjectExtended,
+} from '@/lib/ai-extended';
 
 /**
  * POST /api/ai/generate
@@ -48,27 +56,38 @@ export async function POST(request: NextRequest) {
     const prompt = buildPageGenerationPrompt(input);
     // Gensparkプロキシの場合は利用可能なモデルを使用、直接OpenAIの場合はgpt-4o
     const model = apiBaseUrl.includes('genspark') ? 'gpt-5.1' : 'gpt-4o';
-    const response = await fetch(`${apiBaseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: prompt },
-        ],
-        temperature: 0.7,
-        response_format: { type: 'json_object' },
-      }),
-    });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('OpenAI API error:', response.status, errText);
-      // フォールバック to mock
+    // 追加7項目（400文字×3・費用内訳など）で出力が長くなったため、
+    // 途中で切れた壊れたJSONを避けるために上限を明示的に引き上げる。
+    let parsed: CrowdfundingPage | null = null;
+    let lastError = '';
+    // 文字数が大きく足りない場合のみ1回だけ再生成する（毎回2回叩かない）
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const userPrompt =
+        attempt === 0
+          ? prompt
+          : `${prompt}\n\n【再生成の注意】前回の出力は指定文字数を満たしていませんでした。extended.overview / why_started / what_creates は**各400文字**（360文字以上）で書き、title_proposals は**各20文字ちょうど**にしてください。`;
+
+      const result = await callLLM({
+        apiBaseUrl, apiKey, model,
+        userPrompt,
+        // 出力が長いので生成の取りこぼしを防ぐ
+        maxTokens: 8000,
+      });
+      if (!result.ok) { lastError = result.error; break; }
+
+      parsed = result.page;
+      const ext = (parsed?.project as { extended?: Partial<ProjectExtended> } | undefined)?.extended;
+      const longOk =
+        ext && isLongTextOk(String(ext.overview ?? '')) &&
+        isLongTextOk(String(ext.why_started ?? '')) &&
+        isLongTextOk(String(ext.what_creates ?? ''));
+      if (longOk) break; // 十分な品質。再生成しない
+    }
+
+    if (!parsed) {
+      console.error('OpenAI API error:', lastError);
+      // フォールバック to mock（追加7項目もモック側で埋まる）
       const mockPage = generateMockPage(input);
       return NextResponse.json({
         success: true,
@@ -77,16 +96,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const data = await response.json();
-    const content = data.choices[0]?.message?.content;
-
-    if (!content) {
-      throw new Error('Empty response from LLM');
-    }
-
-    const parsed: CrowdfundingPage = JSON.parse(content);
     // LLM出力の category のゆらぎを正規化し、4カテゴリが欠けたらモック側の該当リターンで補う
-    const page = ensureAllRewardCategories(parsed, input);
+    let page = ensureAllRewardCategories(parsed, input);
+    // 追加7項目をサーバ側で検証・補正する（文字数・費用内訳の合計＝目標金額）
+    page = withNormalizedExtended(page, input);
 
     return NextResponse.json({
       success: true,
@@ -100,6 +113,145 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+
+/**
+ * LLMを1回呼び出してJSONをパースする。
+ * response_format=json_object でも稀に途中で切れるため、パース失敗は ok:false で返す
+ * （呼び出し側でモックへフォールバックできるようにする）。
+ */
+async function callLLM(args: {
+  apiBaseUrl: string;
+  apiKey: string;
+  model: string;
+  userPrompt: string;
+  maxTokens: number;
+}): Promise<{ ok: true; page: CrowdfundingPage } | { ok: false; error: string }> {
+  try {
+    const response = await fetch(`${args.apiBaseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${args.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: args.model,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: args.userPrompt },
+        ],
+        temperature: 0.7,
+        max_completion_tokens: args.maxTokens,
+        response_format: { type: 'json_object' },
+      }),
+    });
+
+    if (!response.ok) {
+      return { ok: false, error: `status=${response.status} ${await response.text()}` };
+    }
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) return { ok: false, error: 'empty response from LLM' };
+
+    // 生成が途中で切れた場合はここで弾く（壊れたJSONを画面に出さない）
+    try {
+      return { ok: true, page: JSON.parse(content) as CrowdfundingPage };
+    } catch {
+      return { ok: false, error: 'JSON parse failed (truncated response?)' };
+    }
+  } catch (err) {
+    return { ok: false, error: String(err) };
+  }
+}
+
+/**
+ * 追加7項目をサーバ側で検証・補正して page に載せ直す。
+ * LLMは文字数も金額合計も外すので、必ずここを通す。
+ */
+function withNormalizedExtended(page: CrowdfundingPage, input: HearingInput): CrowdfundingPage {
+  const raw = (page.project as { extended?: Partial<ProjectExtended> }).extended;
+  const story = page.project.story;
+  const extended = normalizeExtended(raw, {
+    goalAmount: page.project.goal_amount || input.goalAmount,
+    title: page.project.title,
+    industry: input.industry,
+    // 文字数が足りないときに足す材料（既存ストーリー本文）
+    supplements: [
+      story?.background ?? '',
+      story?.vision ?? '',
+      story?.use_of_funds ?? '',
+      story?.appeal ?? '',
+    ].filter(Boolean),
+    fallback: buildFallbackExtended(input, page),
+  });
+
+  // ヒアリングで活動履歴が入力されていれば、AIの推定よりそれを優先する
+  // （t iku指示: 入力があれば尊重して時系列整形、空ならAIが推定で埋める）
+  const declared = parseActivityHistory(input.activityHistory);
+  if (declared.length > 0) extended.activity_history = declared;
+
+  return { ...page, project: { ...page.project, extended } };
+}
+
+/**
+ * 追加7項目のフォールバック。
+ * LLMが項目を落とした場合や、APIキーが無いモック時に使う。
+ * ヒアリング入力と既存ストーリーから組み立てるので、常に読める内容になる。
+ */
+function buildFallbackExtended(input: HearingInput, page?: CrowdfundingPage): ProjectExtended {
+  const org = input.organization || input.creatorName;
+  const goal = page?.project.goal_amount || input.goalAmount;
+  const now = new Date();
+  const y = now.getFullYear();
+  const eventTiming = `${y}年${((now.getMonth() + 3) % 12) + 1}月下旬`;
+
+  const overview = `${org}は${input.industry}として${input.businessDescription}${input.currentChallenge ? `現在は${input.currentChallenge}という課題に直面しています。` : ''}本プロジェクトでは${input.crowdfundingGoal || '新たな取り組みの立ち上げ'}に挑戦します。目標金額は${goal.toLocaleString()}円で、募集期間は${input.deadlineDays}日間です。いただいた支援は設備や開発、告知などプロジェクトの実行に必要な費用に充当し、使途と進捗は支援者の皆様に随時ご報告します。${input.targetAudience ? `主な想定支援者は${input.targetAudience}の皆様です。` : ''}リターンは商品・体験・サービス・スポンサーの4種類を用意し、支援いただいた方それぞれに実感のある形でお返しします。単に資金を集めるのではなく、応援してくださる方と一緒に事業をつくる「共犯者」を募るプロジェクトとして進めていきます。`;
+
+  const why = `このプロジェクトを始めた理由は、${input.currentChallenge || '従来のやり方だけでは事業の成長に限界が見えてきたこと'}にあります。${input.businessDescription}これまで積み上げてきたものを守るだけでは、状況は好転しないという実感がありました。価格競争や環境の変化に押されるなかで、自分たちの強みをもう一度定義し直し、届け方そのものを変える必要があると考えました。${input.crowdfundingGoal || '新しい取り組み'}は、その答えとして選んだ一手です。ただ、これを自己資金だけで進めると、規模もスピードも中途半端になってしまいます。だからこそ、応援してくださる方と一緒に立ち上げたい。クラウドファンディングを選んだのは、資金だけでなく、共感してくれる仲間と最初のお客様を同時に得られる方法だからです。`;
+
+  const what = `本プロジェクトで創出するのは、三つの価値です。第一に、支援者の皆様にとっての価値。${input.industry}ならではのリターンを通じて、支援が具体的な体験や商品として返る仕組みをつくります。第二に、地域にとっての価値。${input.crowdfundingGoal || '新しい取り組み'}が実現すれば、${input.targetAudience || '地域の皆様'}が受け取れる選択肢が増え、雇用や取引先とのつながりにも波及します。第三に、事業としての価値。今回の挑戦で得た顧客との関係やノウハウは一過性のものではなく、プロジェクト終了後も継続する収益の土台になります。単発のキャンペーンで終わらせず、ここで生まれたつながりを起点に本業の売上を押し上げていくことが、このプロジェクトの本当のゴールです。`;
+
+  return {
+    title_proposals: [
+      `${input.industry}の未来をつくる挑戦`,
+      `${input.crowdfundingGoal || '新事業'}を実現したい`,
+      `${org}と一緒につくる物語`,
+    ],
+    overview,
+    why_started: why,
+    what_creates: what,
+    announcement_event: {
+      format: '会場開催＋オンライン配信のハイブリッド形式（アーカイブ配信あり）',
+      timing: `${eventTiming}（プロジェクト達成後）`,
+      program: [
+        'オープニング／プロジェクト達成のご報告（10分）',
+        `${input.creatorName}によるプロジェクト実施報告と資金使途の説明（20分）`,
+        '新しい取り組みのお披露目・実演（30分）',
+        '支援者の皆様との質疑応答・意見交換（20分）',
+        '交流会／記念撮影（30分）',
+      ],
+      supporter_perks: [
+        '支援者限定の招待（オンライン参加も可）',
+        '当日限定の先行体験・試食／試用',
+        '発表会限定ノベルティのプレゼント',
+        '希望者はプロジェクトページの支援者名簿に掲載',
+      ],
+    },
+    activity_history: [
+      { date: `${y - 4}年4月`, event: `${org}として${input.industry}の事業を開始。地域のお客様を中心に基盤づくりに取り組む。` },
+      { date: `${y - 2}年10月`, event: '既存事業の見直しを実施。強みと課題を整理し、新しい提供方法の検討を開始。' },
+      { date: `${y - 1}年6月`, event: `${input.currentChallenge || '売上の停滞'}を受け、事業構造の転換に向けた準備に着手。` },
+      { date: `${y}年${now.getMonth() + 1}月`, event: `${input.crowdfundingGoal || '新たな取り組み'}の実現に向け、KAMOファンディングでのクラウドファンディングに挑戦。` },
+    ],
+    cost_breakdown: [
+      { item: '設備・環境整備費', amount: Math.round(goal * 0.35), ratio: 35 },
+      { item: '開発・制作費（商品／サービス）', amount: Math.round(goal * 0.25), ratio: 25 },
+      { item: 'リターン原価・発送費', amount: Math.round(goal * 0.15), ratio: 15 },
+      { item: '広報・集客費', amount: Math.round(goal * 0.15), ratio: 15 },
+      { item: 'クラウドファンディング手数料・事務費', amount: Math.round(goal * 0.1), ratio: 10 },
+    ],
+  };
 }
 
 /**
@@ -138,6 +290,12 @@ function ensureAllRewardCategories(page: CrowdfundingPage, input: HearingInput):
  * 実際のKAMOファンディングページに近い品質で出力する。
  */
 function generateMockPage(input: HearingInput): CrowdfundingPage {
+  const page = buildMockPageBase(input);
+  // モック時も追加7項目を必ず埋める（文字数・費用内訳の合計もここで担保される）
+  return withNormalizedExtended(page, input);
+}
+
+function buildMockPageBase(input: HearingInput): CrowdfundingPage {
   const tiers = calculateRewardTiers(input.goalAmount);
   const deliveryDate = new Date(Date.now() + input.deadlineDays * 86400000 + 14 * 86400000);
   const deliveryStr = deliveryDate.toISOString().split('T')[0];

@@ -1,3 +1,5 @@
+import type { ProjectExtended } from './ai-extended';
+
 /**
  * AIクラファンページ作成ツール — プロンプト設計
  * 
@@ -14,7 +16,11 @@ export const SYSTEM_PROMPT = `あなたはKAMOファンディングのクラウ�
 4. KAMOファンディングの掲載フォーマットに従う
 5. storyは lead→background→vision→use_of_funds→schedule→appeal の構造で生成
 6. リターンは「商品 / 体験 / サービス / スポンサー」の4カテゴリで構成し、各カテゴリを必ず1件以上生成する
-7. スポンサー層にはブロンズ/シルバー/ゴールド/ダイヤモンドの名称を使用`;
+7. スポンサー層にはブロンズ/シルバー/ゴールド/ダイヤモンドの名称を使用
+8. project.extended の7項目（名称案3案・概要・なぜ・創出・発表会企画・活動歴・費用内訳）を必ず生成する
+9. 文字数指定は厳守する。特に extended.overview / why_started / what_creates は各400文字（±40文字）で書く
+10. extended.title_proposals は各20文字ちょうど。記号や空白で字数を稼がず、日本語として自然な名称にする
+11. extended.cost_breakdown の amount の合計は goal_amount と完全に一致させる`;
 
 /**
  * リターンのカテゴリ（t iku指示: 商品・体験・サービス・スポンサーの4構成）
@@ -62,6 +68,24 @@ export interface HearingInput {
   crowdfundingGoal: string;  // クラファンで実現したいこと
   creatorName: string;       // 起案者名
   organization: string;      // 組織名
+  /**
+   * 活動履歴（起業してからの時系列。任意）。
+   * 生成側の「活動歴」の元ネタとして使う。空ならAIが推定で埋める。
+   */
+  activityHistory?: string;
+}
+
+/**
+ * ⚠️ 支援金振込口座は HearingInput に含めない。
+ * AIプロンプト・掲載用JSON・PDFのどこにも載せないため、
+ * 生成系とは完全に別の型・別の経路（/api/ai/submit の bank_account）で扱う。
+ */
+export interface BankAccountInput {
+  bankName: string;
+  branchName: string;
+  accountType: string;
+  accountNumber: string;
+  accountHolder: string;
 }
 
 export interface ProjectStory {
@@ -115,6 +139,11 @@ export interface CrowdfundingPage {
       returns: string;
       defects: string;
     };
+    /**
+     * 追加7項目（名称案3案・概要・なぜ・創出・発表会企画・活動歴・費用内訳）。
+     * 既存データ（この項目が無い過去の保存分）でも壊れないよう optional。
+     */
+    extended?: ProjectExtended;
   };
   rewards: Reward[];
 }
@@ -134,7 +163,9 @@ export function buildPageGenerationPrompt(input: HearingInput): string {
 - 本業の現状課題: ${input.currentChallenge}
 - クラファンで実現したいこと: ${input.crowdfundingGoal}
 - 起案者名: ${input.creatorName}
-- 組織名: ${input.organization}
+- 組織名: ${input.organization}${input.activityHistory ? `
+- これまでの活動履歴（起案者の申告。extended.activity_history はこの内容を時系列に整形して使うこと。捏造しない）:
+${input.activityHistory}` : ''}
 
 【出力要件】
 以下のJSONスキーマに従って出力してください:
@@ -171,6 +202,24 @@ export function buildPageGenerationPrompt(input: HearingInput): string {
       "shipping": "無料(商品代金に含む)",
       "returns": "破損・発送ミスのみ14日以内",
       "defects": "14日以内にお問い合わせ"
+    },
+    "extended": {
+      "title_proposals": ["20文字ちょうどの名称案1", "20文字ちょうどの名称案2", "20文字ちょうどの名称案3"],
+      "overview": "プロジェクト概要（400文字）",
+      "why_started": "なぜこの企画を始めたのか（400文字）",
+      "what_creates": "この企画で何を創出するのか（400文字）",
+      "announcement_event": {
+        "format": "支援者向け発表会の開催形式",
+        "timing": "開催時期",
+        "program": ["プログラム項目1", "プログラム項目2", "プログラム項目3", "プログラム項目4"],
+        "supporter_perks": ["支援者特典1", "支援者特典2", "支援者特典3"]
+      },
+      "activity_history": [
+        { "date": "2023年4月", "event": "出来事" }
+      ],
+      "cost_breakdown": [
+        { "item": "費目名", "amount": 0, "ratio": 0 }
+      ]
     }
   },
   "rewards": [
@@ -190,6 +239,16 @@ export function buildPageGenerationPrompt(input: HearingInput): string {
     // ... 下記の4カテゴリすべてを含めること
   ]
 }
+
+【extended（追加7項目）の要件（必須）】
+1. title_proposals: プロジェクト名称の提案を**3案**。**各案は必ず20文字ちょうど**（日本語の文字数。半角空白・記号での字数稼ぎは禁止）。3案はそれぞれ切り口を変える（例: 価値訴求型／課題解決型／共感喚起型）
+2. overview: プロジェクト概要。**400文字**（360〜440文字の範囲）。何を、誰に、なぜ、どうやるのかが単体で分かる文章
+3. why_started: なぜこの企画を始めたのか。**400文字**（360〜440文字）。起案者の実体験・現状の課題・危機感を具体的に
+4. what_creates: この企画で何を創出するのか。**400文字**（360〜440文字）。支援者・地域・業界にとっての価値を具体的に
+5. announcement_event: 支援者向け発表会の企画。format（開催形式：会場/オンライン/ハイブリッド等）、timing（開催時期）、program（当日の進行を4項目以上）、supporter_perks（支援者への特典を3項目以上）
+6. activity_history: 活動歴。**古い順**に4件以上。date は「2023年4月」形式、event は40〜80文字程度の具体的な出来事
+7. cost_breakdown: 費用内訳を4〜6項目。item（費目）、amount（円・整数）、ratio（目標金額に対する割合%）。
+   🔴 **amount の合計は必ず ${input.goalAmount}（goal_amount）と完全一致**させること。クラファン手数料・リターン原価・事務費も費目に含めて構わない
 
 【リターンの構成（必須）】
 "category" は必ず次の4つのいずれかを指定し、**4カテゴリすべてを最低1件ずつ**生成してください:

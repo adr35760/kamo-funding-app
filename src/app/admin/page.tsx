@@ -938,6 +938,25 @@ function AIGenerationsPanel() {
                 {detail.organization ? `（${detail.organization}）` : ''}
                 {detail.goal_amount ? ` ／ 目標金額: ¥${Number(detail.goal_amount).toLocaleString()}` : ''}
               </p>
+              {detail.bank_account && (
+                <div style={{
+                  background: '#FFF8E1', border: '1px solid #E6D9A8', borderRadius: 8,
+                  padding: 16, marginBottom: 16, fontSize: 13,
+                }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: 8 }}>支援金振込口座</div>
+                  <div style={{ display: 'grid', gap: 4, fontFamily: 'monospace' }}>
+                    <div>銀行名: {detail.bank_account.bankName || '—'}</div>
+                    <div>支店名: {detail.bank_account.branchName || '—'}</div>
+                    <div>口座種別: {detail.bank_account.accountType || '—'}</div>
+                    <div>口座番号: {detail.bank_account.accountNumber || '—'}</div>
+                    <div>口座名義: {detail.bank_account.accountHolder || '—'}</div>
+                  </div>
+                  <p style={{ color: '#8A6D1F', margin: '8px 0 0', fontSize: 12 }}>
+                    ※ この情報は掲載用JSON・PDFには含まれません（管理画面でのみ表示されます）。
+                  </p>
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
                 <button onClick={copyDetailJSON} style={{
                   padding: '10px 18px', borderRadius: 6, border: 'none',
@@ -983,6 +1002,7 @@ function AIGenerationsPanel() {
                 <Th>起案者 / 組織</Th>
                 <Th>目標金額</Th>
                 <Th>生成</Th>
+                <Th>振込口座</Th>
                 <Th>詳細</Th>
                 <Th>PDF</Th>
               </tr>
@@ -1000,6 +1020,9 @@ function AIGenerationsPanel() {
                     {r.goal_amount ? `¥${Number(r.goal_amount).toLocaleString()}` : '—'}
                   </td>
                   <td style={{ padding: '10px 12px', color: '#999' }}>{r.generation_mode || '—'}</td>
+                  <td style={{ padding: '10px 12px', whiteSpace: 'nowrap', fontFamily: 'monospace', fontSize: 12 }}>
+                    {r.bank_masked || '—'}
+                  </td>
                   <td style={{ padding: '10px 12px' }}>
                     <button onClick={() => openDetail(r.id)} style={{
                       padding: '6px 12px', borderRadius: 6, border: '1px solid #E60012',
@@ -1042,11 +1065,23 @@ interface AIGenerationRow {
   goal_amount: number | null;
   generation_mode: string | null;
   created_at: string;
+  /** 一覧では口座は「銀行名 ****下4桁」のマスク文字列のみ受け取る */
+  bank_masked?: string | null;
+}
+
+interface BankAccount {
+  bankName?: string;
+  branchName?: string;
+  accountType?: string;
+  accountNumber?: string;
+  accountHolder?: string;
 }
 
 interface AIGenerationDetail extends AIGenerationRow {
   page: unknown;
   hearing_input: unknown;
+  /** 詳細画面のみ全体を表示する */
+  bank_account?: BankAccount | null;
 }
 
 /** UTC の ISO 文字列を日本時間の表記に変換する */

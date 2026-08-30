@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
 import GeneratedPageDoc, { generatedDocStyles } from '@/components/GeneratedPageDoc';
+import { extendedToJapaneseJSON, type ProjectExtended } from '@/lib/ai-extended';
 import {
   REWARD_CATEGORIES,
   REWARD_CATEGORY_LABELS,
@@ -31,6 +32,7 @@ interface GeneratedPage {
       organization: string;
     };
     legal_info: Record<string, string>;
+    extended?: ProjectExtended;
   };
   rewards: Array<{
     category?: string;
@@ -70,13 +72,34 @@ export default function AIToolPage() {
     targetAudience: '',
     currentChallenge: '',
     crowdfundingGoal: '',
+    activityHistory: '',
     creatorName: '',
     organization: '',
+  });
+
+  /**
+   * 支援金振込口座。
+   * ⚠️ 生成用の form とは**別のstate**で持つ。
+   * AIへの送信ペイロード・掲載用JSON・PDFのどこにも載せないため、
+   * 混入経路が構造的に作れないよう最初から分離している。
+   */
+  const [bank, setBank] = useState({
+    bankName: '',
+    branchName: '',
+    accountType: '普通',
+    accountNumber: '',
+    accountHolder: '',
   });
 
   const updateForm = (key: string, value: string | number) => {
     setForm(prev => ({ ...prev, [key]: value }));
   };
+
+  const updateBank = (key: string, value: string) => {
+    setBank(prev => ({ ...prev, [key]: value }));
+  };
+
+  const hasBankInput = Object.values(bank).some(v => v && v !== '普通');
 
   const canProceedStep1 =
     form.industry && form.businessDescription && form.creatorName && form.goalAmount > 0;
@@ -85,6 +108,7 @@ export default function AIToolPage() {
     setLoading(true);
     setStep(3);
     try {
+      // ⚠️ 送るのは form のみ。口座(bank)は別stateなので構造的に混入しない。
       const res = await fetch('/api/ai/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -107,7 +131,11 @@ export default function AIToolPage() {
     }
   };
 
-  /** 掲載作業用のJSON。キー名は意味が分かる日本語ラベル付きで整形する。 */
+  /**
+   * 掲載作業用のJSON。キー名は意味が分かる日本語ラベル付きで整形する。
+   * ⚠️ 引数は生成結果(page)のみ。支援金振込口座は別state(bank)なので
+   * このJSONに混入する経路が存在しない（KAMO掲載欄に貼る内容だから絶対に載せない）。
+   */
   const buildExportJSON = (page: GeneratedPage) => ({
     プロジェクト: {
       タイトル: page.project.title,
@@ -128,6 +156,9 @@ export default function AIToolPage() {
         組織名: page.project.creator.organization,
       },
       '特定商取引法に基づく表示': page.project.legal_info,
+      ...(page.project.extended
+        ? extendedToJapaneseJSON(page.project.extended, page.project.goal_amount)
+        : {}),
     },
     リターン: REWARD_CATEGORIES.reduce((acc, cat) => {
       const items = page.rewards
@@ -172,7 +203,14 @@ export default function AIToolPage() {
       const res = await fetch('/api/ai/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ page: result, input: form, mode }),
+        // page/input は掲載用（口座を含まない）。口座は bank_account として別に送り、
+        // サーバ側でも page とは別カラムに保存する。
+        body: JSON.stringify({
+          page: result,
+          input: form,
+          mode,
+          ...(hasBankInput ? { bank_account: bank } : {}),
+        }),
       });
       const data = await res.json();
       if (data.success && data.duplicate) {
@@ -383,6 +421,59 @@ export default function AIToolPage() {
                 placeholder="例: 新しいデリバリーサービスを立ち上げ、地元顧客にリーチしたい。" />
             </Field>
 
+            <Field label="活動履歴">
+              <textarea value={form.activityHistory}
+                onChange={e => updateForm('activityHistory', e.target.value)}
+                style={{ ...inputStyle, minHeight: 90 }}
+                placeholder={'起業してから時系列で記載ください。\n例:\n2019年4月 個人事業として開業\n2021年6月 法人化\n2023年3月 ○○受賞'} />
+              <p style={{ fontSize: 11, color: '#999', margin: '4px 0 0' }}>
+                入力すると生成結果の「活動歴」にそのまま反映されます（空欄の場合はAIが推定して埋めます）。
+              </p>
+            </Field>
+
+            {/* 支援金振込口座 — KAMO事務局への提出用。掲載内容・PDF・AI生成には使いません */}
+            <div style={{
+              border: '1px solid #E6D9A8', background: '#FFFDF5',
+              borderRadius: 8, padding: 16,
+            }}>
+              <div style={{ fontSize: 13, fontWeight: 'bold', color: '#333', marginBottom: 4 }}>
+                支援金振込口座（銀行口座）
+              </div>
+              <p style={{ fontSize: 11, color: '#8A6D1F', margin: '0 0 12px' }}>
+                KAMO事務局への提出用です。<strong>掲載用JSON・PDF・AI生成には一切使用しません</strong>（管理画面でのみ確認できます）。未入力でも生成できます。
+              </p>
+              <div style={{ display: 'grid', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <Field label="銀行名">
+                    <input value={bank.bankName} onChange={e => updateBank('bankName', e.target.value)}
+                      style={inputStyle} placeholder="例: 三菱UFJ銀行" autoComplete="off" />
+                  </Field>
+                  <Field label="支店名">
+                    <input value={bank.branchName} onChange={e => updateBank('branchName', e.target.value)}
+                      style={inputStyle} placeholder="例: 那覇支店" autoComplete="off" />
+                  </Field>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <Field label="口座種別">
+                    <select value={bank.accountType} onChange={e => updateBank('accountType', e.target.value)}
+                      style={inputStyle}>
+                      <option value="普通">普通</option>
+                      <option value="当座">当座</option>
+                      <option value="貯蓄">貯蓄</option>
+                    </select>
+                  </Field>
+                  <Field label="口座番号">
+                    <input value={bank.accountNumber} onChange={e => updateBank('accountNumber', e.target.value)}
+                      style={inputStyle} placeholder="例: 1234567" inputMode="numeric" autoComplete="off" />
+                  </Field>
+                </div>
+                <Field label="口座名義">
+                  <input value={bank.accountHolder} onChange={e => updateBank('accountHolder', e.target.value)}
+                    style={inputStyle} placeholder="例: カブシキガイシャ〇〇" autoComplete="off" />
+                </Field>
+              </div>
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <Field label="起案者名" required>
                 <input value={form.creatorName}
@@ -426,8 +517,11 @@ export default function AIToolPage() {
             <ConfirmRow label="ターゲット層" value={form.targetAudience} />
             <ConfirmRow label="本業の現状課題" value={form.currentChallenge} />
             <ConfirmRow label="クラファンで実現したいこと" value={form.crowdfundingGoal} />
+            <ConfirmRow label="活動履歴" value={form.activityHistory} />
             <ConfirmRow label="起案者名" value={form.creatorName} />
             <ConfirmRow label="組織名" value={form.organization} />
+            {/* 口座は確認画面でもマスク表示（画面共有・スクショ事故を避ける） */}
+            <ConfirmRow label="支援金振込口座" value={hasBankInput ? maskBank(bank) : ''} />
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
             <button onClick={() => setStep(1)} style={secondaryBtn}>← 戻る</button>
@@ -553,6 +647,13 @@ const secondaryBtn: React.CSSProperties = {
   fontSize: 14,
   cursor: 'pointer',
 };
+
+/** 口座の確認表示用マスク（銀行名＋下4桁のみ） */
+function maskBank(bank: { bankName: string; branchName: string; accountNumber: string }): string {
+  const last4 = bank.accountNumber.slice(-4);
+  const head = [bank.bankName, bank.branchName].filter(Boolean).join(' ');
+  return `${head || '（銀行名未入力）'} ${last4 ? `****${last4}` : ''}`.trim();
+}
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (

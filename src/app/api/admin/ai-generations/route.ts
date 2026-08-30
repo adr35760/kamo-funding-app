@@ -15,9 +15,15 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseAdmin();
 
     if (id) {
+      // view=print はPDF出力ページ用。口座情報を**レスポンスに載せない**
+      // （印刷ページのJSに口座が届く経路そのものを作らない）。
+      const forPrint = request.nextUrl.searchParams.get('view') === 'print';
+      const columns = forPrint
+        ? 'id, title, subtitle, creator_name, organization, goal_amount, generation_mode, hearing_input, page, created_at'
+        : '*';
       const { data, error } = await supabase
         .from('ai_generations')
-        .select('*')
+        .select(columns)
         .eq('id', id)
         .single();
       if (error) return handleError(error);
@@ -26,15 +32,50 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase
       .from('ai_generations')
-      .select('id, title, subtitle, creator_name, organization, goal_amount, generation_mode, created_at')
+      // 一覧では口座は下4桁マスクに使う分だけ取得する
+      .select('id, title, subtitle, creator_name, organization, goal_amount, generation_mode, created_at, bank_account')
       .order('created_at', { ascending: false })
       .limit(200);
-    if (error) return handleError(error);
-    return NextResponse.json({ generations: data ?? [] });
+    if (error) {
+      // bank_account 列が未追加でも一覧は出す（口座なしで再取得）
+      if (isMissingBankColumn(error)) {
+        const retry = await supabase
+          .from('ai_generations')
+          .select('id, title, subtitle, creator_name, organization, goal_amount, generation_mode, created_at')
+          .order('created_at', { ascending: false })
+          .limit(200);
+        if (retry.error) return handleError(retry.error);
+        return NextResponse.json({ generations: retry.data ?? [], bankColumnMissing: true });
+      }
+      return handleError(error);
+    }
+    // 一覧に口座の全体は返さない（銀行名＋下4桁のみ）
+    const generations = (data ?? []).map((row) => {
+      const { bank_account: bank, ...rest } = row as Record<string, unknown> & {
+        bank_account?: { bankName?: string; accountNumber?: string } | null;
+      };
+      return {
+        ...rest,
+        bank_masked: bank
+          ? `${bank.bankName || '（銀行名なし）'} ****${String(bank.accountNumber ?? '').slice(-4)}`
+          : null,
+      };
+    });
+    return NextResponse.json({ generations });
   } catch (err) {
     console.error('API /admin/ai-generations error:', err);
     return NextResponse.json({ error: '取得に失敗しました' }, { status: 500 });
   }
+}
+
+/** bank_account 列が未追加（migration-ai-bank-account.sql 未実行）かを判定する */
+function isMissingBankColumn(error: { code?: string; message?: string }): boolean {
+  const msg = error.message || '';
+  return (
+    error.code === 'PGRST204' ||
+    error.code === '42703' ||
+    (/bank_account/.test(msg) && /column|could not find|does not exist/i.test(msg))
+  );
 }
 
 function handleError(error: { code?: string; message?: string }) {
