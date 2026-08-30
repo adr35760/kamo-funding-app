@@ -2,6 +2,13 @@
 
 import { useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
+import {
+  REWARD_CATEGORIES,
+  REWARD_CATEGORY_LABELS,
+  REWARD_CATEGORY_STYLES,
+  normalizeRewardCategory,
+  type RewardCategory,
+} from '@/lib/ai-prompts';
 
 interface GeneratedPage {
   project: {
@@ -27,6 +34,7 @@ interface GeneratedPage {
     legal_info: Record<string, string>;
   };
   rewards: Array<{
+    category?: string;
     tier: string;
     title: string;
     description: string;
@@ -49,6 +57,10 @@ export default function AIToolPage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<GeneratedPage | null>(null);
   const [mode, setMode] = useState<string>('');
+  // 3アクションの状態
+  const [copied, setCopied] = useState(false);
+  const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'sent' | 'duplicate' | 'error'>('idle');
+  const [submitMessage, setSubmitMessage] = useState('');
 
   // ヒアリング入力
   const [form, setForm] = useState({
@@ -96,12 +108,104 @@ export default function AIToolPage() {
     }
   };
 
-  const copyJSON = () => {
-    if (result) {
-      navigator.clipboard.writeText(JSON.stringify(result, null, 2));
-      alert('JSONをコピーしました');
+  /** 掲載作業用のJSON。キー名は意味が分かる日本語ラベル付きで整形する。 */
+  const buildExportJSON = (page: GeneratedPage) => ({
+    プロジェクト: {
+      タイトル: page.project.title,
+      サブタイトル: page.project.subtitle,
+      目標金額: page.project.goal_amount,
+      プロジェクト種別: page.project.project_type,
+      ストーリー: {
+        リード: page.project.story.lead,
+        '背景・現状': page.project.story.background,
+        ビジョン: page.project.story.vision,
+        資金使途: page.project.story.use_of_funds,
+        スケジュール: page.project.story.schedule,
+        訴求メッセージ: page.project.story.appeal,
+      },
+      起案者: {
+        氏名: page.project.creator.name,
+        紹介: page.project.creator.bio,
+        組織名: page.project.creator.organization,
+      },
+      '特定商取引法に基づく表示': page.project.legal_info,
+    },
+    リターン: REWARD_CATEGORIES.reduce((acc, cat) => {
+      const items = page.rewards
+        .filter(r => normalizeRewardCategory(r.category, r.tier) === cat)
+        .map(r => ({
+          'リターン名': r.title,
+          内容: r.description,
+          金額: r.price,
+          '提供時期': r.estimated_delivery,
+          '在庫上限': r.stock_limit,
+          '送料込み': r.shipping_included,
+          ...(r.sponsor_name ? { スポンサー名称: r.sponsor_name } : {}),
+        }));
+      if (items.length > 0) acc[REWARD_CATEGORY_LABELS[cat]] = items;
+      return acc;
+    }, {} as Record<string, unknown[]>),
+  });
+
+  const copyJSON = async () => {
+    if (!result) return;
+    const text = JSON.stringify(buildExportJSON(result), null, 2);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // クリップボードAPIが使えない環境向けのフォールバック
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
+
+  const submitToKamo = async () => {
+    if (!result || submitState === 'sending' || submitState === 'sent' || submitState === 'duplicate') return;
+    setSubmitState('sending');
+    setSubmitMessage('');
+    try {
+      const res = await fetch('/api/ai/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: result, input: form, mode }),
+      });
+      const data = await res.json();
+      if (data.success && data.duplicate) {
+        setSubmitState('duplicate');
+        setSubmitMessage('この内容はすでに送信済みです（重複して保存されていません）');
+      } else if (data.success) {
+        setSubmitState('sent');
+        setSubmitMessage('送信しました');
+      } else {
+        setSubmitState('error');
+        setSubmitMessage(data.error || '送信に失敗しました');
+      }
+    } catch {
+      setSubmitState('error');
+      setSubmitMessage('通信エラーが発生しました');
     }
   };
+
+  /**
+   * PDF出力。日本語フォントの埋め込み事故（豆腐＝□□□）を避けるため、
+   * PDF生成ライブラリを使わず「印刷用CSS＋ブラウザのPDF保存」方式にしている。
+   * ブラウザが表示に使っている日本語フォントがそのまま出力されるので必ず読める。
+   */
+  const downloadPDF = () => {
+    window.print();
+  };
+
+  const rewardsByCategory = (page: GeneratedPage) =>
+    REWARD_CATEGORIES.map(cat => ({
+      category: cat as RewardCategory,
+      items: page.rewards.filter(r => normalizeRewardCategory(r.category, r.tier) === cat),
+    })).filter(g => g.items.length > 0); // 空カテゴリは見出しごと出さない
 
   const tierLabels: Record<string, string> = {
     entry: 'エントリー',
@@ -378,6 +482,34 @@ export default function AIToolPage() {
             </div>
           </div>
 
+          {/* 生成結果の表示・印刷用スタイル（PDFはブラウザのPDF保存を使うため
+              日本語フォントの埋め込み事故が起きない） */}
+          <style jsx global>{`
+            .result-actions {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 12px;
+            }
+            .reward-head {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              gap: 12px;
+            }
+            /* 狭い幅では横並びをやめて縦積みにする（確立パターン） */
+            @media (max-width: 768px) {
+              .result-actions { flex-direction: column; }
+              .result-actions button { width: 100%; }
+              .reward-head { flex-direction: column; gap: 4px; }
+            }
+            @media print {
+              .no-print, .site-header, .site-header-spacer { display: none !important; }
+              body { background: #fff; }
+              details { display: block; }
+              details > div { display: block !important; }
+            }
+          `}</style>
+
           {/* Project Header */}
           <div style={{ border: '2px solid #E60012', borderRadius: 8, overflow: 'hidden', marginBottom: 20 }}>
             <div style={{ background: '#E60012', color: '#fff', padding: 20 }}>
@@ -414,55 +546,71 @@ export default function AIToolPage() {
             <StorySection title="訴求メッセージ" content={result.project.story.appeal} />
           </div>
 
-          {/* Rewards */}
+          {/* Rewards — 商品 / 体験 / サービス / スポンサー の4カテゴリ */}
           <div style={{ marginBottom: 20 }}>
             <h3 style={{ color: '#E60012', borderBottom: '2px solid #E60012', paddingBottom: 8, fontSize: 16 }}>
-              🎁 リターン（5階層）
+              🎁 リターン（商品・体験・サービス・スポンサー）
             </h3>
-            {result.rewards.map((reward, i) => (
-              <div key={i} style={{
-                border: '1px solid #e0e0e0',
-                borderRadius: 8,
-                padding: 16,
-                marginBottom: 12,
-                borderLeft: `4px solid ${reward.tier === 'sponsor' ? '#D4A017' : '#E60012'}`,
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <div>
-                    <span style={{
-                      fontSize: 11,
-                      padding: '2px 8px',
-                      borderRadius: 4,
-                      background: '#f0f0f0',
-                      color: '#666',
-                      marginRight: 8,
-                    }}>
-                      {tierLabels[reward.tier] || reward.tier}
+            {rewardsByCategory(result).map(group => {
+              const st = REWARD_CATEGORY_STYLES[group.category];
+              return (
+                <div key={group.category} style={{ marginTop: 16 }}>
+                  <h4 style={{
+                    margin: '0 0 10px',
+                    fontSize: 15,
+                    color: st.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}>
+                    <span aria-hidden="true">{st.icon}</span>
+                    {REWARD_CATEGORY_LABELS[group.category]}
+                    <span style={{ fontSize: 12, color: '#999', fontWeight: 'normal' }}>
+                      {group.items.length}件
                     </span>
-                    <strong style={{ fontSize: 16 }}>{reward.title}</strong>
-                    {reward.sponsor_name && (
-                      <span style={{
-                        marginLeft: 8,
-                        fontSize: 12,
-                        color: '#D4A017',
-                        fontWeight: 'bold',
-                      }}>
-                        ({reward.sponsor_name})
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: 20, fontWeight: 'bold', color: '#E60012' }}>
-                    ¥{reward.price.toLocaleString()}
-                  </div>
+                  </h4>
+                  {group.items.map((reward, i) => (
+                    <div key={i} style={{
+                      border: '1px solid #e0e0e0',
+                      borderRadius: 8,
+                      padding: 16,
+                      marginBottom: 12,
+                      borderLeft: `4px solid ${st.color}`,
+                    }}>
+                      <div className="reward-head" style={{ marginBottom: 8 }}>
+                        <div>
+                          <span style={{
+                            fontSize: 11,
+                            padding: '2px 8px',
+                            borderRadius: 4,
+                            background: '#f0f0f0',
+                            color: '#666',
+                            marginRight: 8,
+                          }}>
+                            {tierLabels[reward.tier] || reward.tier}
+                          </span>
+                          <strong style={{ fontSize: 16 }}>{reward.title}</strong>
+                          {reward.sponsor_name && (
+                            <span style={{ marginLeft: 8, fontSize: 12, color: '#D4A017', fontWeight: 'bold' }}>
+                              ({reward.sponsor_name})
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: 20, fontWeight: 'bold', color: st.color, whiteSpace: 'nowrap' }}>
+                          ¥{reward.price.toLocaleString()}
+                        </div>
+                      </div>
+                      <p style={{ fontSize: 14, color: '#555', margin: '4px 0', whiteSpace: 'pre-wrap' }}>{reward.description}</p>
+                      <div style={{ fontSize: 12, color: '#999' }}>
+                        提供時期: {reward.estimated_delivery}
+                        {reward.stock_limit && ` / 在庫: ${reward.stock_limit}個`}
+                        {reward.shipping_included && ' / 送料込'}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <p style={{ fontSize: 14, color: '#555', margin: '4px 0' }}>{reward.description}</p>
-                <div style={{ fontSize: 12, color: '#999' }}>
-                  提供時期: {reward.estimated_delivery}
-                  {reward.stock_limit && ` / 在庫: ${reward.stock_limit}個`}
-                  {reward.shipping_included && ' / 送料込'}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Legal Info */}
@@ -481,12 +629,51 @@ export default function AIToolPage() {
             </details>
           </div>
 
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button onClick={() => { setStep(1); setResult(null); }} style={secondaryBtn}>
+          {/* 生成結果の3アクション（印刷時は非表示） */}
+          <div className="result-actions no-print">
+            <button onClick={copyJSON} style={primaryBtn}>JSONをコピー</button>
+            <button
+              onClick={submitToKamo}
+              disabled={submitState === 'sending' || submitState === 'sent' || submitState === 'duplicate'}
+              style={{
+                ...primaryBtn,
+                ...(submitState === 'sending' || submitState === 'sent' || submitState === 'duplicate'
+                  ? { opacity: 0.55, cursor: 'not-allowed' }
+                  : {}),
+              }}
+            >
+              {submitState === 'sending' ? '送信中...' : '結果をKAMOに送信'}
+            </button>
+            <button onClick={downloadPDF} style={secondaryBtn}>PDFでダウンロード</button>
+            <button onClick={() => { setStep(1); setResult(null); setSubmitState('idle'); setSubmitMessage(''); }} style={secondaryBtn}>
               ← やり直す
             </button>
-            <button onClick={copyJSON} style={primaryBtn}>JSONをコピーしてKAMOに掲載</button>
           </div>
+
+          {/* アクションのフィードバック */}
+          <div className="no-print" aria-live="polite" style={{ marginTop: 10, minHeight: 22 }}>
+            {copied && (
+              <span style={{ fontSize: 13, fontWeight: 'bold', color: '#27AE60' }}>
+                ✅ コピーしました（KAMOの掲載欄に貼り付けてください）
+              </span>
+            )}
+            {submitMessage && (
+              <div style={{
+                fontSize: 13,
+                fontWeight: 'bold',
+                color: submitState === 'error' ? '#E60012' : submitState === 'duplicate' ? '#8A6D1F' : '#27AE60',
+              }}>
+                {submitState === 'sent' && '✅ '}
+                {submitState === 'duplicate' && 'ℹ️ '}
+                {submitState === 'error' && '⚠️ '}
+                {submitMessage}
+              </div>
+            )}
+          </div>
+
+          <p className="no-print" style={{ marginTop: 8, fontSize: 12, color: '#999' }}>
+            ※「PDFでダウンロード」は印刷ダイアログが開きます。送信先（プリンタ）で「PDFに保存」を選んでください。
+          </p>
         </div>
       )}
     </div>

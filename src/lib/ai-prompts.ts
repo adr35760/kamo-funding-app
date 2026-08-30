@@ -13,8 +13,44 @@ export const SYSTEM_PROMPT = `あなたはKAMOファンディングのクラウ�
 3. リターンは「支援者が得をする」設計而非「おまけ」
 4. KAMOファンディングの掲載フォーマットに従う
 5. storyは lead→background→vision→use_of_funds→schedule→appeal の構造で生成
-6. リターンは5階層（entry/standard/premium/vip/sponsor）で設計
+6. リターンは「商品 / 体験 / サービス / スポンサー」の4カテゴリで構成し、各カテゴリを必ず1件以上生成する
 7. スポンサー層にはブロンズ/シルバー/ゴールド/ダイヤモンドの名称を使用`;
+
+/**
+ * リターンのカテゴリ（t iku指示: 商品・体験・サービス・スポンサーの4構成）
+ * 内部キーは英語、画面表示は下の REWARD_CATEGORY_LABELS を使う。
+ */
+export const REWARD_CATEGORIES = ['product', 'experience', 'service', 'sponsor'] as const;
+export type RewardCategory = (typeof REWARD_CATEGORIES)[number];
+
+export const REWARD_CATEGORY_LABELS: Record<RewardCategory, string> = {
+  product: '商品',
+  experience: '体験',
+  service: 'サービス',
+  sponsor: 'スポンサー',
+};
+
+/** 表示用の色。既存トーン（赤=主/金=スポンサー）を踏襲し新配色は作らない。 */
+export const REWARD_CATEGORY_STYLES: Record<RewardCategory, { color: string; icon: string }> = {
+  product: { color: '#E60012', icon: '📦' },
+  experience: { color: '#E60012', icon: '🎫' },
+  service: { color: '#E60012', icon: '🛠️' },
+  sponsor: { color: '#D4A017', icon: '🤝' },
+};
+
+/** 未知・未設定の category を4カテゴリのどれかに寄せる（LLM出力のゆらぎ対策） */
+export function normalizeRewardCategory(value: unknown, tier?: string): RewardCategory {
+  const raw = String(value ?? '').trim().toLowerCase();
+  const map: Record<string, RewardCategory> = {
+    product: 'product', goods: 'product', item: 'product', 商品: 'product', 物販: 'product',
+    experience: 'experience', event: 'experience', 体験: 'experience', イベント: 'experience',
+    service: 'service', 'service_ticket': 'service', サービス: 'service', 役務: 'service',
+    sponsor: 'sponsor', sponsorship: 'sponsor', スポンサー: 'sponsor', 協賛: 'sponsor',
+  };
+  if (map[raw]) return map[raw];
+  // category が取れない場合は tier から推定（sponsor tier はスポンサー、それ以外は商品）
+  return tier === 'sponsor' ? 'sponsor' : 'product';
+}
 
 export interface HearingInput {
   industry: string;          // 業種
@@ -38,6 +74,8 @@ export interface ProjectStory {
 }
 
 export interface Reward {
+  /** リターンの種類（商品/体験/サービス/スポンサー）— 表示のグループ分けに使う */
+  category: RewardCategory;
   tier: 'entry' | 'standard' | 'premium' | 'vip' | 'sponsor';
   title: string;
   description: string;
@@ -137,6 +175,7 @@ export function buildPageGenerationPrompt(input: HearingInput): string {
   },
   "rewards": [
     {
+      "category": "product",
       "tier": "entry",
       "title": "リターン名",
       "description": "リターンの内容説明",
@@ -148,16 +187,19 @@ export function buildPageGenerationPrompt(input: HearingInput): string {
       "is_designated": false,
       "designated_name": ""
     }
-    // ... 5階層すべて（entry, standard, premium, vip, sponsor）
+    // ... 下記の4カテゴリすべてを含めること
   ]
 }
 
-リターンは5階層すべて生成してください:
-- entry: ¥1,000-3,000程度
-- standard: ¥5,000-8,000程度
-- premium: ¥10,000-30,000程度
-- vip: ¥50,000-100,000程度
-- sponsor: ¥100,000以上（スポンサー名称: ブロンズ/シルバー/ゴールド/ダイヤモンド）
+【リターンの構成（必須）】
+"category" は必ず次の4つのいずれかを指定し、**4カテゴリすべてを最低1件ずつ**生成してください:
+- "product"（商品）: 物としてお届けするリターン。¥1,000〜¥30,000程度で2件以上
+- "experience"（体験）: 現地・オンラインでの体験型リターン。¥10,000〜¥100,000程度
+- "service"（サービス）: 役務・相談・利用権などのリターン。¥5,000〜¥50,000程度
+- "sponsor"（スポンサー）: 企業・団体向けの協賛枠（ロゴ掲載・広告掲載など）。**¥100,000以上**でスポンサー名称（ブロンズ/シルバー/ゴールド/ダイヤモンド）を sponsor_name に入れる
+
+"tier" は金額帯の目安として併記してください:
+- entry: ¥1,000-3,000 / standard: ¥5,000-8,000 / premium: ¥10,000-30,000 / vip: ¥50,000-100,000 / sponsor: ¥100,000以上
 
 JSONのみ出力してください。 markdownのコードブロックは不要です。`;
 }

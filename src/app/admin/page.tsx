@@ -83,7 +83,7 @@ const partnerTypeLabels: Record<string, string> = {
 };
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'events' | 'registrations' | 'partners' | 'referrals'>('events');
+  const [tab, setTab] = useState<'events' | 'registrations' | 'partners' | 'referrals' | 'ai'>('events');
   const [events, setEvents] = useState<Event[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -397,6 +397,9 @@ export default function AdminPage() {
         </TabButton>
         <TabButton active={tab === 'referrals'} onClick={() => setTab('referrals')}>
           紹介者一覧
+        </TabButton>
+        <TabButton active={tab === 'ai'} onClick={() => setTab('ai')}>
+          AI生成結果
         </TabButton>
       </div>
 
@@ -828,6 +831,9 @@ export default function AdminPage() {
               )}
             </div>
           )}
+
+          {/* AI生成結果タブ */}
+          {tab === 'ai' && <AIGenerationsPanel />}
         </>
       )}
 
@@ -856,6 +862,174 @@ const secondaryBtn: React.CSSProperties = {
   color: '#333',
   cursor: 'pointer',
 };
+
+/** AI生成結果タブ（送信された生成内容の一覧＋詳細） */
+function AIGenerationsPanel() {
+  const [rows, setRows] = useState<AIGenerationRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState('');
+  const [detail, setDetail] = useState<AIGenerationDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/admin/ai-generations');
+        const data = await res.json();
+        setRows(data.generations ?? []);
+        if (data.needsMigration) setNotice(data.error || '保存先テーブルが未作成です');
+      } catch {
+        setNotice('取得に失敗しました');
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const openDetail = async (id: string) => {
+    setDetailLoading(true);
+    try {
+      const res = await fetch(`/api/admin/ai-generations?id=${id}`);
+      const data = await res.json();
+      setDetail(data.generation ?? null);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const copyDetailJSON = async () => {
+    if (!detail) return;
+    await navigator.clipboard.writeText(JSON.stringify(detail.page, null, 2));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
+
+  if (loading) return <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>読み込み中...</div>;
+
+  return (
+    <div>
+      {notice && (
+        <div style={{
+          background: '#FFF8E1', border: '1px solid #E6D9A8', borderRadius: 8,
+          padding: 16, marginBottom: 16, fontSize: 13,
+        }}>
+          ⚠️ {notice}
+        </div>
+      )}
+
+      {detail ? (
+        <div>
+          <button onClick={() => setDetail(null)} style={{
+            padding: '8px 16px', borderRadius: 6, border: '1px solid #ddd',
+            background: '#fff', cursor: 'pointer', fontSize: 13, marginBottom: 16,
+          }}>
+            ← 一覧に戻る
+          </button>
+          {detailLoading ? (
+            <div style={{ color: '#999' }}>読み込み中...</div>
+          ) : (
+            <div>
+              <h2 style={{ fontSize: 20, margin: '0 0 4px' }}>{detail.title}</h2>
+              <p style={{ color: '#666', fontSize: 14, margin: '0 0 4px' }}>{detail.subtitle}</p>
+              <p style={{ color: '#999', fontSize: 13, margin: '0 0 16px' }}>
+                送信日時: {formatJst(detail.created_at)} ／ 起案者: {detail.creator_name || '—'}
+                {detail.organization ? `（${detail.organization}）` : ''}
+                {detail.goal_amount ? ` ／ 目標金額: ¥${Number(detail.goal_amount).toLocaleString()}` : ''}
+              </p>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+                <button onClick={copyDetailJSON} style={{
+                  padding: '10px 18px', borderRadius: 6, border: 'none',
+                  background: '#E60012', color: '#fff', cursor: 'pointer', fontSize: 13,
+                }}>
+                  JSONをコピー
+                </button>
+                {copied && <span style={{ alignSelf: 'center', color: '#27AE60', fontSize: 13, fontWeight: 'bold' }}>✅ コピーしました</span>}
+              </div>
+              <pre style={{
+                background: '#f7f7f7', border: '1px solid #e0e0e0', borderRadius: 8,
+                padding: 16, fontSize: 12, lineHeight: 1.6, overflowX: 'auto', whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+              }}>
+                {JSON.stringify(detail.page, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      ) : rows.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 40, color: '#999', fontSize: 14 }}>
+          送信された生成結果はまだありません。
+        </div>
+      ) : (
+        <div style={{ background: '#fff', borderRadius: 8, overflowX: 'auto', border: '1px solid #eee' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead style={{ background: '#f7f7f7', textAlign: 'left' }}>
+              <tr>
+                <Th>送信日時（JST）</Th>
+                <Th>案件名</Th>
+                <Th>起案者 / 組織</Th>
+                <Th>目標金額</Th>
+                <Th>生成</Th>
+                <Th>詳細</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+                  <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>{formatJst(r.created_at)}</td>
+                  <td style={{ padding: '10px 12px' }}>{r.title}</td>
+                  <td style={{ padding: '10px 12px' }}>
+                    {r.creator_name || '—'}
+                    {r.organization ? <span style={{ color: '#999' }}>{` / ${r.organization}`}</span> : null}
+                  </td>
+                  <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                    {r.goal_amount ? `¥${Number(r.goal_amount).toLocaleString()}` : '—'}
+                  </td>
+                  <td style={{ padding: '10px 12px', color: '#999' }}>{r.generation_mode || '—'}</td>
+                  <td style={{ padding: '10px 12px' }}>
+                    <button onClick={() => openDetail(r.id)} style={{
+                      padding: '6px 12px', borderRadius: 6, border: '1px solid #E60012',
+                      background: '#fff', color: '#E60012', cursor: 'pointer', fontSize: 12,
+                    }}>
+                      表示
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface AIGenerationRow {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  creator_name: string | null;
+  organization: string | null;
+  goal_amount: number | null;
+  generation_mode: string | null;
+  created_at: string;
+}
+
+interface AIGenerationDetail extends AIGenerationRow {
+  page: unknown;
+  hearing_input: unknown;
+}
+
+/** UTC の ISO 文字列を日本時間の表記に変換する */
+function formatJst(iso: string): string {
+  if (!iso) return '—';
+  return new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  }).format(new Date(iso)) + ' JST';
+}
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (

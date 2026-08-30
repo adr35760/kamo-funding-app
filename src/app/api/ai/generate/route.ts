@@ -3,8 +3,11 @@ import {
   SYSTEM_PROMPT,
   buildPageGenerationPrompt,
   calculateRewardTiers,
+  normalizeRewardCategory,
+  REWARD_CATEGORIES,
   type HearingInput,
   type CrowdfundingPage,
+  type RewardCategory,
 } from '@/lib/ai-prompts';
 
 /**
@@ -81,7 +84,9 @@ export async function POST(request: NextRequest) {
       throw new Error('Empty response from LLM');
     }
 
-    const page: CrowdfundingPage = JSON.parse(content);
+    const parsed: CrowdfundingPage = JSON.parse(content);
+    // LLM出力の category のゆらぎを正規化し、4カテゴリが欠けたらモック側の該当リターンで補う
+    const page = ensureAllRewardCategories(parsed, input);
 
     return NextResponse.json({
       success: true,
@@ -95,6 +100,37 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * リターンの category を正規化し、4カテゴリ（商品/体験/サービス/スポンサー）が
+ * すべて1件以上存在することを保証する。
+ * 欠けたカテゴリはモック生成の同カテゴリのリターンで補完する（空カテゴリを作らない）。
+ */
+function ensureAllRewardCategories(page: CrowdfundingPage, input: HearingInput): CrowdfundingPage {
+  const rewards = (page.rewards || []).map((r) => ({
+    ...r,
+    category: normalizeRewardCategory((r as { category?: unknown }).category, r.tier),
+  }));
+
+  const present = new Set<RewardCategory>(rewards.map((r) => r.category));
+  const missing = REWARD_CATEGORIES.filter((c) => !present.has(c));
+  if (missing.length > 0) {
+    const fallback = generateMockPage(input).rewards;
+    for (const cat of missing) {
+      const spare = fallback.find((r) => r.category === cat);
+      if (spare) rewards.push(spare);
+    }
+  }
+
+  // 表示順を 商品 → 体験 → サービス → スポンサー に揃え、同カテゴリ内は金額の昇順
+  const order = new Map<RewardCategory, number>(REWARD_CATEGORIES.map((c, i) => [c, i]));
+  rewards.sort((a, b) => {
+    const d = (order.get(a.category) ?? 99) - (order.get(b.category) ?? 99);
+    return d !== 0 ? d : (a.price || 0) - (b.price || 0);
+  });
+
+  return { ...page, rewards };
 }
 
 /**
@@ -152,6 +188,7 @@ function generateMockPage(input: HearingInput): CrowdfundingPage {
     },
     rewards: [
       {
+        category: 'product',
         tier: 'entry',
         title: `【応援コース】${templates.entryRewardName}`,
         description: `${input.creatorName}の挑戦を応援するコースです。\n\n${templates.entryRewardDesc}\n\n※お礼の手紙にお届け先情報は不要です。`,
@@ -164,6 +201,7 @@ function generateMockPage(input: HearingInput): CrowdfundingPage {
         designated_name: '',
       },
       {
+        category: 'product',
         tier: 'standard',
         title: `【お試しコース】${templates.standardRewardName}`,
         description: `${templates.standardRewardDesc}\n\n${input.industry}の良さを存分に味わっていただけるセットです。ご自身はもちろん、ご家族や友人へのギフトとしてもお使いいただけます。`,
@@ -176,6 +214,7 @@ function generateMockPage(input: HearingInput): CrowdfundingPage {
         designated_name: '',
       },
       {
+        category: 'product',
         tier: 'premium',
         title: `【特別セットコース】${templates.premiumRewardName}`,
         description: `通常では販売していない限定の特別セットです。\n\n${templates.premiumRewardDesc}\n\nこのコースは本プロジェクト限定の特別仕様。数量限定でのご提供となります。`,
@@ -188,6 +227,7 @@ function generateMockPage(input: HearingInput): CrowdfundingPage {
         designated_name: '',
       },
       {
+        category: 'experience',
         tier: 'vip',
         title: `【VIP体験コース】${templates.vipRewardName}`,
         description: `${input.creatorName}と直接つながれるVIPコース。\n\n${templates.vipRewardDesc}\n\n※日時はご相談の上決定いたします。遠方の方はオンラインでの対応も可能です。`,
@@ -200,6 +240,20 @@ function generateMockPage(input: HearingInput): CrowdfundingPage {
         designated_name: '',
       },
       {
+        category: 'service',
+        tier: 'standard',
+        title: `【サービス利用コース】${templates.serviceRewardName}`,
+        description: `${templates.serviceRewardDesc}\n\n※ご利用期間・日程はご相談の上で決定いたします。`,
+        image_url: '',
+        price: Math.round((tiers.standard + tiers.premium) / 2 / 100) * 100,
+        shipping_included: false,
+        estimated_delivery: deliveryStr,
+        stock_limit: 30,
+        is_designated: false,
+        designated_name: '',
+      },
+      {
+        category: 'sponsor',
         tier: 'sponsor',
         title: `【ダイヤモンドスポンサー】企業・団体様向け`,
         description: `本プロジェクトの最高位スポンサーコースです。\n\n${templates.sponsorRewardDesc}\n\n■ スポンサー特典\n・プロジェクトページへのロゴ掲載\n・SNSでの感謝投稿（リツイート・シェア歓迎）\n・${input.creatorName}による企業訪問・意見交換会（1回）\n・月1回のオンライン進捗報告（3ヶ月間）\n\n※特典内容につきましては、ご相談の上カスタマイズ可能です。`,
@@ -241,6 +295,8 @@ function getIndustryTemplate(industry: string) {
     premiumRewardDesc: string;
     vipRewardName: string;
     vipRewardDesc: string;
+    serviceRewardName: string;
+    serviceRewardDesc: string;
     sponsorRewardDesc: string;
   }> = {
     飲食: {
@@ -264,6 +320,8 @@ function getIndustryTemplate(industry: string) {
       premiumRewardDesc: '通常メニューにはない、季節の食材を活かした限定フルコース（2名様分）。店舗でのご利用またはお届け便を選択いただけます。',
       vipRewardName: 'シェフとつくるプライベート料理体験',
       vipRewardDesc: '当家の厨房で、${creatorName}と一緒に1品を調理する特別体験（2時間・2名様）。その後、完成した料理とお酒で乾杯！',
+      serviceRewardName: '店内お食事ご利用券',
+      serviceRewardDesc: '当店でのお食事にご利用いただけるご利用券です。メニューは店内の全品からお選びいただけます。',
       sponsorRewardDesc: '企業様のロゴを掲載した限定コラボメニューの開発・提供、および店舗での企業展示を実施します。',
     },
     小売: {
@@ -287,6 +345,8 @@ function getIndustryTemplate(industry: string) {
       premiumRewardDesc: '本プロジェクト限定のオリジナル商品セット。通常では販売しない特別アイテムが含まれます。',
       vipRewardName: 'プライベートショッピング体験',
       vipRewardDesc: '営業時間外の貸切ショッピング体験（2名様・2時間）。スタッフがコーディネートをサポートし、その後ティータイム付き。',
+      serviceRewardName: 'お買い物ご利用券',
+      serviceRewardDesc: '当店でのお買い物にご利用いただけるご利用券です。店頭・オンラインどちらでもお使いいただけます。',
       sponsorRewardDesc: '店舗での企業ロゴ展示、コラボレーション商品の開発・販売、および店舗イベントでのPRを実施します。',
     },
     サービス: {
@@ -310,6 +370,8 @@ function getIndustryTemplate(industry: string) {
       premiumRewardDesc: '通常メニューにはない特別サービス。プロジェクト限定の特別コースで、通常の1.5倍の時間をかけた至極の体験をご提供します。',
       vipRewardName: 'プライベートコンサルティング',
       vipRewardDesc: '${creatorName}による1対1のプライベートコンサルティング（2時間）。あなたの課題に合わせた個別アドバイスを実施します。',
+      serviceRewardName: 'サービス回数券',
+      serviceRewardDesc: '当店の基本サービスを複数回ご利用いただける回数券です。ご家族・ご友人との併用も可能です。',
       sponsorRewardDesc: '企業向けの特別サービスプランの提供、共同セミナーの開催、およびプロジェクトページでの企業PRを実施します。',
     },
     製造: {
@@ -333,6 +395,8 @@ function getIndustryTemplate(industry: string) {
       premiumRewardDesc: 'プロジェクト支援者限定の記念モデル。シリアルナンバー入りで、世界に〇個だけの特別仕様です。',
       vipRewardName: '工場見学+ものづくり体験',
       vipRewardDesc: '当社の工場を見学いただき、職人と一緒に1品を作る体験（半日・2名様）。お弁当付き。',
+      serviceRewardName: '製品メンテナンスサポート',
+      serviceRewardDesc: 'お手持ちの製品の点検・調整・修理を承るサポートサービスです。職人が直接対応いたします。',
       sponsorRewardDesc: '企業様との共同開発プロジェクトの優先交渉権、製造ラインのレンタル優先権、および製品への企業ロゴ刻印を実施します。',
     },
     IT: {
@@ -356,6 +420,8 @@ function getIndustryTemplate(industry: string) {
       premiumRewardDesc: 'プロジェクト支援者限定のライフタイムライセンス（永久利用権）。将来の機能拡張もすべて含まれます。',
       vipRewardName: '開発者と1対1のワークショップ',
       vipRewardDesc: '${creatorName}と1対1で、プロダクトの使い方やカスタマイズ方法を深く学ぶワークショップ（2時間・オンライン）。',
+      serviceRewardName: '導入サポート＋優先サポート枠',
+      serviceRewardDesc: 'プロダクトの初期設定・導入をお手伝いし、以後の優先サポート枠をご提供します。',
       sponsorRewardDesc: 'プロダクトへの企業ロゴ掲載、APIアクセスの優先提供、および共同開発パートナーとしての優先交渉権を提供します。',
     },
   };
