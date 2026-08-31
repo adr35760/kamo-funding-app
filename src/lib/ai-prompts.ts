@@ -65,6 +65,11 @@ export interface HearingInput {
   deadlineDays: number;      // 募集期間
   targetAudience: string;    // ターゲット層
   currentChallenge: string;  // 本業の現状課題
+  /**
+   * 今回プロジェクトをおこなうきっかけ（任意）。
+   * 生成結果の「なぜこの企画を始めたのか」に直結させる。
+   */
+  projectTrigger?: string;
   crowdfundingGoal: string;  // クラファンで実現したいこと
   creatorName: string;       // 起案者名
   organization: string;      // 組織名
@@ -160,7 +165,9 @@ export function buildPageGenerationPrompt(input: HearingInput): string {
 - 目標金額: ¥${input.goalAmount.toLocaleString()}
 - 募集期間: ${input.deadlineDays}日
 - ターゲット層: ${input.targetAudience}
-- 本業の現状課題: ${input.currentChallenge}
+- 本業の現状課題: ${input.currentChallenge}${input.projectTrigger ? `
+- 今回プロジェクトをおこなうきっかけ（起案者の申告。**extended.why_started はこの内容を必ず起点にして書く**こと。ここに書かれていない動機を捏造しない）:
+${input.projectTrigger}` : ''}
 - クラファンで実現したいこと: ${input.crowdfundingGoal}
 - 起案者名: ${input.creatorName}
 - 組織名: ${input.organization}${input.activityHistory ? `

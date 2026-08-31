@@ -71,6 +71,7 @@ export default function AIToolPage() {
     deadlineDays: 30,
     targetAudience: '',
     currentChallenge: '',
+    projectTrigger: '',
     crowdfundingGoal: '',
     activityHistory: '',
     creatorName: '',
@@ -414,6 +415,16 @@ export default function AIToolPage() {
                 placeholder="例: 観光客の減少で売上が停滞しており、地元顧客の獲得が必要ですが、販路開拓の資金が不足しています。" />
             </Field>
 
+            <Field label="今回プロジェクトをおこなうきっかけについて">
+              <textarea value={form.projectTrigger}
+                onChange={e => updateForm('projectTrigger', e.target.value)}
+                style={{ ...inputStyle, minHeight: 80 }}
+                placeholder="例: 常連のお客様から「家でも食べたい」と何度も言われたことがきっかけです。昨年の台風で店を数日閉めたときに、届ける手段がないことの弱さを実感しました。" />
+              <p style={{ fontSize: 11, color: '#999', margin: '4px 0 0' }}>
+                入力すると生成結果の「なぜこの企画を始めたのか」がこの内容を起点に書かれます（空欄の場合はAIが推定して書きます）。
+              </p>
+            </Field>
+
             <Field label="クラファンで実現したいこと">
               <textarea value={form.crowdfundingGoal}
                 onChange={e => updateForm('crowdfundingGoal', e.target.value)}
@@ -516,6 +527,7 @@ export default function AIToolPage() {
             <ConfirmRow label="募集期間" value={`${form.deadlineDays}日`} />
             <ConfirmRow label="ターゲット層" value={form.targetAudience} />
             <ConfirmRow label="本業の現状課題" value={form.currentChallenge} />
+            <ConfirmRow label="今回プロジェクトをおこなうきっかけ" value={form.projectTrigger} />
             <ConfirmRow label="クラファンで実現したいこと" value={form.crowdfundingGoal} />
             <ConfirmRow label="活動履歴" value={form.activityHistory} />
             <ConfirmRow label="起案者名" value={form.creatorName} />
