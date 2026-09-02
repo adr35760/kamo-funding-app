@@ -6,6 +6,7 @@ import '@/styles/seminar-info.css';
 import { formatEventDateJa, eventCardParts, EventLike } from '@/lib/event-format';
 import SiteHeader from '@/components/SiteHeader';
 import Image from 'next/image';
+import { captureUtm, getUtmPayload } from '@/lib/utm';
 
 export default function SeminarInfoClient({ initialEvents = [] }: { initialEvents?: EventLike[] }) {
   const [submitting, setSubmitting] = useState(false);
@@ -50,6 +51,12 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
     return () => document.removeEventListener('click', handler);
   }, []);
 
+  // 流入元（UTM）をURLから読み取り、申込送信まで保持する
+  // （スクロールや再描画で消えないよう sessionStorage に保存する）
+  useEffect(() => {
+    captureUtm();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
@@ -57,6 +64,8 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
     const formData = new FormData(e.currentTarget);
     const data: Record<string, string> = {};
     formData.forEach((v, k) => { data[k] = v as string; });
+    // 流入元（UTM）を申込データに添付する。取れていなければ何も付かない（申込は必ず通す）
+    Object.assign(data, getUtmPayload());
     if (!data.event_id || data.event_id === '') delete data.event_id;
     try {
       const res = await fetch('/api/apply', {

@@ -7,6 +7,7 @@ import '@/styles/seminar-landing.css';
 import { pendingLabel, splitPriceLabel, PRICE_TAX_NOTE, type SeminarConfig } from '@/lib/seminar-config';
 import { formatEventDateJa } from '@/lib/event-format';
 import SiteHeader from '@/components/SiteHeader';
+import { captureUtm, getUtmPayload } from '@/lib/utm';
 
 interface EventRow {
   id: string;
@@ -77,6 +78,12 @@ export default function SeminarLanding({
     return () => document.removeEventListener('click', handler);
   }, []);
 
+  // 流入元（UTM）をURLから読み取り、申込送信まで保持する
+  // （スクロールや再描画で消えないよう sessionStorage に保存する）
+  useEffect(() => {
+    captureUtm();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
@@ -84,6 +91,8 @@ export default function SeminarLanding({
     const formData = new FormData(e.currentTarget);
     const data: Record<string, string> = {};
     formData.forEach((v, k) => { data[k] = v as string; });
+    // 流入元（UTM）を申込データに添付する。取れていなければ何も付かない（申込は必ず通す）
+    Object.assign(data, getUtmPayload());
     if (!data.event_id) {
       setError('参加希望日を選択してください');
       setSubmitting(false);

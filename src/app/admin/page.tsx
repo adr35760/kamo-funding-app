@@ -26,6 +26,10 @@ interface Registration {
   challenge_description: string | null;
   status: string;
   created_at: string;
+  /** 流入元（UTM）。マイグレーション未実行の環境では存在しない */
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
 }
 
 interface Partner {
@@ -316,9 +320,14 @@ export default function AdminPage() {
       alert('エクスポートするデータがありません');
       return;
     }
-    const headers = ['名前', 'メール', '会社', '参加経路', '挑戦内容', 'ステータス', '申込日時'];
+    const headers = [
+      '名前', 'メール', '会社', '参加経路（本人申告）',
+      '流入元(utm_source)', '流入種別(utm_medium)', '投稿単位(utm_campaign)',
+      '挑戦内容', 'ステータス', '申込日時',
+    ];
     const rows = registrations.map(r => [
       r.name, r.email, r.company || '', r.referrer_source || '',
+      r.utm_source || '', r.utm_medium || '', r.utm_campaign || '',
       r.challenge_description || '', r.status, new Date(r.created_at).toLocaleString('ja-JP'),
     ]);
     const csv = [headers, ...rows].map(row =>
@@ -521,12 +530,19 @@ export default function AdminPage() {
           {/* Registrations Tab */}
           {tab === 'registrations' && (
             <div>
-              <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{
+                marginBottom: 16, display: 'flex', justifyContent: 'space-between',
+                alignItems: 'center', gap: 8, flexWrap: 'wrap',
+              }}>
                 <h2 style={{ fontSize: 18 }}>申込者一覧</h2>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', maxWidth: '100%' }}>
                   <select value={selectedEventId}
                     onChange={e => setSelectedEventId(e.target.value)}
-                    style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #ddd', fontSize: 13 }}>
+                    style={{
+                      padding: '6px 12px', borderRadius: 6, border: '1px solid #ddd', fontSize: 13,
+                      // 長いイベント名でも横幅を押し広げない
+                      maxWidth: 260, minWidth: 0,
+                    }}>
                     <option value="">全イベント</option>
                     {events.map(ev => (
                       <option key={ev.id} value={ev.id}>{ev.title}</option>
@@ -555,10 +571,14 @@ export default function AdminPage() {
                 </div>
               </div>
 
+              <UtmSummary regs={filteredRegs} />
+
               {filteredRegs.length === 0 ? (
                 <EmptyState message="申込データがありません。LPが公開されると申込が蓄積されます。" />
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                // 列が多いので横スクロールで受ける（狭い画面でページ全体が横に広がるのを防ぐ）
+                <div style={{ overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
+                <table style={{ width: '100%', minWidth: 980, borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
                       <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', width: 36 }}>
@@ -574,6 +594,7 @@ export default function AdminPage() {
                       <Th>申込イベント</Th>
                       <Th>会社</Th>
                       <Th>参加経路</Th>
+                      <Th>流入元</Th>
                       <Th>挑戦内容</Th>
                       <Th>ステータス</Th>
                       <Th>申込日時</Th>
@@ -608,6 +629,9 @@ export default function AdminPage() {
                         </Td>
                         <Td>{reg.company || '-'}</Td>
                         <Td>{reg.referrer_source || '-'}</Td>
+                        <Td style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+                          <UtmCell reg={reg} />
+                        </Td>
                         <Td style={{ maxWidth: 200, color: '#E60012', cursor: 'help' }}
                           title={reg.challenge_description || ''}>
                           {reg.challenge_description ? reg.challenge_description.slice(0, 40) + '...' : '-'}
@@ -636,6 +660,7 @@ export default function AdminPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           )}
@@ -696,7 +721,9 @@ export default function AdminPage() {
                   紹介コード（KAMO-XXXXXX）は登録時に自動発行され、紹介実績をトラッキングできます。
                 </div>
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                // 列が多いので横スクロールで受ける（狭い画面でページ全体が横に広がるのを防ぐ）
+                <div style={{ overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
+                <table style={{ width: '100%', minWidth: 980, borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
                       <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', width: 36 }}>
@@ -773,6 +800,7 @@ export default function AdminPage() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               )}
             </div>
           )}
@@ -1092,6 +1120,102 @@ function formatJst(iso: string): string {
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit',
   }).format(new Date(iso)) + ' JST';
+}
+
+/** 一覧の「流入元」セル。source / medium / campaign を1列に収める */
+function UtmCell({ reg }: { reg: Registration }) {
+  const { utm_source: src, utm_medium: med, utm_campaign: camp } = reg;
+  if (!src && !med && !camp) return <span style={{ color: '#999' }}>-</span>;
+  return (
+    <span>
+      <span style={{ fontWeight: 700 }}>{src || '不明'}</span>
+      {med ? <span style={{ color: '#666' }}>{` / ${med}`}</span> : null}
+      {camp ? (
+        <span style={{ display: 'block', fontSize: 11, color: '#E60012' }}>{camp}</span>
+      ) : null}
+    </span>
+  );
+}
+
+/**
+ * 流入元ごとの申込人数（campaign単位）。
+ * 「Facebookの11/2の投稿が何人連れてきたか」を読むための表。
+ * UTMが取れなかった申込は「不明」として最下段にまとめる。
+ */
+function UtmSummary({ regs }: { regs: Registration[] }) {
+  if (regs.length === 0) return null;
+
+  const map = new Map<string, { source: string; medium: string; campaign: string; count: number }>();
+  let unknown = 0;
+  for (const r of regs) {
+    const src = r.utm_source || '';
+    const med = r.utm_medium || '';
+    const camp = r.utm_campaign || '';
+    if (!src && !med && !camp) { unknown += 1; continue; }
+    const key = `${src}|${med}|${camp}`;
+    const cur = map.get(key);
+    if (cur) cur.count += 1;
+    else map.set(key, { source: src || '不明', medium: med || '-', campaign: camp || '-', count: 1 });
+  }
+
+  const rows = Array.from(map.values()).sort((a, b) =>
+    b.count - a.count || a.source.localeCompare(b.source) || a.campaign.localeCompare(b.campaign)
+  );
+  const tracked = rows.reduce((a, b) => a + b.count, 0);
+
+  return (
+    <div style={{
+      background: '#fff', border: '1px solid #eee', borderRadius: 8,
+      padding: 16, marginBottom: 20,
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
+        <h3 style={{ fontSize: 15, margin: 0 }}>流入元ごとの申込人数</h3>
+        <span style={{ fontSize: 12, color: '#666' }}>
+          計測できた申込 {tracked}件 ／ 不明 {unknown}件（全{regs.length}件）
+        </span>
+      </div>
+
+      {rows.length === 0 ? (
+        <p style={{ fontSize: 13, color: '#999', margin: '10px 0 0' }}>
+          まだ流入元付きの申込がありません（UTM付きURLからの申込で集計されます）。
+        </p>
+      ) : (
+        <div style={{ overflowX: 'auto', marginTop: 10 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ background: '#f7f7f7', textAlign: 'left' }}>
+                <Th>流入元 (source)</Th>
+                <Th>種別 (medium)</Th>
+                <Th>投稿単位 (campaign)</Th>
+                <Th>申込人数</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i} style={{ borderTop: '1px solid #eee' }}>
+                  <Td style={{ fontWeight: 700 }}>{r.source}</Td>
+                  <Td style={{ color: '#666' }}>{r.medium}</Td>
+                  <Td style={{ color: '#E60012' }}>{r.campaign}</Td>
+                  <Td style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{r.count}人</Td>
+                </tr>
+              ))}
+              {unknown > 0 && (
+                <tr style={{ borderTop: '1px solid #eee', background: '#fafafa' }}>
+                  <Td style={{ color: '#999' }}>不明</Td>
+                  <Td style={{ color: '#999' }}>-</Td>
+                  <Td style={{ color: '#999' }}>-</Td>
+                  <Td style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{unknown}人</Td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p style={{ fontSize: 11, color: '#999', margin: '8px 0 0' }}>
+        ※ 「参加経路」列（本人申告）とは別の集計です。SNSアプリ内ブラウザでURLの ? 以降が落ちた場合は「不明」になります。
+      </p>
+    </div>
+  );
 }
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {

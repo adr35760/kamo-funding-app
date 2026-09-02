@@ -5,6 +5,7 @@ import '@/styles/kamo-icons.css';
 import '@/styles/kamo-lp.css';
 import { formatEventDateJa, eventCardParts, cleanTitle, EventLike } from '@/lib/event-format';
 import SiteHeader from '@/components/SiteHeader';
+import { captureUtm, getUtmPayload } from '@/lib/utm';
 
 interface EventOption extends EventLike {}
 
@@ -62,6 +63,12 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
   }, []);
 
   // フォーム送信 → /api/apply (Engineer実装済み)
+  // 流入元（UTM）をURLから読み取り、申込送信まで保持する
+  // （スクロールや再描画で消えないよう sessionStorage に保存する）
+  useEffect(() => {
+    captureUtm();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
@@ -69,6 +76,8 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
     const formData = new FormData(e.currentTarget);
     const data: Record<string, string> = {};
     formData.forEach((v, k) => { data[k] = v as string; });
+    // 流入元（UTM）を申込データに添付する。取れていなければ何も付かない（申込は必ず通す）
+    Object.assign(data, getUtmPayload());
     try {
       const res = await fetch('/api/apply', {
         method: 'POST',

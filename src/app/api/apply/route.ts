@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendApplyConfirmationEmail } from '@/lib/email';
 import { formatEventDateJa } from '@/lib/event-format';
 import { isEventFinished } from '@/lib/event-visibility';
+import { normalizeUtmValue } from '@/lib/utm';
 
 /**
  * POST /api/apply
@@ -13,12 +14,35 @@ import { isEventFinished } from '@/lib/event-visibility';
  * Body: { name, email, company, event_id, source, challenge }
  * Response: { success: true, registration_id: "..." }
  */
+/**
+ * registrations に UTM列（utm_source / utm_medium / utm_campaign）が
+ * 未追加かを判定する。PostgREST はスキーマキャッシュ由来の PGRST204、
+ * 直接SQL経路では Postgres の 42703 を返すため両方を見る。
+ */
+function isMissingUtmColumn(error: { code?: string; message?: string }): boolean {
+  const msg = error.message || '';
+  return (
+    error.code === 'PGRST204' ||
+    error.code === '42703' ||
+    (/utm_(source|medium|campaign)/.test(msg) &&
+      /column|could not find|does not exist/i.test(msg))
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
     // 入力バリデーション
     const { name, email, event_id, company, source, challenge } = body;
+
+    // 流入元（UTM）。サーバ側でも正規化する（クライアントを迂回した送信でも表記を揃える）。
+    // 値が無ければ null。**UTMは申込の必須条件ではない**。
+    const utm = {
+      utm_source: normalizeUtmValue(body.utm_source),
+      utm_medium: normalizeUtmValue(body.utm_medium),
+      utm_campaign: normalizeUtmValue(body.utm_campaign),
+    };
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json(
@@ -95,19 +119,36 @@ export async function POST(request: NextRequest) {
       console.error('Capacity check failed:', e);
     }
 
-    const { data, error } = await supabaseAdmin
+    // 申込レコードの基本項目（UTM列が無い環境でも必ず通る内容）
+    const baseRow = {
+      event_id,
+      name: name.trim(),
+      email: email.trim(),
+      company: company?.trim() || null,
+      // 既存の「参加経路」（本人申告のselect）。UTMとは別物なので併存させる
+      referrer_source: source || null,
+      challenge_description: challenge?.trim() || null,
+      status: 'registered',
+    };
+
+    let { data, error } = await supabaseAdmin
       .from('registrations')
-      .insert({
-        event_id,
-        name: name.trim(),
-        email: email.trim(),
-        company: company?.trim() || null,
-        referrer_source: source || null,
-        challenge_description: challenge?.trim() || null,
-        status: 'registered',
-      })
+      .insert({ ...baseRow, ...utm })
       .select('id')
       .single();
+
+    // 🔴 UTM列が未追加（マイグレーション未実行）の場合は、**UTMだけ捨てて申込を通す**。
+    // ここは実ユーザーの申込フロー。列の有無で申込が落ちるのが最悪の事故なので必ず救済する。
+    if (error && isMissingUtmColumn(error)) {
+      console.warn('registrations: UTM columns missing — inserting without UTM');
+      const retry = await supabaseAdmin
+        .from('registrations')
+        .insert(baseRow)
+        .select('id')
+        .single();
+      data = retry.data;
+      error = retry.error;
+    }
 
     if (error) {
       // 重複エラー（同一イベントに重複申込）
@@ -151,7 +192,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      registration_id: data.id,
+      registration_id: data?.id,
       email_sent: emailResult.success,
       email_error: emailResult.success ? undefined : emailResult.error,
     });
