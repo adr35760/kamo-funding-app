@@ -172,6 +172,67 @@ export async function sendApplyConfirmationEmail(
 }
 
 /**
+ * Zoom情報変更のご案内メール（申込済みの方への個別連絡）
+ *
+ * 既存メールと同じ送信基盤・同じ送信元・同じHTML体裁で送る。
+ * 呼び出し側が1件ずつ順に呼ぶ前提で、1通ごとに成否を返す。
+ * reminder_sent など既存フラグには一切触れない（当日リマインドは通常どおり動く）。
+ *
+ * @param name お名前（本文の「◯◯様」に差し込む）
+ * @param email 宛先
+ * @param eventTitle イベント名
+ * @param eventDateJa 開催日時の日本語表記（例: 9/15（火）19:30〜21:00）
+ */
+export async function sendZoomChangeNoticeEmail(
+  name: string,
+  email: string,
+  eventTitle: string,
+  eventDateJa: string
+): Promise<EmailResult> {
+  const subject = `【重要／KAMOファンディング】${eventDateJa.split('（')[0]} 掲載説明会のZoom情報変更のお知らせ`;
+  const html = `
+    <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #E60012; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h1 style="margin: 0; font-size: 24px;">🔥 KAMOファンディング</h1>
+        <p style="margin: 4px 0 0; font-size: 14px;">Zoom情報 変更のお知らせ</p>
+      </div>
+      <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 8px 8px; border: 1px solid #eee;">
+        <p>${name}様</p>
+        <p>KAMOファンディング事務局です。<br />
+        このたびは「${eventTitle}」にお申し込みいただき、誠にありがとうございます。</p>
+
+        <p style="margin-top: 16px; padding: 16px; background: #FFF5F5; border: 1px solid #FFD6D6; border-radius: 8px;">
+          大切なお知らせがございます。<br />
+          <strong>当日ご参加いただくZoomの情報が変更となりました。</strong><br />
+          <strong style="color: #E60012;">お申し込み完了時にお送りしたメールに記載のURLでは、ご入室いただけません。</strong>
+        </p>
+
+        ${zoomBlockHtml()}
+
+        <div style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; font-size: 15px; border: 1px solid #FFD6D6;">
+          <p style="margin: 0 0 4px; font-weight: 700; color: #E60012;">📅 開催日時</p>
+          <p style="margin: 0; font-size: 18px; font-weight: 700;">${eventDateJa}</p>
+        </div>
+
+        <p style="margin-top: 20px;"><strong>■ お願い</strong><br />
+        カレンダーやブックマークに以前のURLを登録されている場合は、お手数ですが上記の新しいURLへの変更をお願いいたします。</p>
+
+        <p style="margin-top: 12px;">当日の朝にも、あらためてご案内のメールをお送りいたします。</p>
+
+        <p style="margin-top: 20px;">ご不便をおかけしまして申し訳ございません。<br />
+        当日お会いできるのを楽しみにしております。</p>
+
+        <p style="margin-top: 20px; font-size: 12px; color: #999;">
+          KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
+          https://kamo-funding-app.vercel.app/
+        </p>
+      </div>
+    </div>
+  `;
+  return sendEmail(email, subject, html);
+}
+
+/**
  * 開催当日リマインドメール
  * @param name お名前
  * @param email メールアドレス
