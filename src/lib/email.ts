@@ -12,9 +12,9 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
 /**
  * 受講オンラインURL（Zoom）— 全イベント共通の固定値（t iku提供）
  */
-export const ZOOM_URL = 'https://us06web.zoom.us/j/6719620613?pwd=SHBlOFpzOWl4bzNFdUV5QUFXQlhNZz09';
-export const ZOOM_MEETING_ID = '671 962 0613';
-export const ZOOM_PASSCODE = '9Q7m0f';
+export const ZOOM_URL = 'https://us02web.zoom.us/j/5034392656?pwd=aWVVYXNQNVNEVm5jZ0R3ZGo3WVc4Zz09';
+export const ZOOM_MEETING_ID = '503 439 2656';
+export const ZOOM_PASSCODE = '769769';
 
 /** メール本文に挿入する Zoom 情報ブロック */
 function zoomBlockHtml(): string {
