@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import GeneratedPageDoc, { generatedDocStyles, type GeneratedPageData } from '@/components/GeneratedPageDoc';
 
 interface Event {
   finished?: boolean;
@@ -1006,13 +1007,13 @@ function AIGenerationsPanel() {
                 </a>
                 {copied && <span style={{ alignSelf: 'center', color: '#27AE60', fontSize: 13, fontWeight: 'bold' }}>✅ コピーしました</span>}
               </div>
-              <pre style={{
-                background: '#f7f7f7', border: '1px solid #e0e0e0', borderRadius: 8,
-                padding: 16, fontSize: 12, lineHeight: 1.6, overflowX: 'auto', whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-              }}>
-                {JSON.stringify(detail.page, null, 2)}
-              </pre>
+              {/* 掲載内容の全文。PDFと同じ体裁で表示する（JSONの生データは「JSONをコピー」から取得） */}
+              <style jsx global>{generatedDocStyles}</style>
+              {detail.page ? (
+                <GeneratedPageDoc page={detail.page as GeneratedPageData} />
+              ) : (
+                <div style={{ color: '#999', fontSize: 13 }}>掲載内容が保存されていません。</div>
+              )}
             </div>
           )}
         </div>

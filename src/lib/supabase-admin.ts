@@ -14,5 +14,12 @@ export function getSupabaseAdmin(): SupabaseClient {
   }
   return createClient(url, key, {
     auth: { persistSession: false },
+    // Next.js は fetch を差し替えており、GET レスポンスを既定で長期キャッシュする
+    // （fetch-cache に revalidate=1年で保存される）。その結果、削除済みの行が
+    // 管理画面に出続ける・新しい申込が反映されない、という事故が起きる。
+    // 管理系のDB読み取りは常に最新でなければならないので no-store を強制する。
+    global: {
+      fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+    },
   });
 }

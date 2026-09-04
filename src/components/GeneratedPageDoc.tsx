@@ -70,11 +70,16 @@ const tierLabels: Record<string, string> = {
 export function rewardsByCategory(page: GeneratedPageData) {
   return REWARD_CATEGORIES.map(cat => ({
     category: cat as RewardCategory,
-    items: page.rewards.filter(r => normalizeRewardCategory(r.category, r.tier) === cat),
+    // 古い保存データには rewards が無いことがあるので必ず配列に落とす
+    items: (page.rewards ?? []).filter(r => normalizeRewardCategory(r.category, r.tier) === cat),
   })).filter(g => g.items.length > 0);
 }
 
 export default function GeneratedPageDoc({ page }: { page: GeneratedPageData }) {
+  // project が欠けた古い保存データでも画面を落とさない（管理画面から直接呼ばれる）
+  if (!page || !page.project) {
+    return <div style={{ color: '#999', fontSize: 13 }}>掲載内容が保存されていません。</div>;
+  }
   const ext = page.project.extended;
   return (
     <>
