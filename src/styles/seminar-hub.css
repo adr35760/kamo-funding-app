@@ -1,0 +1,379 @@
+/* /seminar — セミナー日程ハブページ
+   既存の赤×金の体系に合わせる。新しいデザイン言語は導入しない。
+   このファイルは /seminar からのみ import される（他ページに波及しない）。
+   さらに全セレクタを .seminar-hub-page 配下に限定している。 */
+
+.seminar-hub-page {
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--kamo-dark);
+  font-size: 17px;
+  line-height: 1.85;
+  /* nowrap系の指定を入れているため横スクロール防止の保険 */
+  overflow-x: hidden;
+}
+
+.seminar-hub-page .sh-container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.seminar-hub-page .sh-container-narrow { max-width: 720px; }
+
+.seminar-hub-page .gold { color: var(--kamo-gold-light); }
+.seminar-hub-page .accent { color: var(--kamo-red); }
+
+/* ===== ヒーロー ===== */
+.seminar-hub-page .sh-hero {
+  background: linear-gradient(135deg, var(--kamo-red) 0%, var(--kamo-red-dark) 100%);
+  color: #fff;
+  padding: 100px 0 64px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.seminar-hub-page .sh-hero::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.seminar-hub-page .sh-hero > * { position: relative; z-index: 1; }
+.seminar-hub-page .sh-hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.3);
+  padding: 6px 18px; border-radius: 100px;
+  font-size: 14px; font-weight: 700; margin-bottom: 20px;
+}
+.seminar-hub-page .sh-hero-badge-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--kamo-gold-light);
+}
+.seminar-hub-page .sh-hero h1 {
+  font-size: clamp(24px, 3.6vw, 38px);
+  font-weight: 900;
+  line-height: 1.5;
+  margin: 0 0 16px;
+  /* 日本語見出しの折り返しを自然にする（確立済みパターン） */
+  text-wrap: balance;
+}
+/* 強調句は折り返しの候補地点になりやすく、語の途中で割れるので不可分にする */
+.seminar-hub-page .sh-hero h1 .gold { white-space: nowrap; }
+
+.seminar-hub-page .sh-hero-sub {
+  font-size: clamp(15px, 1.5vw, 18px);
+  opacity: .92;
+  margin: 0 auto 24px;
+  max-width: 640px;
+  text-wrap: balance;
+}
+.seminar-hub-page .sh-hero-highlight {
+  display: flex; align-items: flex-start; gap: 10px;
+  text-align: left;
+  background: rgba(0,0,0,.18);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  max-width: 620px;
+  margin: 0 auto 28px;
+  font-size: 15px;
+  line-height: 1.75;
+}
+.seminar-hub-page .sh-hero-highlight strong { color: var(--kamo-gold-light); }
+.seminar-hub-page .sh-hero-highlight-icon { font-size: 20px; line-height: 1.4; flex-shrink: 0; }
+
+.seminar-hub-page .sh-hero-cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #fff; color: var(--kamo-red);
+  padding: 16px 40px; border-radius: 100px;
+  font-weight: 900; font-size: 18px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.2);
+  transition: transform .3s, box-shadow .3s;
+}
+.seminar-hub-page .sh-hero-cta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0,0,0,.3);
+}
+
+/* ===== セクション共通 ===== */
+.seminar-hub-page .sh-section { padding: 64px 0; }
+.seminar-hub-page .sh-section-alt { background: #FAFAFA; }
+.seminar-hub-page .sh-section-title { text-align: center; margin-bottom: 36px; }
+.seminar-hub-page .sh-section-title h2 {
+  font-size: clamp(24px, 3.2vw, 34px);
+  font-weight: 900;
+  line-height: 1.5;
+  margin: 0 0 8px;
+  text-wrap: balance;
+}
+.seminar-hub-page .sh-section-title p { color: #666; font-size: 16px; margin: 0; }
+
+/* ===== 比較カード ===== */
+.seminar-hub-page .sh-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.seminar-hub-page .sh-compare-card {
+  background: #fff;
+  border: 2px solid rgba(0,0,0,.08);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.06);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.seminar-hub-page .sh-accent-red { border-color: rgba(230,0,18,.35); }
+.seminar-hub-page .sh-accent-gold { border-color: rgba(212,160,23,.5); }
+
+.seminar-hub-page .sh-compare-head {
+  text-align: center;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.seminar-hub-page .sh-compare-kind {
+  display: block; font-size: 19px; font-weight: 900; margin-bottom: 8px;
+  text-wrap: balance;
+}
+.seminar-hub-page .sh-compare-price {
+  display: block; font-size: clamp(26px, 3vw, 32px); font-weight: 900;
+  color: var(--kamo-red); line-height: 1.3;
+}
+.seminar-hub-page .sh-accent-gold .sh-compare-price { color: var(--kamo-gold); }
+.seminar-hub-page .sh-compare-price-note { display: block; font-size: 13px; color: #666; margin-top: 4px; }
+
+.seminar-hub-page .sh-compare-spec { margin: 0 0 20px; }
+.seminar-hub-page .sh-spec-row {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px dashed rgba(0,0,0,.08);
+}
+.seminar-hub-page .sh-spec-row dt { font-size: 13px; color: #888; font-weight: 700; }
+.seminar-hub-page .sh-spec-row dd { font-size: 15px; margin: 0; font-weight: 500; }
+
+.seminar-hub-page .sh-includes-label { font-size: 13px; color: #888; font-weight: 700; margin: 0 0 8px; }
+.seminar-hub-page .sh-compare-includes { flex: 1; margin-bottom: 20px; }
+.seminar-hub-page .sh-compare-includes ul { list-style: none; margin: 0; padding: 0; }
+.seminar-hub-page .sh-compare-includes li {
+  font-size: 15px; padding: 3px 0 3px 22px; position: relative;
+}
+.seminar-hub-page .sh-compare-includes li::before {
+  content: '🔥'; position: absolute; left: 0; font-size: 13px;
+}
+.seminar-hub-page .sh-accent-gold .sh-compare-includes li::before { content: '✨'; }
+
+.seminar-hub-page .sh-compare-detail {
+  display: block; text-align: center;
+  padding: 12px; border-radius: 100px;
+  font-weight: 700; font-size: 15px;
+  border: 2px solid var(--kamo-red); color: var(--kamo-red);
+  transition: background .2s, color .2s;
+}
+.seminar-hub-page .sh-compare-detail:hover { background: var(--kamo-red); color: #fff; }
+.seminar-hub-page .sh-accent-gold .sh-compare-detail {
+  border-color: var(--kamo-gold); color: #8A6D1F;
+}
+.seminar-hub-page .sh-accent-gold .sh-compare-detail:hover { background: var(--kamo-gold); color: #fff; }
+
+/* ===== 日程一覧 ===== */
+.seminar-hub-page .sh-schedule { display: grid; gap: 16px; }
+.seminar-hub-page .sh-slot {
+  display: grid;
+  /* 日付帯は「11/10（火）16:00〜20:00」が最長（17pxで191px）。
+     左右padding14pxを足した219pxを下回ると溢れるため236pxを確保する。 */
+  grid-template-columns: 236px 1fr auto;
+  gap: 20px;
+  align-items: center;
+  background: #fff;
+  border: 2px solid rgba(0,0,0,.08);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.05);
+  transition: border-color .2s, box-shadow .2s;
+}
+.seminar-hub-page .sh-slot.is-selected {
+  border-color: var(--kamo-red);
+  box-shadow: 0 6px 22px rgba(230,0,18,.16);
+}
+.seminar-hub-page .sh-slot-date {
+  font-size: 17px; font-weight: 900; color: #fff;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  text-align: center;
+  /* 日時は途中で折り返すと読みにくいので詰めて1行に収める */
+  white-space: nowrap;
+  font-feature-settings: 'palt' 1;
+}
+.seminar-hub-page .sh-slot-date.sh-accent-red { background: var(--kamo-red); }
+.seminar-hub-page .sh-slot-date.sh-accent-gold { background: var(--kamo-gold); }
+
+.seminar-hub-page .sh-slot-kind {
+  display: inline-block;
+  font-size: 12px; font-weight: 700;
+  padding: 3px 12px; border-radius: 100px;
+  margin-bottom: 6px;
+}
+.seminar-hub-page .sh-kind-seminar { background: #FFF0F0; color: var(--kamo-red); }
+.seminar-hub-page .sh-kind-networking { background: #FDF6E3; color: #8A6D1F; }
+.seminar-hub-page .sh-slot-title {
+  font-size: 16px; font-weight: 700; margin: 0 0 4px; line-height: 1.55;
+  /* 「第1回」のような回次が「第1／回」と割れるのを防ぎ、行長も揃える */
+  text-wrap: balance;
+  word-break: keep-all;
+}
+.seminar-hub-page .sh-slot-meta {
+  display: flex; flex-wrap: wrap; gap: 6px 16px;
+  margin: 0; font-size: 14px; color: #555;
+}
+.seminar-hub-page .sh-slot-price { font-weight: 900; color: var(--kamo-dark); }
+
+.seminar-hub-page .sh-slot-action { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.seminar-hub-page .sh-slot-action button {
+  background: var(--kamo-red); color: #fff;
+  border: none; border-radius: 100px;
+  padding: 13px 26px;
+  font-size: 15px; font-weight: 900;
+  cursor: pointer; white-space: nowrap;
+  transition: transform .2s, box-shadow .2s;
+}
+.seminar-hub-page .sh-slot-action button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(230,0,18,.3);
+}
+.seminar-hub-page .sh-slot-detail {
+  font-size: 13px; color: #666; text-align: center; font-weight: 700;
+  white-space: nowrap;
+}
+.seminar-hub-page .sh-slot-detail:hover { color: var(--kamo-red); }
+
+.seminar-hub-page .sh-empty {
+  text-align: center; padding: 40px 20px;
+  background: #FFF5F5; border: 2px solid #FFE0E0;
+  border-radius: var(--radius-lg);
+}
+.seminar-hub-page .sh-empty-title { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
+.seminar-hub-page .sh-empty-sub { font-size: 15px; color: #666; margin: 0; }
+
+/* ===== 申込フォーム ===== */
+.seminar-hub-page .sh-form-card {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  box-shadow: 0 10px 34px rgba(0,0,0,.08);
+  border: 1px solid rgba(0,0,0,.06);
+}
+.seminar-hub-page .sh-form-title { margin-bottom: 24px; }
+.seminar-hub-page .sh-form-group { margin-bottom: 18px; }
+.seminar-hub-page .sh-form-group label {
+  display: block; font-size: 15px; font-weight: 700; margin-bottom: 6px;
+}
+.seminar-hub-page .sh-required {
+  font-size: 11px; color: #fff; background: var(--kamo-red);
+  padding: 2px 8px; border-radius: 100px; margin-left: 6px;
+  font-weight: 700; vertical-align: 2px;
+}
+.seminar-hub-page .sh-form-group input,
+.seminar-hub-page .sh-form-group select,
+.seminar-hub-page .sh-form-group textarea {
+  width: 100%;
+  padding: 13px 14px;
+  border: 2px solid #E0E0E0;
+  border-radius: 8px;
+  font-size: 16px; /* 16px未満だとiOSで自動ズームするため下げない */
+  font-family: inherit;
+  box-sizing: border-box;
+  background: #fff;
+  color: var(--kamo-dark);
+}
+.seminar-hub-page .sh-form-group textarea { min-height: 110px; resize: vertical; }
+.seminar-hub-page .sh-form-group input:focus,
+.seminar-hub-page .sh-form-group select:focus,
+.seminar-hub-page .sh-form-group textarea:focus {
+  outline: none; border-color: var(--kamo-red);
+}
+.seminar-hub-page .sh-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.seminar-hub-page .sh-hint { font-size: 13px; color: #999; margin: 6px 0 0; }
+.seminar-hub-page .sh-error {
+  color: var(--kamo-red); font-size: 14px; font-weight: 700;
+  background: #FFF0F0; border-radius: 8px; padding: 10px 14px; margin: 0 0 14px;
+}
+.seminar-hub-page .sh-submit {
+  width: 100%;
+  background: var(--kamo-red); color: #fff;
+  border: none; border-radius: 100px;
+  padding: 17px;
+  font-size: 18px; font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(230,0,18,.28);
+  transition: transform .2s, box-shadow .2s;
+}
+.seminar-hub-page .sh-submit:hover:not(:disabled) { transform: translateY(-2px); }
+.seminar-hub-page .sh-submit:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+.seminar-hub-page .sh-form-note { font-size: 13px; color: #888; text-align: center; margin: 14px 0 0; }
+
+.seminar-hub-page .sh-thanks { text-align: center; padding: 20px 0; }
+.seminar-hub-page .sh-thanks h2 { font-size: 24px; font-weight: 900; margin: 0 0 12px; text-wrap: balance; }
+.seminar-hub-page .sh-thanks p { color: #666; margin: 0; }
+.seminar-hub-page .sh-thanks-back { margin-top: 20px !important; }
+.seminar-hub-page .sh-thanks-back a { color: var(--kamo-red); font-weight: 700; }
+
+/* ===== フッター ===== */
+.seminar-hub-page .sh-footer {
+  background: var(--kamo-dark); color: rgba(255,255,255,.45);
+  padding: 32px 0; text-align: center; font-size: 13px;
+}
+
+/* ===== タブレット ===== */
+@media (max-width: 1023px) {
+  .seminar-hub-page .sh-slot { grid-template-columns: 236px 1fr; }
+  /* ボタンは2列目の下に回り込ませる（横に潰さない） */
+  .seminar-hub-page .sh-slot-action {
+    grid-column: 2;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+  .seminar-hub-page .sh-slot-action button { flex: 0 0 auto; }
+}
+
+/* ===== スマホ ===== */
+@media (max-width: 768px) {
+  .seminar-hub-page .sh-hero { padding: 84px 0 48px; }
+  .seminar-hub-page .sh-section { padding: 48px 0; }
+
+  /* 比較カードは縦積み */
+  .seminar-hub-page .sh-compare { grid-template-columns: 1fr; gap: 20px; }
+
+  /* 日程は1カラム＋日付を「横帯」にする（確立済みパターン）。
+     狭い幅で日時ボックスを縦長にすると文字が溢れるため。 */
+  .seminar-hub-page .sh-slot {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+  .seminar-hub-page .sh-slot-date {
+    /* 横帯: 画面幅に応じて字を詰め、必ず1行に収める */
+    font-size: clamp(13px, 3.9vw, 17px);
+    padding: 10px 12px;
+  }
+  .seminar-hub-page .sh-slot-action {
+    grid-column: 1;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .seminar-hub-page .sh-slot-action button { width: 100%; }
+
+  .seminar-hub-page .sh-form-card { padding: 24px 20px; }
+  /* 狭い幅で氏名/メールを横並びにすると入力しづらいので縦積み */
+  .seminar-hub-page .sh-form-row { grid-template-columns: 1fr; gap: 0; }
+  .seminar-hub-page .sh-hero-highlight { font-size: 14px; padding: 14px 16px; }
+  .seminar-hub-page .sh-spec-row { grid-template-columns: 76px 1fr; gap: 10px; }
+}
