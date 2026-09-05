@@ -74,6 +74,10 @@ a { color: inherit; text-decoration: none; }
 /* 箇条書きを廃止したので、末尾の段落には下マージンを残さない
    （左右カラムの垂直中央揃えがずれて見えるのを防ぐ） */
 .ai-card-text p:last-child { margin-bottom: 0; }
+/* 指定された <br> の位置以外で折り返させない。
+   「AIクラファンページ／作成ツール」の2行を保つため、
+   各行は nowrap にしてサイズ側で収める（下の狭幅指定と対で機能する）。 */
+.ai-card-visual h3 { text-wrap: nowrap; }
 .ai-card-text ul { list-style: none; }
 .ai-card-text ul li { font-size: 14px; padding: 4px 0; padding-left: 20px; position: relative; }
 .ai-card-text ul li::before { content: '🔥'; position: absolute; left: 0; }
@@ -192,6 +196,13 @@ a { color: inherit; text-decoration: none; }
   /* ボタン内で不自然に折り返さないよう調整 */
   .seminar-info-page .hero-cta { font-size: 17px; padding: 16px 28px; }
   .seminar-info-page .header-cta { font-size: 13px; padding: 8px 16px; }
+  /* 右カード見出し「AIクラファンページ／作成ツール」を指定の2行に保つ。
+     狭い幅では20pxだと1行目が入りきらず「ジ」だけが3行目に落ちるため、
+     利用可能幅（= 画面幅 - 192px: container48 + ai-card80 + visual64）から
+     逆算して連続的に縮める。360pxで約18.5px、390px以上は20pxで据え置き。 */
+  .seminar-info-page .ai-card-visual h3 {
+    font-size: clamp(14px, calc(11.1vw - 21.5px), 20px);
+  }
   /* 長い見出しの折り返しを自然に */
   .seminar-info-page .benefits-title h2 { line-height: 1.5; }
   .seminar-info-page .benefits-title h2 br { display: none; }
