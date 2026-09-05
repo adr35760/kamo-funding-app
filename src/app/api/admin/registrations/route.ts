@@ -17,7 +17,57 @@ export async function GET() {
     if (error) {
       return NextResponse.json({ registrations: [], error: error.message });
     }
-    return NextResponse.json({ registrations: data || [] });
+
+    const rows = data || [];
+
+    /**
+     * 申込完了メールの送信状態を email_logs から導出して各行に付ける。
+     *
+     * なぜ registrations に列を持たせないか:
+     *  - email_logs が送信記録の正規の置き場所として既に設計されている
+     *  - 列追加のマイグレーションが不要で、既存データを触らずに済む
+     *
+     * 値の意味:
+     *  - 'sent'    … 送信成功の記録あり
+     *  - 'failed'  … 送信失敗の記録のみ（＝お客様にメールが届いていない）
+     *  - 'unknown' … 記録が無い。この仕組みを入れる前の申込がここに入る。
+     *                「失敗」ではないので、未着と断定しないよう区別している。
+     */
+    let emailStatusById = new Map<string, { status: string; error: string | null; at: string | null }>();
+    try {
+      const ids = rows.map(r => r.id as string);
+      if (ids.length > 0) {
+        const { data: logs } = await supabase
+          .from('email_logs')
+          .select('registration_id, status, error_message, sent_at')
+          .eq('template_type', 'confirmation')
+          .in('registration_id', ids)
+          .order('sent_at', { ascending: true });
+        // 同一申込に複数記録があるとき（再送した場合）は最後の結果を採用する
+        for (const l of logs || []) {
+          emailStatusById.set(l.registration_id as string, {
+            status: l.status as string,
+            error: (l.error_message as string) ?? null,
+            at: (l.sent_at as string) ?? null,
+          });
+        }
+      }
+    } catch {
+      // email_logs が無い環境では状態を付けない（一覧自体は必ず返す）
+      emailStatusById = new Map();
+    }
+
+    const withStatus = rows.map(r => {
+      const hit = emailStatusById.get(r.id as string);
+      return {
+        ...r,
+        confirmation_email_status: hit ? hit.status : 'unknown',
+        confirmation_email_error: hit ? hit.error : null,
+        confirmation_email_at: hit ? hit.at : null,
+      };
+    });
+
+    return NextResponse.json({ registrations: withStatus });
   } catch {
     return NextResponse.json({ registrations: [] });
   }

@@ -4,6 +4,7 @@ import { sendApplyConfirmationEmail } from '@/lib/email';
 import { formatEventDateJa } from '@/lib/event-format';
 import { isEventFinished } from '@/lib/event-visibility';
 import { normalizeUtmValue } from '@/lib/utm';
+import { logEmailResult } from '@/lib/email-log';
 
 /**
  * POST /api/apply
@@ -205,6 +206,18 @@ export async function POST(request: NextRequest) {
     const emailResult = await sendApplyConfirmationEmail(name.trim(), email.trim(), eventTitle, eventDateJa, eventPillar);
     if (!emailResult.success) {
       console.error('Email send failed:', emailResult.error);
+    }
+
+    // 送信の成否を email_logs に残す。
+    // ここが「申し込めたのにメールが届いていない人」を運営が見つける唯一の手がかり。
+    // 🔴 記録の成否は申込の成立に一切影響させない（下の success: true は不変）。
+    if (data?.id) {
+      await logEmailResult({
+        registrationId: data.id as string,
+        templateType: 'confirmation',
+        success: emailResult.success,
+        error: emailResult.success ? undefined : emailResult.error,
+      });
     }
 
     return NextResponse.json({

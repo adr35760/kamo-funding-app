@@ -31,6 +31,14 @@ interface Registration {
   utm_source?: string | null;
   utm_medium?: string | null;
   utm_campaign?: string | null;
+  /**
+   * 申込完了メールの送信状態（email_logs から導出）
+   * 'sent' 送信成功 / 'failed' 送信失敗＝お客様に届いていない
+   * 'unknown' 記録なし（この仕組み導入前の申込。未着とは断定できない）
+   */
+  confirmation_email_status?: 'sent' | 'failed' | 'unknown' | string;
+  confirmation_email_error?: string | null;
+  confirmation_email_at?: string | null;
 }
 
 interface Partner {
@@ -324,12 +332,15 @@ export default function AdminPage() {
     const headers = [
       '名前', 'メール', '会社', '参加経路（本人申告）',
       '流入元(utm_source)', '流入種別(utm_medium)', '投稿単位(utm_campaign)',
-      '挑戦内容', 'ステータス', '申込日時',
+      '挑戦内容', 'ステータス', '完了メール送信', '申込日時',
     ];
     const rows = registrations.map(r => [
       r.name, r.email, r.company || '', r.referrer_source || '',
       r.utm_source || '', r.utm_medium || '', r.utm_campaign || '',
-      r.challenge_description || '', r.status, new Date(r.created_at).toLocaleString('ja-JP'),
+      r.challenge_description || '', r.status,
+      r.confirmation_email_status === 'sent' ? '送信済み'
+        : r.confirmation_email_status === 'failed' ? '未着（送信失敗）' : '記録なし',
+      new Date(r.created_at).toLocaleString('ja-JP'),
     ]);
     const csv = [headers, ...rows].map(row =>
       row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
@@ -591,7 +602,8 @@ export default function AdminPage() {
                         />
                       </th>
                       <Th>名前</Th>
-                      <Th>メール</Th>
+                      <Th>メールアドレス</Th>
+                      <Th>完了メール送信</Th>
                       <Th>申込イベント</Th>
                       <Th>会社</Th>
                       <Th>参加経路</Th>
@@ -604,7 +616,13 @@ export default function AdminPage() {
                   </thead>
                   <tbody>
                     {filteredRegs.map(reg => (
-                      <tr key={reg.id} style={{ borderBottom: '1px solid #eee', background: selectedRegIds.has(reg.id) ? '#FFF5F5' : 'transparent' }}>
+                      <tr key={reg.id} style={{
+                        borderBottom: '1px solid #eee',
+                        // 未着（送信失敗）の行は選択色より優先して警告色にする
+                        background: reg.confirmation_email_status === 'failed'
+                          ? '#FFF3CD'
+                          : selectedRegIds.has(reg.id) ? '#FFF5F5' : 'transparent',
+                      }}>
                         <Td>
                           <input
                             type="checkbox"
@@ -614,6 +632,9 @@ export default function AdminPage() {
                         </Td>
                         <Td>{reg.name}</Td>
                         <Td>{reg.email}</Td>
+                        <Td style={{ whiteSpace: 'nowrap' }}>
+                          <EmailStatusCell reg={reg} onResent={fetchData} />
+                        </Td>
                         <Td>
                           {(() => {
                             const ev = events.find(e => e.id === reg.event_id);
@@ -1121,6 +1142,96 @@ function formatJst(iso: string): string {
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit',
   }).format(new Date(iso)) + ' JST';
+}
+
+/**
+ * 一覧の「完了メール送信」セル。
+ * メールアドレス列とは別に、届いたかどうかだけを示す。
+ * 送信失敗（未着）のときは、その場から手動で再送できる。
+ */
+function EmailStatusCell({ reg, onResent }: { reg: Registration; onResent: () => void }) {
+  const [sending, setSending] = useState(false);
+  const [msg, setMsg] = useState('');
+  const status = reg.confirmation_email_status || 'unknown';
+
+  const resend = async () => {
+    // 二重送信を避けるため、押す前に必ず確認する
+    if (!confirm(`${reg.name} さん（${reg.email}）へ申込完了メールを再送します。よろしいですか？`)) return;
+    setSending(true);
+    setMsg('');
+    try {
+      const res = await fetch('/api/admin/resend-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registration_id: reg.id }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d.ok) {
+        setMsg('再送しました');
+        onResent();
+      } else if (d.code === 'ALREADY_SENT') {
+        setMsg('既に送信済みのため中止しました');
+      } else {
+        setMsg(d.error || '再送に失敗しました');
+      }
+    } catch {
+      setMsg('再送に失敗しました');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (status === 'sent') {
+    return (
+      <span style={{ color: '#1E7B34', fontWeight: 700, fontSize: 12 }}
+        title={reg.confirmation_email_at ? `送信: ${new Date(reg.confirmation_email_at).toLocaleString('ja-JP')}` : ''}>
+        ✓ 送信済み
+      </span>
+    );
+  }
+
+  if (status === 'failed') {
+    return (
+      <span style={{ display: 'inline-block', fontSize: 12 }}>
+        <span style={{ color: '#B8000E', fontWeight: 900, display: 'block' }}
+          title={reg.confirmation_email_error || ''}>
+          ⚠ 未着（送信失敗）
+        </span>
+        <button
+          onClick={resend}
+          disabled={sending}
+          style={{
+            marginTop: 4, padding: '4px 10px', fontSize: 11, fontWeight: 700,
+            borderRadius: 4, border: 'none', cursor: sending ? 'not-allowed' : 'pointer',
+            background: sending ? '#ccc' : '#E60012', color: '#fff',
+          }}
+        >
+          {sending ? '送信中...' : '再送する'}
+        </button>
+        {msg && <span style={{ display: 'block', marginTop: 3, color: '#666', fontSize: 11 }}>{msg}</span>}
+      </span>
+    );
+  }
+
+  // 記録なし。この仕組みの導入前に申し込まれた分がここに入る。
+  // 「失敗」と断定せず、必要なら手動で送れるようにしておく。
+  return (
+    <span style={{ display: 'inline-block', fontSize: 12 }}>
+      <span style={{ color: '#999', display: 'block' }} title="この機能の導入前の申込です">記録なし</span>
+      <button
+        onClick={resend}
+        disabled={sending}
+        style={{
+          marginTop: 4, padding: '4px 10px', fontSize: 11,
+          borderRadius: 4, border: '1px solid #ccc', cursor: sending ? 'not-allowed' : 'pointer',
+          background: '#fff', color: '#666',
+        }}
+      >
+        {sending ? '送信中...' : '送信する'}
+      </button>
+      {msg && <span style={{ display: 'block', marginTop: 3, color: '#666', fontSize: 11 }}>{msg}</span>}
+    </span>
+  );
 }
 
 /** 一覧の「流入元」セル。source / medium / campaign を1列に収める */

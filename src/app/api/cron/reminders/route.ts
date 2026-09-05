@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendReminderEmail } from '@/lib/email';
 import { formatEventDateJa } from '@/lib/event-format';
+import { logEmailResult } from '@/lib/email-log';
 
 /**
  * GET /api/cron/reminders
@@ -130,9 +131,18 @@ export async function GET(request: NextRequest) {
       if (!ev) continue;
       const eventDateJa = formatEventDateJa(ev.event_date, ev.duration_minutes);
       const result = await sendReminderEmail(reg.name, reg.email, ev.title, eventDateJa);
+      // 成否を email_logs に記録する（記録の失敗は送信処理に影響させない）
+      await logEmailResult({
+        registrationId: reg.id as string,
+        templateType: 'reminder',
+        success: result.success,
+        error: result.success ? undefined : result.error,
+      });
       if (!result.success) {
         console.error(`Reminder send failed for ${reg.email}:`, result.error);
         failed.push(reg.email);
+        // 🔴 reminder_sent は立てない = 翌日の実行で自動的に再試行される（自己修復）。
+        //    この挙動は変更しないこと。
         continue;
       }
       // 重複送信防止フラグを立てる
