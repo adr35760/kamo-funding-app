@@ -147,13 +147,8 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
         <div className="container">
           <div className="ai-card">
             <div className="ai-card-text">
-              <h2>AIで<span className="gold">クラファンページ</span>が<br />その場で作れる</h2>
-              <p>説明会では、KAMOファンディング独自のAIツールを体験いただけます。</p>
-              <ul>
-                <li>ヒアリングに答えるだけでページのひな形が自動生成</li>
-                <li>リターン5階層（entry→sponsor）の設計もAIが支援</li>
-                <li>「他のプラットフォームにはない体験」が差別化の核</li>
-              </ul>
+              <h2>AIで<span className="gold">クラファンページ</span>が作れる</h2>
+              <p>説明会では、KAMOファンディング独自のツールの体験案内を行います！<br />瞬時でクラファンページが作成できます！</p>
             </div>
             <div className="ai-card-visual">
               <div style={{width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', flexShrink: '0'}}>
@@ -165,8 +160,8 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
                   <path d="M12 2V4" />
                 </svg>
               </div>
-              <h3>AIクラファンページ作成ツール</h3>
-              <p>セミナー参加者がその場で<br />クラファンページのひな形を作れる</p>
+              <h3>AIクラファンページ<br />作成ツール</h3>
+              <p>参加者のみ！体験がその場でできます！<br />業界初です！</p>
             </div>
           </div>
         </div>
