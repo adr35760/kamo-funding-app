@@ -255,7 +255,7 @@ export default function SeminarLanding({
             {config.sessions.map((s, i) => (
               <div className="sl-schedule-card" key={s.isoDate}>
                 <div className="sl-schedule-date" style={{ background: accent }}>
-                  <span className="sl-round">第{i + 1}回</span>
+                  <span className="sl-round">第{s.round ?? i + 1}回</span>
                   <span className="sl-date">{s.dateLabel}</span>
                 </div>
                 <div className="sl-schedule-body">

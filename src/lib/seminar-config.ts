@@ -63,6 +63,15 @@ export interface SeminarSession {
   partyTimeLabel?: string;
   /** events.event_date に対応するISO文字列（JST） */
   isoDate: string;
+  /**
+   * 「第N回」の回次。**実施した回数の通し番号**であり、配列の並び順とは独立。
+   *
+   * 中止・削除された回があっても残りの回が繰り上がらないよう、明示的に持たせる。
+   * （例: 10/25 第1回が中止になっても 12/8 は「第2回」のまま）
+   * DBの events.title に含まれる「第N回」と必ず一致させること。
+   * 未指定なら配列インデックス+1にフォールバックする。
+   */
+  round?: number;
 }
 
 /** 詳細プログラムの1ブロック（見出し＋説明文） */
@@ -192,8 +201,8 @@ export const AI_SEMINAR: SeminarConfig = {
     },
   ],
   sessions: [
-    { dateLabel: '10/5（月）', timeLabel: '16:00〜20:00', isoDate: '2026-10-05T16:00:00+09:00' },
-    { dateLabel: '11/10（火）', timeLabel: '16:00〜20:00', isoDate: '2026-11-10T16:00:00+09:00' },
+    { round: 1, dateLabel: '10/5（月）', timeLabel: '16:00〜20:00', isoDate: '2026-10-05T16:00:00+09:00' },
+    { round: 2, dateLabel: '11/10（火）', timeLabel: '16:00〜20:00', isoDate: '2026-11-10T16:00:00+09:00' },
   ],
   venue: null,
 };
@@ -221,14 +230,14 @@ export const REAL_SEMINAR: SeminarConfig = {
     '掲載説明',
     '支援者と繋がる交流会',
   ],
+  // 10/25 第1回は開催中止（2026-09-05・t iku判断）。
+  // DB側も events.status='cancelled' にして非表示にしている。
+  // 12/8 は「第2回」のまま維持する方針のため round を明示している
+  // （配列インデックス由来だと繰り上がって「第1回」になり、
+  //   DBのイベント名「…第2回」や申込完了メールの表記と食い違う）。
   sessions: [
     {
-      dateLabel: '10/25（日）',
-      timeLabel: 'セミナー 15:00〜18:30',
-      partyTimeLabel: '懇親会 18:30〜20:00',
-      isoDate: '2026-10-25T15:00:00+09:00',
-    },
-    {
+      round: 2,
       dateLabel: '12/8（火）',
       timeLabel: 'セミナー 15:00〜18:30',
       partyTimeLabel: '懇親会 18:30〜20:00',
