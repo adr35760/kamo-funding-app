@@ -73,6 +73,10 @@ a { color: inherit; text-decoration: none; }
    「作れる」のような語の途中で割れるのを防ぐ。
    （日本語見出しの折り返し対策として本案件で確立したパターン） */
 .ai-card-text h2 { text-wrap: balance; }
+/* balance だけだと折り返しが金色強調の中（「クラファン／ページ」）に
+   移るだけなので、強調句自体を不可分にする。
+   結果「AIでクラファンページ／が作れる」で全幅安定する。 */
+.ai-card-text h2 .gold { white-space: nowrap; }
 .ai-card-text h2 .gold { color: var(--kamo-gold-light); }
 .ai-card-text p { font-size: 15px; opacity: 0.8; margin-bottom: 16px; }
 /* 箇条書きを廃止したので、末尾の段落には下マージンを残さない
