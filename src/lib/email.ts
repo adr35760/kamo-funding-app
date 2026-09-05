@@ -7,6 +7,7 @@ import {
   pendingLabel,
   paymentInfoFor,
   PAYMENT_STORE_URL,
+  realSessionBreakdown,
 } from '@/lib/seminar-config';
 
 /**
@@ -46,6 +47,19 @@ function zoomBlockHtml(): string {
 export function paymentBlockHtml(pillar?: number | null): string {
   const info = paymentInfoFor(pillar);
   if (!info) return '';
+
+  // 🔴 正しい商品が確定していない回は、**リンクを貼らずに**参加費だけ伝える。
+  //   金額の近い別商品を買われるより、案内が一手間増える方が安全。
+  if (info.linkless) {
+    return `
+    <div style="margin: 16px 0; padding: 16px; background: #FFF9E6; border: 2px solid #E6B800; border-radius: 8px; font-size: 14px;">
+      <p style="margin: 0 0 8px; font-weight: 700; color: #8A6D1F; font-size: 15px;">💳 参加費のお支払いについて</p>
+      <p style="margin: 0 0 8px;">参加費は <strong style="font-size: 17px;">${info.priceLabel}</strong> です。</p>
+      <p style="margin: 0; font-weight: 700;">参加費のお支払い方法は、追ってご案内いたします。</p>
+    </div>
+  `;
+  }
+
   const pick = info.productName
     ? `<strong>「${info.productName}」（${info.priceLabel}）</strong>をお選びください。`
     : `<strong>${info.priceLabel}</strong>の商品をお選びください。`;
@@ -150,7 +164,12 @@ export async function sendApplyConfirmationEmail(
   eventTitle?: string,
   eventDateJa?: string,
   /** イベント種別。3=リアル開催（会場案内）、2=オンラインセミナー、その他=掲載説明会 */
-  pillar?: number | null
+  pillar?: number | null,
+  /**
+   * DBの events.event_date（ISO文字列）。
+   * リアル回で「セミナー／懇親会」の内訳を出すために使う（表示は eventDateJa が主）。
+   */
+  eventDate?: string | null
 ): Promise<EmailResult> {
   const bodyLabel = pillar === 3
     ? 'リアルセミナー＆懇親会'
@@ -158,7 +177,7 @@ export async function sendApplyConfirmationEmail(
       ? 'オンラインセミナー'
       : '掲載説明会';
   const subject = eventTitle ? `【KAMOファンディング】${eventTitle} 申込完了` : `【KAMOファンディング】${bodyLabel} 申込完了`;
-  const html = applyConfirmationHtml({ name, eventTitle, eventDateJa, pillar });
+  const html = applyConfirmationHtml({ name, eventTitle, eventDateJa, pillar, eventDate });
   return sendEmail(email, subject, html);
 }
 
@@ -171,11 +190,13 @@ export function applyConfirmationHtml({
   eventTitle,
   eventDateJa,
   pillar,
+  eventDate,
 }: {
   name: string;
   eventTitle?: string;
   eventDateJa?: string;
   pillar?: number | null;
+  eventDate?: string | null;
 }): string {
   const isReal = pillar === 3;
   const isOnlineSeminar = pillar === 2;
@@ -189,6 +210,9 @@ export function applyConfirmationHtml({
     : isOnlineSeminar
       ? 'オンラインセミナー'
       : '掲載説明会';
+  // リアル回は「15:00〜20:00」だけだと懇親会の存在が伝わらないため内訳を添える
+  // （ページと同じ値。設定に無い回では null になり、何も足さない）
+  const breakdown = isReal ? realSessionBreakdown(eventDate) : null;
   return `
     <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: #E60012; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
@@ -203,6 +227,7 @@ export function applyConfirmationHtml({
         <div style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; font-size: 15px; border: 1px solid #FFD6D6;">
           <p style="margin: 0 0 4px; font-weight: 700; color: #E60012;">📅 開催日時</p>
           <p style="margin: 0; font-size: 18px; font-weight: 700;">${eventDateJa}</p>
+          ${breakdown ? `<p style="margin: 6px 0 0; font-size: 14px; color: #444;">${breakdown}</p>` : ''}
         </div>` : ''}
         ${isReal ? `
         <p style="margin-top: 16px; padding: 16px; background: #FFFBF0; border-radius: 8px; font-size: 14px;">

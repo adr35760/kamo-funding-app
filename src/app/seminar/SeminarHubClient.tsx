@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
 import { formatEventDateJa } from '@/lib/event-format';
+import { realSessionBreakdown } from '@/lib/seminar-config';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
 import { AI_SEMINAR, REAL_SEMINAR } from '@/lib/seminar-config';
 import '@/styles/seminar-hub.css';
@@ -252,6 +253,11 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
                     <div className={`sh-slot${isSelected ? ' is-selected' : ''}`} key={ev.id}>
                       <div className={`sh-slot-date sh-accent-${kindOf(ev) === 'networking' ? 'gold' : 'red'}`}>
                         {formatEventDateJa(ev.event_date, ev.duration_minutes)}
+                        {/* リアル回は「15:00〜20:00」だけだと懇親会の存在が伝わらないため内訳を添える
+                            （メールと同じ realSessionBreakdown を使い、数字を必ず揃える） */}
+                        {realSessionBreakdown(ev.event_date) && (
+                          <span className="sh-slot-breakdown">{realSessionBreakdown(ev.event_date)}</span>
+                        )}
                       </div>
                       <div className="sh-slot-body">
                         <span className={`sh-slot-kind sh-kind-${kindOf(ev)}`}>{k.label}</span>

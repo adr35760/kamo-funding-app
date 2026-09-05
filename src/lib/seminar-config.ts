@@ -272,6 +272,12 @@ export interface PaymentInfo {
    * 確認できていない場合は undefined にして金額のみで案内する（推測で書かない）。
    */
   productName?: string;
+  /**
+   * true のとき、**決済リンクを一切出さず**「お支払い方法は追ってご案内」と伝える。
+   * 正しい商品が特定できていない状態でリンクを貼ると誤購入＝実害になるため、
+   * 「リンクなしで案内する」を明示的な状態として持つ。
+   */
+  linkless?: boolean;
 }
 
 /**
@@ -288,14 +294,42 @@ export function paymentInfoFor(pillar?: number | null): PaymentInfo | null {
     };
   }
   if (pillar === 3) {
-    // 🔴 要確認: ストアで19,800円の商品は「合同交流会のみ参加券　１８：３０集合です」
-    //   という名称で、当方のリアル回（セミナー15:00〜＋懇親会18:30〜）と
-    //   説明文が食い違う。金額は一致し19,800円は他に無いため商品名を出すが、
-    //   ストア側の商品名・説明が更新されたらここも直す。
+    // 🔴 **リアル回は決済リンクを出さない**（2026-09-05 判断）。
+    //   ストアで19,800円の商品は「合同交流会のみ参加券　１８：３０集合です」＝
+    //   **懇親会だけの参加券**で、当方のリアル回（セミナー15:00〜＋懇親会18:30〜）
+    //   とは中身が違う。金額が同じでも代用はできず、お支払い後に
+    //   「その券ではセミナーに入れません」となる事故が最悪なので、
+    //   **正しいセット券のURLと商品名が確定するまでリンクを貼らない**。
+    //   復活させるときは productName とリンク（PAYMENT_STORE_URL または
+    //   商品個別URL）を入れて linkless を外す。
     return {
       priceLabel: pendingLabel(REAL_SEMINAR.price),
-      productName: '合同交流会のみ参加券　１８：３０集合です',
+      linkless: true,
     };
   }
   return null;
+}
+
+/**
+ * リアル回の「セミナー／懇親会」の内訳表記を返す。
+ *
+ * 🔴 リアル回の開催日時は DB では **セミナー開始〜懇親会終了（15:00〜20:00）** の
+ *   ひとつの範囲になっている。範囲だけを見せると「18:30に終わる」あるいは
+ *   逆に「20:00までセミナー」と誤解されるため、**内訳を必ず添える**。
+ *   ページ（/real-seminar）はこの内訳を元から出しているので、
+ *   メール側も同じ値を出して数字を揃える。
+ *
+ * @param eventDate DBの events.event_date（ISO文字列）
+ * @returns 内訳の文字列（例: セミナー 15:00〜18:30／懇親会 18:30〜20:00）。
+ *          該当セッションが設定に無ければ null（推測で書かない）。
+ */
+export function realSessionBreakdown(eventDate?: string | null): string | null {
+  if (!eventDate) return null;
+  const target = new Date(eventDate).getTime();
+  if (Number.isNaN(target)) return null;
+  const s = REAL_SEMINAR.sessions.find(x => new Date(x.isoDate).getTime() === target);
+  if (!s) return null;
+  const parts = [s.timeLabel, s.partyTimeLabel].filter(Boolean) as string[];
+  if (parts.length === 0) return null;
+  return parts.join('／');
 }

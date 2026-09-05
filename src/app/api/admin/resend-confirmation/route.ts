@@ -74,6 +74,8 @@ export async function POST(request: Request) {
     let eventTitle: string | undefined;
     let eventDateJa: string | undefined;
     let eventPillar: number | null = null;
+    // 生のISO日時。リアル回の「セミナー／懇親会」内訳をメールに出すために渡す
+    let eventDateIso: string | null = null;
     const { data: ev } = await supabase
       .from('events')
       .select('title, event_date, duration_minutes, pillar')
@@ -83,6 +85,7 @@ export async function POST(request: Request) {
       eventTitle = (ev.title as string) || undefined;
       eventDateJa = formatEventDateJa(ev.event_date as string, ev.duration_minutes as number | null);
       eventPillar = (ev.pillar as number) ?? null;
+      eventDateIso = (ev.event_date as string) ?? null;
     }
 
     const result = await sendApplyConfirmationEmail(
@@ -90,7 +93,8 @@ export async function POST(request: Request) {
       reg.email as string,
       eventTitle,
       eventDateJa,
-      eventPillar
+      eventPillar,
+      eventDateIso
     );
 
     // 再送の結果も記録する（履歴が追える）

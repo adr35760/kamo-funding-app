@@ -214,6 +214,18 @@
 .seminar-hub-page .sh-slot-date.sh-accent-red { background: var(--kamo-red); }
 .seminar-hub-page .sh-slot-date.sh-accent-gold { background: var(--kamo-gold); }
 
+/* リアル回の内訳（セミナー／懇親会）。日時の下に小さく1行で添える。
+   親が white-space: nowrap なので、狭い幅では折り返しを許可する。 */
+.seminar-hub-page .sh-slot-breakdown {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+  opacity: 0.95;
+  white-space: normal;
+}
+
 .seminar-hub-page .sh-slot-kind {
   display: inline-block;
   font-size: 12px; font-weight: 700;
@@ -363,6 +375,7 @@
     font-size: clamp(13px, 3.9vw, 17px);
     padding: 10px 12px;
   }
+  .seminar-hub-page .sh-slot-breakdown { font-size: 10.5px; }
   .seminar-hub-page .sh-slot-action {
     grid-column: 1;
     flex-direction: column;

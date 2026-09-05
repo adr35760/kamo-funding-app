@@ -187,6 +187,8 @@ export async function POST(request: NextRequest) {
     let eventTitle: string | undefined;
     let eventDateJa: string | undefined;
     let eventPillar: number | null = null;
+    // 生のISO日時。リアル回の「セミナー／懇親会」内訳をメールに出すために渡す
+    let eventDateIso: string | null = null;
     try {
       const { data: ev } = await supabaseAdmin
         .from('events')
@@ -197,13 +199,14 @@ export async function POST(request: NextRequest) {
         eventTitle = (ev.title as string) || undefined;
         eventDateJa = formatEventDateJa(ev.event_date as string, ev.duration_minutes as number | null);
         eventPillar = (ev.pillar as number) ?? null;
+        eventDateIso = (ev.event_date as string) ?? null;
       }
     } catch (e) {
       console.error('Event fetch for email failed:', e);
     }
 
     // 確認メール送信（エラーを返さないが、結果をログに出す）
-    const emailResult = await sendApplyConfirmationEmail(name.trim(), email.trim(), eventTitle, eventDateJa, eventPillar);
+    const emailResult = await sendApplyConfirmationEmail(name.trim(), email.trim(), eventTitle, eventDateJa, eventPillar, eventDateIso);
     if (!emailResult.success) {
       console.error('Email send failed:', emailResult.error);
     }
