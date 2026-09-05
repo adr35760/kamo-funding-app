@@ -6,6 +6,7 @@ import { preferredSlotRange } from '@/lib/event-format';
 import '@/styles/kamo-icons.css';
 import '@/styles/partner-session-announce.css';
 import SiteHeader from '@/components/SiteHeader';
+import LegalFooter from '@/components/LegalFooter';
 
 export default function PartnerSessionAnnouncePage() {
   const [submitting, setSubmitting] = useState(false);
@@ -210,7 +211,7 @@ export default function PartnerSessionAnnouncePage() {
         </div>
       </section>
 
-      <footer className="footer"><div className="container">&copy; 2026 KAMO FUNDING. All rights reserved.</div></footer>
+      <footer className="footer"><div className="container">&copy; 2026 KAMO FUNDING. All rights reserved.<LegalFooter /></div></footer>
     </>
   );
 }

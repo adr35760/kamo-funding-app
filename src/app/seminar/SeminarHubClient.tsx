@@ -6,6 +6,7 @@ import { formatEventDateJa } from '@/lib/event-format';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
 import { AI_SEMINAR, REAL_SEMINAR } from '@/lib/seminar-config';
 import '@/styles/seminar-hub.css';
+import LegalFooter from '@/components/LegalFooter';
 
 export interface HubEvent {
   id: string;
@@ -360,6 +361,7 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
         <footer className="sh-footer">
           <div className="sh-container">
             KAMO FUNDING — 共犯者を集め、夢を叶える場所
+            <LegalFooter />
           </div>
         </footer>
       </div>

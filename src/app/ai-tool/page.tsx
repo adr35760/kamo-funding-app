@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
+import LegalFooter from '@/components/LegalFooter';
 import GeneratedPageDoc, { generatedDocStyles } from '@/components/GeneratedPageDoc';
 import { extendedToJapaneseJSON, type ProjectExtended } from '@/lib/ai-extended';
 import {
@@ -317,6 +318,7 @@ export default function AIToolPage() {
           </p>
         </div>
       </div>
+      <LegalFooter />
       </>
     );
   }
@@ -627,6 +629,7 @@ export default function AIToolPage() {
         </div>
       )}
     </div>
+    <LegalFooter />
     </>
   );
 }

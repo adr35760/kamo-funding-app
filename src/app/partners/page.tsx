@@ -5,6 +5,7 @@ import Image from 'next/image';
 import SiteHeader from '@/components/SiteHeader';
 import '@/styles/kamo-icons.css';
 import '@/styles/partner-register.css';
+import LegalFooter from '@/components/LegalFooter';
 
 export default function PartnerRegisterPage() {
   const [submitting, setSubmitting] = useState(false);
@@ -178,7 +179,7 @@ export default function PartnerRegisterPage() {
         </div>
       )}
 
-      <div className="footer">&copy; 2026 KAMO FUNDING. All rights reserved.</div>
+      <div className="footer">&copy; 2026 KAMO FUNDING. All rights reserved.<LegalFooter /></div>
     </>
   );
 }

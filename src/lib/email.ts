@@ -1,6 +1,13 @@
 import { Resend } from 'resend';
 import { referralTermsHtml } from '@/lib/referral-terms';
-import { AI_SEMINAR, REAL_SEMINAR, PRICE_TAX_NOTE, pendingLabel } from '@/lib/seminar-config';
+import {
+  AI_SEMINAR,
+  REAL_SEMINAR,
+  PRICE_TAX_NOTE,
+  pendingLabel,
+  paymentInfoFor,
+  PAYMENT_STORE_URL,
+} from '@/lib/seminar-config';
 
 /**
  * 確認メール送信ユーティリティ — Resend経由
@@ -24,6 +31,39 @@ function zoomBlockHtml(): string {
       <p style="margin: 0 0 4px;">URL: <a href="${ZOOM_URL}" style="color: #1A73E8; word-break: break-all;">${ZOOM_URL}</a></p>
       <p style="margin: 0 0 4px;">ミーティングID: <strong>${ZOOM_MEETING_ID}</strong></p>
       <p style="margin: 0;">パスコード: <strong>${ZOOM_PASSCODE}</strong></p>
+    </div>
+  `;
+}
+
+/**
+ * お支払い案内ブロック（有料セミナーのみ）
+ *
+ * 🔴 呼び出し側で pillar を判定し、paymentInfoFor() が null を返す
+ *   （＝無料の掲載説明会など）場合はこのブロックを一切出さない。
+ * 🔴 リンク先はストアのトップで複数商品が並ぶため、
+ *   **選ぶべき商品名と金額を明示**して誤購入を防ぐ。
+ */
+export function paymentBlockHtml(pillar?: number | null): string {
+  const info = paymentInfoFor(pillar);
+  if (!info) return '';
+  const pick = info.productName
+    ? `<strong>「${info.productName}」（${info.priceLabel}）</strong>をお選びください。`
+    : `<strong>${info.priceLabel}</strong>の商品をお選びください。`;
+  return `
+    <div style="margin: 16px 0; padding: 16px; background: #FFF9E6; border: 2px solid #E6B800; border-radius: 8px; font-size: 14px;">
+      <p style="margin: 0 0 8px; font-weight: 700; color: #8A6D1F; font-size: 15px;">💳 参加費のお支払いについて</p>
+      <p style="margin: 0 0 10px;">参加費は <strong style="font-size: 17px;">${info.priceLabel}</strong> です。下記のお支払いページよりお手続きをお願いいたします。</p>
+      <p style="margin: 0 0 12px;">
+        <a href="${PAYMENT_STORE_URL}" style="display: inline-block; background: #E60012; color: #fff; padding: 12px 22px; border-radius: 6px; font-weight: 700; text-decoration: none;">お支払いページへ進む →</a>
+      </p>
+      <p style="margin: 0 0 8px; word-break: break-all; font-size: 12px; color: #666;">
+        ボタンが開かない場合は、こちらのURLをブラウザに貼り付けてください：<br />
+        <a href="${PAYMENT_STORE_URL}" style="color: #1A73E8;">${PAYMENT_STORE_URL}</a>
+      </p>
+      <p style="margin: 0 0 8px; padding: 10px 12px; background: #FFF; border: 1px solid #E6D9A8; border-radius: 6px;">
+        ⚠️ <strong>お支払いページには複数の商品が並んでいます。</strong>${pick}
+      </p>
+      <p style="margin: 0; font-weight: 700; color: #E60012;">※お支払いをもってお申し込みが確定となります。</p>
     </div>
   `;
 }
@@ -112,6 +152,31 @@ export async function sendApplyConfirmationEmail(
   /** イベント種別。3=リアル開催（会場案内）、2=オンラインセミナー、その他=掲載説明会 */
   pillar?: number | null
 ): Promise<EmailResult> {
+  const bodyLabel = pillar === 3
+    ? 'リアルセミナー＆懇親会'
+    : pillar === 2
+      ? 'オンラインセミナー'
+      : '掲載説明会';
+  const subject = eventTitle ? `【KAMOファンディング】${eventTitle} 申込完了` : `【KAMOファンディング】${bodyLabel} 申込完了`;
+  const html = applyConfirmationHtml({ name, eventTitle, eventDateJa, pillar });
+  return sendEmail(email, subject, html);
+}
+
+/**
+ * 申込完了メールのHTMLを組み立てる（送信はしない）。
+ * 送信処理から切り離してあるので、検証時に本文だけを取り出せる。
+ */
+export function applyConfirmationHtml({
+  name,
+  eventTitle,
+  eventDateJa,
+  pillar,
+}: {
+  name: string;
+  eventTitle?: string;
+  eventDateJa?: string;
+  pillar?: number | null;
+}): string {
   const isReal = pillar === 3;
   const isOnlineSeminar = pillar === 2;
   const headingLabel = isReal
@@ -124,8 +189,7 @@ export async function sendApplyConfirmationEmail(
     : isOnlineSeminar
       ? 'オンラインセミナー'
       : '掲載説明会';
-  const subject = eventTitle ? `【KAMOファンディング】${eventTitle} 申込完了` : `【KAMOファンディング】${bodyLabel} 申込完了`;
-  const html = `
+  return `
     <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: #E60012; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
         <h1 style="margin: 0; font-size: 24px;">🔥 KAMOファンディング</h1>
@@ -157,6 +221,7 @@ export async function sendApplyConfirmationEmail(
           ⏱️ 約90分<br />
           💰 参加費無料
         </p>`}
+        ${paymentBlockHtml(pillar)}
         ${isReal ? venueBlockHtml() : zoomBlockHtml()}
         <p style="margin-top: 20px;">${isReal
           ? '当日は、開始時刻までに会場へお越しください。'
@@ -168,7 +233,6 @@ export async function sendApplyConfirmationEmail(
       </div>
     </div>
   `;
-  return sendEmail(email, subject, html);
 }
 
 /**

@@ -248,3 +248,54 @@ export const REAL_SEMINAR: SeminarConfig = {
 };
 
 export const SEMINAR_CONFIGS = [AI_SEMINAR, REAL_SEMINAR];
+
+/**
+ * お支払い（決済）の案内 — 申込完了メールに載せる情報。
+ *
+ * 🔴 **有料セミナーのみ**が対象。無料の掲載説明会（info_session / pillar 1）や
+ *   パートナー系メールには絶対に出さない（下の paymentInfoFor() が pillar で弁別する）。
+ *
+ * リンク先は t iku 指定の**ストアトップ**で、複数商品が並んでいる：
+ *   - 【鴨頭嘉人特別参加会】AI時代のクラウドファンディング活用セミナー … 9,800円（税込）
+ *   - お試し価格！あなたのクラファン企画！壁打ち＆集め方指南します！ … 15,000円（税込）
+ *   - 合同交流会のみ参加券　１８：３０集合です … 19,800円（税込）
+ * そのため、**どれを選ぶべきかを金額と商品名で明示**しないと誤購入が起きる。
+ */
+export const PAYMENT_STORE_URL = 'https://www.kamofunding.com/stores/kamofunding04/';
+
+export interface PaymentInfo {
+  /** 参加費の表示（例: 9,800円（税込）） */
+  priceLabel: string;
+  /**
+   * ストアで選ぶべき商品名。
+   * ストアの掲載名と**一字一句同じ**であることが誤購入防止の条件なので、
+   * 確認できていない場合は undefined にして金額のみで案内する（推測で書かない）。
+   */
+  productName?: string;
+}
+
+/**
+ * pillar から決済案内を決める。
+ * 2 = オンラインセミナー（9,800円）／3 = リアルセミナー＆懇親会（19,800円）。
+ * それ以外（無料の掲載説明会など）は null = 決済案内を出さない。
+ */
+export function paymentInfoFor(pillar?: number | null): PaymentInfo | null {
+  if (pillar === 2) {
+    return {
+      priceLabel: pendingLabel(AI_SEMINAR.price),
+      // ストア掲載名と完全一致（2026-09-05 実ページ確認）
+      productName: '【鴨頭嘉人特別参加会】AI時代のクラウドファンディング活用セミナー',
+    };
+  }
+  if (pillar === 3) {
+    // 🔴 要確認: ストアで19,800円の商品は「合同交流会のみ参加券　１８：３０集合です」
+    //   という名称で、当方のリアル回（セミナー15:00〜＋懇親会18:30〜）と
+    //   説明文が食い違う。金額は一致し19,800円は他に無いため商品名を出すが、
+    //   ストア側の商品名・説明が更新されたらここも直す。
+    return {
+      priceLabel: pendingLabel(REAL_SEMINAR.price),
+      productName: '合同交流会のみ参加券　１８：３０集合です',
+    };
+  }
+  return null;
+}

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import '@/styles/supporter-register.css';
 import SiteHeader from '@/components/SiteHeader';
+import LegalFooter from '@/components/LegalFooter';
 
 export default function SupporterRegisterPage() {
   const [submitting, setSubmitting] = useState(false);
@@ -138,7 +139,7 @@ export default function SupporterRegisterPage() {
         </div>
       </section>
 
-      <div className="footer">&copy; 2026 KAMO FUNDING. All rights reserved.</div>
+      <div className="footer">&copy; 2026 KAMO FUNDING. All rights reserved.<LegalFooter /></div>
     </>
   );
 }

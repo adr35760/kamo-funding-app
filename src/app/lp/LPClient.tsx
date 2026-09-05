@@ -6,6 +6,7 @@ import '@/styles/kamo-lp.css';
 import { formatEventDateJa, eventCardParts, cleanTitle, EventLike } from '@/lib/event-format';
 import SiteHeader from '@/components/SiteHeader';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
+import LegalFooter from '@/components/LegalFooter';
 
 interface EventOption extends EventLike {}
 
@@ -447,6 +448,7 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
           </div>
           <div className="footer-bottom">
             &copy; 2026 KAMO FUNDING. All rights reserved.
+            <LegalFooter />
           </div>
         </div>
       </footer>

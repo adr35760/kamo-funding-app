@@ -14,6 +14,7 @@ import {
 } from '@/lib/success-cases';
 import '@/styles/kamo-icons.css';
 import '@/styles/success.css';
+import LegalFooter from '@/components/LegalFooter';
 
 /**
  * カード画像の表示スイッチ。
@@ -189,6 +190,7 @@ export default function SuccessPage() {
           の実績です。
         </p>
         <p>&copy; 2026 KAMO FUNDING. All rights reserved.</p>
+        <LegalFooter />
       </div>
     </>
   );

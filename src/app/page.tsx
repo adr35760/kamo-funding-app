@@ -3,6 +3,7 @@
 import '@/styles/kamo-icons.css';
 import '@/styles/homepage.css';
 import SiteHeader from '@/components/SiteHeader';
+import LegalFooter from '@/components/LegalFooter';
 
 export default function HomePage() {
   return (
@@ -135,6 +136,7 @@ export default function HomePage() {
         <div className="container">
           <div>&copy; 2026 KAMO FUNDING. 共犯者を集め、夢を叶える場所。</div>
           <a href="/admin" className="admin-link">管理画面</a>
+          <LegalFooter />
         </div>
       </footer>
     </>

@@ -5,6 +5,7 @@ import '@/styles/kamo-icons.css';
 import '@/styles/partner-register.css';
 import { REFERRAL_TERMS, REFERRAL_TERMS_TITLE, REFERRAL_TERMS_VERSION } from '@/lib/referral-terms';
 import SiteHeader from '@/components/SiteHeader';
+import LegalFooter from '@/components/LegalFooter';
 
 const RELATIONSHIP_OPTIONS = ['知人・友人', '取引先', '親族', 'SNS経由', '同僚・仕事仲間', 'その他'];
 
@@ -183,6 +184,7 @@ export default function ReferralRegisterPage() {
       <footer className="footer">
         <div className="container">
           <p>&copy; 2026 KAMO FUNDING</p>
+          <LegalFooter />
         </div>
       </footer>
     </>

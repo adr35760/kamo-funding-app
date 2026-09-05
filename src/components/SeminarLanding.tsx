@@ -8,6 +8,7 @@ import { pendingLabel, splitPriceLabel, PRICE_TAX_NOTE, type SeminarConfig } fro
 import { formatEventDateJa } from '@/lib/event-format';
 import SiteHeader from '@/components/SiteHeader';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
+import LegalFooter from '@/components/LegalFooter';
 
 interface EventRow {
   id: string;
@@ -371,7 +372,7 @@ export default function SeminarLanding({
       </section>
 
       <footer className="sl-footer">
-        <div className="sl-container">&copy; 2026 KAMO FUNDING. 共犯者を集め、夢を叶える場所。</div>
+        <div className="sl-container">&copy; 2026 KAMO FUNDING. 共犯者を集め、夢を叶える場所。<LegalFooter /></div>
       </footer>
     </div>
   );

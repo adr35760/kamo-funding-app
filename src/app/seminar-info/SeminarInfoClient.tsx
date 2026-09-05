@@ -7,6 +7,7 @@ import { formatEventDateJa, eventCardParts, EventLike } from '@/lib/event-format
 import SiteHeader from '@/components/SiteHeader';
 import Image from 'next/image';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
+import LegalFooter from '@/components/LegalFooter';
 
 export default function SeminarInfoClient({ initialEvents = [] }: { initialEvents?: EventLike[] }) {
   const [submitting, setSubmitting] = useState(false);
@@ -282,7 +283,7 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
         </div>
       </section>
 
-      <footer className="footer"><div className="container">&copy; 2026 KAMO FUNDING. All rights reserved.</div></footer>
+      <footer className="footer"><div className="container">&copy; 2026 KAMO FUNDING. All rights reserved.<LegalFooter /></div></footer>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { preferredSlotRange } from '@/lib/event-format';
 import '@/styles/kamo-icons.css';
 import '@/styles/partner-session.css';
+import LegalFooter from '@/components/LegalFooter';
 
 export default function PartnerSessionPage() {
   const [submitting, setSubmitting] = useState(false);
@@ -339,7 +340,7 @@ export default function PartnerSessionPage() {
               <div><h5>KAMO</h5><ul><li><a href="https://www.kamofunding.com/">公式サイト</a></li><li><a href="https://www.kamofunding.com/projects">プロジェクト一覧</a></li></ul></div>
             </div>
           </div>
-          <div className="footer-bottom">&copy; 2026 KAMO FUNDING. All rights reserved.</div>
+          <div className="footer-bottom">&copy; 2026 KAMO FUNDING. All rights reserved.<LegalFooter /></div>
         </div>
       </footer>
     </>

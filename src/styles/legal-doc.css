@@ -1,0 +1,152 @@
+/*
+ * 法務ページ（/terms・/privacy・/tokushoho・/cancellation）の
+ * 文書レイアウト。読みやすさ優先で装飾は最小限。
+ *
+ * 方針:
+ *  - 本文は16px（スマホでも縮めない）／行間1.9
+ *  - 本文幅は約760pxで固定（長すぎる行は読みづらい）
+ *  - 表は横スクロールに頼らず、狭い画面では縦積みへ切り替える
+ *    → 返金条件の表がスマホで読めなくなる事故を防ぐ
+ */
+
+.legal-page {
+  background: #fff;
+  padding: 32px 20px 64px;
+  color: #222;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+.legal-container {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.legal-title {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.4;
+  margin: 8px 0 24px;
+  padding-bottom: 14px;
+  border-bottom: 3px solid #E60012;
+  color: #0B1D3A;
+}
+
+.legal-body {
+  font-size: 16px;
+  line-height: 1.9;
+}
+
+.legal-h2 {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.5;
+  margin: 36px 0 12px;
+  padding-left: 12px;
+  border-left: 4px solid #E60012;
+  color: #0B1D3A;
+}
+
+.legal-h3 {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 24px 0 8px;
+  color: #0B1D3A;
+}
+
+.legal-p {
+  margin: 0 0 16px;
+}
+
+.legal-body strong {
+  font-weight: 700;
+}
+
+.legal-list {
+  margin: 0 0 18px;
+  padding-left: 1.4em;
+}
+
+.legal-list li {
+  margin-bottom: 8px;
+}
+
+.legal-list--ol {
+  list-style: decimal;
+}
+
+/* ---- 表 ---- */
+
+.legal-table-wrap {
+  margin: 0 0 22px;
+}
+
+.legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.legal-table th,
+.legal-table td {
+  border: 1px solid #DDE3EC;
+  padding: 12px 14px;
+  text-align: left;
+  vertical-align: top;
+  word-break: break-word;
+}
+
+.legal-table th {
+  background: #F4F6FA;
+  font-weight: 700;
+  color: #0B1D3A;
+  white-space: normal;
+}
+
+/* 狭い画面: 2列表を「見出し＋値」の縦積みカードへ */
+@media (max-width: 560px) {
+  .legal-table--stack thead {
+    display: none;
+  }
+  .legal-table--stack,
+  .legal-table--stack tbody,
+  .legal-table--stack tr,
+  .legal-table--stack td {
+    display: block;
+    width: 100%;
+  }
+  .legal-table--stack tr {
+    border: 1px solid #DDE3EC;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .legal-table--stack td {
+    border: none;
+    border-top: 1px solid #EEF1F6;
+    padding: 10px 14px;
+  }
+  .legal-table--stack td:first-child {
+    border-top: none;
+    background: #F4F6FA;
+    font-weight: 700;
+    color: #0B1D3A;
+  }
+  /* 2列目には元の列見出しを小さく添える（何の値かが分かるように） */
+  .legal-table--stack td:not(:first-child)::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 12px;
+    color: #8A93A5;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+}
+
+/* 3列以上の表は横スクロールにフォールバック（原稿には現状無い） */
+@media (max-width: 560px) {
+  .legal-table-wrap:has(.legal-table:not(.legal-table--stack)) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
