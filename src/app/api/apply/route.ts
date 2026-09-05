@@ -68,13 +68,30 @@ export async function POST(request: NextRequest) {
     // Supabaseに申込をINSERT
     const supabaseAdmin = getSupabaseAdmin();
 
-    // 開催終了済みの回への申込を拒否（サーバー側判定・フォームを迂回した送信も防ぐ）
+    // 開催終了済み／中止の回への申込を拒否
+    // （サーバー側判定・フォームを迂回した直接送信も防ぐ）
     try {
       const { data: evCheck } = await supabaseAdmin
         .from('events')
-        .select('event_date, duration_minutes')
+        .select('event_date, duration_minutes, status')
         .eq('id', event_id)
         .single();
+      // 中止・下書きの回は受け付けない。
+      // これがないと、中止後もURL直叩きやキャッシュされた古いフォームから
+      // 申込が通り、申込完了メールが届いてしまう（当日来場の事故になる）。
+      const evStatus = evCheck?.status as string | undefined;
+      if (evStatus === 'cancelled') {
+        return NextResponse.json(
+          { success: false, error: 'この回は開催中止となりました。別の日程をお選びください。' },
+          { status: 409 }
+        );
+      }
+      if (evStatus === 'draft') {
+        return NextResponse.json(
+          { success: false, error: 'この回はまだ受付を開始していません。' },
+          { status: 409 }
+        );
+      }
       if (evCheck && isEventFinished({
         event_date: evCheck.event_date as string,
         duration_minutes: (evCheck.duration_minutes as number | null) ?? null,
