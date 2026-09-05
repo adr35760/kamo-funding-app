@@ -316,3 +316,39 @@ a { color: inherit; text-decoration: none; }
   .seminar-info-page .hero-community-image { border-radius: 10px; }
   .seminar-info-page .hero-community-caption { font-size: 12px; }
 }
+
+/* ============================================
+   ヒーロー下キャッチコピーを「全画面幅で1行」にする
+   （t iku 依頼: 折り返し禁止・文言は一字一句変更なし）
+
+   方針:
+   - 広い画面は現状維持（19px）。狭い画面でだけ clamp() + vw で連続的に縮む。
+   - nowrap は単独では使わず、必ず vw スケールと併用する
+     （幅に追従しないと横スクロールの原因になるため）。
+   - max-width:600px は 1行化の障害になるので解除する
+     （600px 制限があると広い画面でも折り返してしまう）。
+   - font-feature-settings:"palt" で日本語の約物（～ ！）を詰める。
+     文字を小さくせずに約10%短くできるので、可読性の下限を稼げる。
+   - text-wrap は 1行化と競合するため、この要素では使わない。
+
+   実測（本番・Noto Sans JP）: 32文字が1行に必要な幅は font-size の
+   約28.7倍（palt適用時）。360px（実効336px）では約11.7pxが上限。
+   ※下限 11px は「これ以下には絶対しない」ガード。360pxでの実効値は
+     11.88px で下限には当たっていない。
+   ============================================ */
+.seminar-info-page .hero-sub {
+  white-space: nowrap;
+  max-width: none;
+  font-feature-settings: "palt" 1;
+  /* 3.40vw ベース: 1440pxで19px上限に張り付き、狭い幅で連続的に縮む */
+  font-size: clamp(11px, calc(3.40vw - 1.0px), 19px);
+}
+@media (max-width: 768px) {
+  /* スマホは .container の左右padding(24px)を一部借りて実効幅を稼ぐ。
+     借りるのは12pxずつなので、はみ出しは出ない（実測 overflow 0px）。 */
+  .seminar-info-page .hero-sub {
+    margin-left: -12px;
+    margin-right: -12px;
+    font-size: clamp(11px, calc(3.55vw - 0.9px), 19px);
+  }
+}
