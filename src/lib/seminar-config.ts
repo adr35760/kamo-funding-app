@@ -197,7 +197,7 @@ export function coreSpeakers(kamogashiraRole = '特別登壇'): Speaker[] {
     {
       role: 'メイン講師',
       name: '生島 正',
-      title: '総支援額17億円を生み出したクラファンの専門家',
+      title: '総支援額16億円を生み出したクラファンの専門家',
       image: '/speaker-ikushima.jpg',
     },
     { role: 'AI導入講師', name: '堺 彬', title: 'AI導入の専門家', image: '/speaker-sakai.jpg' },
@@ -348,6 +348,16 @@ export interface RealAttendTier {
   summary: string;
   /** 懇親会のみの区分か（セミナー本編の案内を出さない判定に使う） */
   partyOnly?: boolean;
+  /**
+   * この区分の決済券。
+   *
+   * 🔴 **区分と券の対応を絶対に間違えないこと。** セミナー参加の方に
+   *   交流会のみ券が届くと、25,000円を払って15:00に入場できない。
+   * 🔴 productName は**ストア掲載名と一字一句同じ**にする（全角数字もそのまま）。
+   *   お客様がストアで見る文字と違うと、どれを買うか判断できない。
+   * 未確定のあいだは undefined にし、リンクを貼らず「追ってご案内」とする。
+   */
+  payment?: { productName: string; productUrl: string };
 }
 
 export const REAL_ATTEND_TIERS: RealAttendTier[] = [
@@ -358,6 +368,11 @@ export const REAL_ATTEND_TIERS: RealAttendTier[] = [
     venue: { main: REAL_VENUE.seminar, sub: REAL_VENUE.party },
     capacity: 20,
     summary: 'セミナー本編（第1部〜第5部・鴨頭嘉人リアル登壇）から参加し、そのまま懇親会にも参加できます。',
+    // ストア実測（2026-09-09）。商品名の【１２／８】は全角のまま
+    payment: {
+      productName: 'リアルセミナー参加＆合同交流会セット券【１２／８】',
+      productUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/72012',
+    },
   },
   {
     label: '交流会から参加',
@@ -368,6 +383,11 @@ export const REAL_ATTEND_TIERS: RealAttendTier[] = [
     capacity: 15,
     summary: '懇親会からの参加です。支援者や挑戦する仲間と直接つながれます。',
     partyOnly: true,
+    // ストア実測（2026-09-09）
+    payment: {
+      productName: '12/8交流会のみ参加券',
+      productUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/72011',
+    },
   },
 ];
 
@@ -408,6 +428,12 @@ export interface PaymentInfo {
    */
   productName?: string;
   /**
+   * 商品ページの直リンク。
+   * 指定があればストアトップではなく**その商品ページへ直接**送る。
+   * 複数商品から選ばせないので、誤購入の余地そのものが無くなる。
+   */
+  productUrl?: string;
+  /**
    * true のとき、**決済リンクを一切出さず**「お支払い方法は追ってご案内」と伝える。
    * 正しい商品が特定できていない状態でリンクを貼ると誤購入＝実害になるため、
    * 「リンクなしで案内する」を明示的な状態として持つ。
@@ -420,7 +446,7 @@ export interface PaymentInfo {
  * 2 = オンラインセミナー（9,800円）／3 = リアルセミナー＆懇親会（25,000円）。
  * それ以外（無料の掲載説明会など）は null = 決済案内を出さない。
  */
-export function paymentInfoFor(pillar?: number | null): PaymentInfo | null {
+export function paymentInfoFor(pillar?: number | null, eventDate?: string | null): PaymentInfo | null {
   if (pillar === 2) {
     return {
       priceLabel: pendingLabel(AI_SEMINAR.price),
@@ -429,17 +455,19 @@ export function paymentInfoFor(pillar?: number | null): PaymentInfo | null {
     };
   }
   if (pillar === 3) {
-    // 🔴 **リアル回は決済リンクを出さない**（2026-09-05 判断）。
-    //   ストアで19,800円の商品は「合同交流会のみ参加券　１８：３０集合です」＝
-    //   **懇親会だけの参加券**で、当方のリアル回（セミナー15:00〜＋懇親会18:30〜）
-    //   とは中身が違う。金額が同じでも代用はできず、お支払い後に
-    //   「その券ではセミナーに入れません」となる事故が最悪なので、
-    //   **正しいセット券のURLと商品名が確定するまでリンクを貼らない**。
-    //   復活させるときは productName とリンク（PAYMENT_STORE_URL または
-    //   商品個別URL）を入れて linkless を外す。
+    // 🔴 リアル回は**参加区分ごとに決済券が違う**（2026-09-09 に専用券が用意された）。
+    //   セミナー参加の方に交流会のみ券を案内すると、25,000円を払って15:00に
+    //   入場できない。**区分から引いた券以外は絶対に出さない**。
+    const tier = realTierFor(eventDate);
+    if (!tier?.payment) {
+      // 区分が特定できない／券が未確定の行では、金額だけ伝えてリンクは貼らない。
+      // 誤った券を案内するより、案内が一手間増える方が安全。
+      return { priceLabel: pendingLabel(REAL_SEMINAR.price), linkless: true };
+    }
     return {
       priceLabel: pendingLabel(REAL_SEMINAR.price),
-      linkless: true,
+      productName: tier.payment.productName,
+      productUrl: tier.payment.productUrl,
     };
   }
   return null;

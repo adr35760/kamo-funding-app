@@ -136,7 +136,7 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
         <div className="container">
           <div className="learn-title"><h2>説明会で<span className="accent">分かること</span></h2></div>
           <div className="learn-list">
-            <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>KAMOファンディングの特徴</h4><p>総支援額17億円！達成率95%のノウハウの一端をご紹介</p></div></div>
+            <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>KAMOファンディングの特徴</h4><p>総支援額16億円！達成率95%のノウハウの一端をご紹介</p></div></div>
             <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>クラウドファンディングの集める構造を理解する</h4><p>クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</p></div></div>
             <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>応援支援で高額支援を集めるノウハウを伝授</h4><p>スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</p></div></div>
           </div>
@@ -162,7 +162,7 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
                 </svg>
               </div>
               <h3>AIクラファンページ<br />作成ツール</h3>
-              <p>参加者のみ！体験がその場でできます！<br />業界初です！</p>
+              <p>参加者のみ！体験がその場でできます！<br />業界トップクラスです！</p>
             </div>
           </div>
         </div>

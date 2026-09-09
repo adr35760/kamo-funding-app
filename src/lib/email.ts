@@ -45,8 +45,9 @@ function zoomBlockHtml(): string {
  * 🔴 リンク先はストアのトップで複数商品が並ぶため、
  *   **選ぶべき商品名と金額を明示**して誤購入を防ぐ。
  */
-export function paymentBlockHtml(pillar?: number | null): string {
-  const info = paymentInfoFor(pillar);
+export function paymentBlockHtml(pillar?: number | null, eventDate?: string | null): string {
+  // eventDate はリアル回の参加区分（＝どの決済券か）の判定に要る
+  const info = paymentInfoFor(pillar, eventDate);
   if (!info) return '';
 
   // 🔴 正しい商品が確定していない回は、**リンクを貼らずに**参加費だけ伝える。
@@ -61,22 +62,26 @@ export function paymentBlockHtml(pillar?: number | null): string {
   `;
   }
 
-  const pick = info.productName
-    ? `<strong>「${info.productName}」（${info.priceLabel}）</strong>をお選びください。`
-    : `<strong>${info.priceLabel}</strong>の商品をお選びください。`;
+  // 商品ページ直リンクがあるときは、その1点だけを買ってもらう形にする
+  const url = info.productUrl ?? PAYMENT_STORE_URL;
+  const pick = info.productUrl
+    ? `このリンクは <strong>「${info.productName}」（${info.priceLabel}）</strong> の商品ページです。他の商品と間違えないようご注意ください。`
+    : info.productName
+      ? `<strong>「${info.productName}」（${info.priceLabel}）</strong>をお選びください。`
+      : `<strong>${info.priceLabel}</strong>の商品をお選びください。`;
   return `
     <div style="margin: 16px 0; padding: 16px; background: #FFF9E6; border: 2px solid #E6B800; border-radius: 8px; font-size: 14px;">
       <p style="margin: 0 0 8px; font-weight: 700; color: #8A6D1F; font-size: 15px;">💳 参加費のお支払いについて</p>
       <p style="margin: 0 0 10px;">参加費は <strong style="font-size: 17px;">${info.priceLabel}</strong> です。下記のお支払いページよりお手続きをお願いいたします。</p>
       <p style="margin: 0 0 12px;">
-        <a href="${PAYMENT_STORE_URL}" style="display: inline-block; background: #E60012; color: #fff; padding: 12px 22px; border-radius: 6px; font-weight: 700; text-decoration: none;">お支払いページへ進む →</a>
+        <a href="${url}" style="display: inline-block; background: #E60012; color: #fff; padding: 12px 22px; border-radius: 6px; font-weight: 700; text-decoration: none;">お支払いページへ進む →</a>
       </p>
       <p style="margin: 0 0 8px; word-break: break-all; font-size: 12px; color: #666;">
         ボタンが開かない場合は、こちらのURLをブラウザに貼り付けてください：<br />
-        <a href="${PAYMENT_STORE_URL}" style="color: #1A73E8;">${PAYMENT_STORE_URL}</a>
+        <a href="${url}" style="color: #1A73E8;">${url}</a>
       </p>
       <p style="margin: 0 0 8px; padding: 10px 12px; background: #FFF; border: 1px solid #E6D9A8; border-radius: 6px;">
-        ⚠️ <strong>お支払いページには複数の商品が並んでいます。</strong>${pick}
+        ⚠️ ${info.productUrl ? '' : '<strong>お支払いページには複数の商品が並んでいます。</strong>'}${pick}
       </p>
       <p style="margin: 0; font-weight: 700; color: #E60012;">※お支払いをもってお申し込みが確定となります。</p>
     </div>
@@ -263,7 +268,7 @@ export function applyConfirmationHtml({
           ⏱️ 約90分<br />
           💰 参加費無料
         </p>`}
-        ${paymentBlockHtml(pillar)}
+        ${paymentBlockHtml(pillar, eventDate)}
         ${isReal ? venueBlockHtml(eventDate) : zoomBlockHtml()}
         <p style="margin-top: 20px;">${isReal
           ? (tier
