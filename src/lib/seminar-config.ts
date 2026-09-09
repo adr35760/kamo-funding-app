@@ -174,6 +174,34 @@ export const CORE_PROGRAM: ProgramBlock[] = [
   },
 ];
 
+/**
+ * 登壇者3名。
+ *
+ * 🔴 **両ページ共通の唯一の情報源**（CORE_PROGRAM と同じ方針）。
+ *   プロフィール文は未提供のため、役割＋お名前＋肩書のみ（勝手に作らない）。
+ *
+ * @param kamogashiraRole 鴨頭嘉人の役割ラベル。リアル回は会場に実際に立つので
+ *        「特別登壇（リアル登壇）」と出し分ける。他2名は共通。
+ */
+export function coreSpeakers(kamogashiraRole = '特別登壇'): Speaker[] {
+  return [
+    {
+      role: 'メイン講師',
+      name: '生島 正',
+      title: '総支援額17億円を生み出したクラファンの専門家',
+      image: '/speaker-ikushima.jpg',
+    },
+    { role: 'AI導入講師', name: '堺 彬', title: 'AI導入の専門家', image: '/speaker-sakai.jpg' },
+    {
+      role: kamogashiraRole,
+      name: '鴨頭嘉人',
+      title: 'YouTube講演家',
+      image: '/speaker-kamogashira.jpg',
+      special: true,
+    },
+  ];
+}
+
 export const AI_SEMINAR: SeminarConfig = {
   slug: 'ai-seminar',
   pillar: 2,
@@ -204,23 +232,8 @@ export const AI_SEMINAR: SeminarConfig = {
     },
   ],
   programClosing: '4時間後には、あなたのクラウドファンディング企画と掲載ページのたたき台が完成します。',
-  // プロフィール文は未提供のため、役割＋お名前のみ（勝手に作らない方針）
-  speakers: [
-    {
-      role: 'メイン講師',
-      name: '生島 正',
-      title: '総支援額17億円を生み出したクラファンの専門家',
-      image: '/speaker-ikushima.jpg',
-    },
-    { role: 'AI導入講師', name: '堺 彬', title: 'AI導入の専門家', image: '/speaker-sakai.jpg' },
-    {
-      role: '特別登壇',
-      name: '鴨頭嘉人',
-      title: 'YouTube講演家',
-      image: '/speaker-kamogashira.jpg',
-      special: true,
-    },
-  ],
+  // 登壇者はリアル回と共通（coreSpeakers が唯一の情報源）
+  speakers: coreSpeakers(),
   sessions: [
     { round: 1, dateLabel: '10/5（月）', timeLabel: '16:00〜20:00', isoDate: '2026-10-05T16:00:00+09:00' },
     { round: 2, dateLabel: '11/10（火）', timeLabel: '16:00〜20:00', isoDate: '2026-11-10T16:00:00+09:00' },
@@ -273,6 +286,8 @@ export const REAL_SEMINAR: SeminarConfig = {
   // セミナー本編は15:00〜18:30＝3時間半（懇親会を足すと5時間だが、
   // 企画が完成するのはセミナー部分なので「3時間半」が正しい）
   programClosing: '3時間半後には、あなたのクラウドファンディング企画と掲載ページのたたき台が完成します。',
+  // オンライン回と同じ3名。鴨頭嘉人は会場に実際に立つので役割ラベルだけ変える
+  speakers: coreSpeakers('特別登壇（リアル登壇）'),
   // 10/25 第1回は開催中止（2026-09-05・t iku判断）。
   // DB側も events.status='cancelled' にして非表示にしている。
   // 12/8 は「第2回」のまま維持する方針のため round を明示している
