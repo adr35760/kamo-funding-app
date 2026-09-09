@@ -8,7 +8,9 @@
  *   「準備中」表示用に残してある。
  *
  *
- * ■ 参加費・税表記は確定済み（オンライン9,800円（税込）／リアル19,800円（税込））。
+ * ■ 参加費・税表記は確定済み（オンライン9,800円（税込）／リアル25,000円（税込））。
+ *   リアルは2026-09-09に19,800円→25,000円へ改定し、参加区分が2つになった
+ *   （どちらも同額。REAL_ATTEND_TIERS を参照）。
  * ■ 定員: リアルはセミナー20名・懇親会35名で確定。
  *   events.capacity にはセミナー本体の20を入れており、申込上限の判定はこの20が基準。
  *   懇親会の35名は capacityParty として表示専用に持つ。
@@ -76,7 +78,11 @@ export interface SeminarSession {
 
 /** 詳細プログラムの1ブロック（見出し＋説明文） */
 export interface ProgramBlock {
-  /** 「第1部」「特別セッション」などのラベル */
+  /**
+   * 「第1部」「特別セッション」「懇親会」などのラベル。
+   * 表示はこの値をそのまま使う（配列の並び順から採番しない）。
+   * 第1部〜第5部のあとに懇親会などが続いても「第6部」に化けないようにするため。
+   */
   label: string;
   /** 見出し */
   title: string;
@@ -84,6 +90,8 @@ export interface ProgramBlock {
   body: string;
   /** 特別枠として強調表示するか（鴨頭嘉人の登壇など） */
   special?: boolean;
+  /** 懇親会など、セミナー本編の後に続く枠。金の枠線で本編と区別する */
+  party?: boolean;
 }
 
 /** 講師紹介の1名分 */
@@ -130,6 +138,42 @@ export interface SeminarConfig {
   venue: { seminar: string; party?: string } | null;
 }
 
+/**
+ * セミナー本編のプログラム（第1部〜第5部）。
+ *
+ * 🔴 **オンライン（/ai-seminar）とリアル（/real-seminar）で共通の唯一の情報源**。
+ *   同じ文章を2か所に書くと片方だけ直して必ずズレるため、ここだけを編集する。
+ *   両ページ固有の項目（鴨頭嘉人の登壇形態・懇親会など）は、
+ *   各 config 側でこの配列に足す形にしてある。
+ */
+export const CORE_PROGRAM: ProgramBlock[] = [
+  {
+    label: '第1部',
+    title: '夢を「応援される企画」に変える',
+    body: '実現したいこと、挑戦する理由、届けたい相手を整理し、プロジェクトの中心メッセージを作ります。',
+  },
+  {
+    label: '第2部',
+    title: '支援されるプロジェクトの共通点',
+    body: '支援を集めるために必要な「共感」「信頼」「ストーリー」の作り方を学びます。',
+  },
+  {
+    label: '第3部',
+    title: 'AIでクラファン企画を作る',
+    body: 'KAMOファンディングのAIツールを使い、コンセプト、ターゲット、タイトル、企画概要を作成します。',
+  },
+  {
+    label: '第4部',
+    title: 'AIで掲載ページを作る',
+    body: 'AIでページ構成と文章のたたき台を作り、自分の経験や想いを加えて、心が動く掲載ページへ仕上げます。',
+  },
+  {
+    label: '第5部',
+    title: 'リターンと支援戦略',
+    body: '応援型、商品・サービス、体験、スポンサーなどのリターンと、公開後の告知計画を設計します。',
+  },
+];
+
 export const AI_SEMINAR: SeminarConfig = {
   slug: 'ai-seminar',
   pillar: 2,
@@ -150,31 +194,8 @@ export const AI_SEMINAR: SeminarConfig = {
     '掲載説明',
   ],
   program: [
-    {
-      label: '第1部',
-      title: '夢を「応援される企画」に変える',
-      body: '実現したいこと、挑戦する理由、届けたい相手を整理し、プロジェクトの中心メッセージを作ります。',
-    },
-    {
-      label: '第2部',
-      title: '支援されるプロジェクトの共通点',
-      body: '支援を集めるために必要な「共感」「信頼」「ストーリー」の作り方を学びます。',
-    },
-    {
-      label: '第3部',
-      title: 'AIでクラファン企画を作る',
-      body: 'KAMOファンディングのAIツールを使い、コンセプト、ターゲット、タイトル、企画概要を作成します。',
-    },
-    {
-      label: '第4部',
-      title: 'AIで掲載ページを作る',
-      body: 'AIでページ構成と文章のたたき台を作り、自分の経験や想いを加えて、心が動く掲載ページへ仕上げます。',
-    },
-    {
-      label: '第5部',
-      title: 'リターンと支援戦略',
-      body: '応援型、商品・サービス、体験、スポンサーなどのリターンと、公開後の告知計画を設計します。',
-    },
+    // 第1部〜第5部は CORE_PROGRAM（リアル回と共通）
+    ...CORE_PROGRAM,
     {
       label: '特別セッション',
       title: '鴨頭嘉人',
@@ -215,9 +236,12 @@ export const REAL_SEMINAR: SeminarConfig = {
   lead:
     '鴨頭嘉人がリアル登壇。セミナーのあとは懇親会で、あなたの挑戦を応援してくれる支援者と直接つながれます。',
   format: 'リアル開催（セミナー＋懇親会）',
-  // セミナー＋懇親会込みの金額（内訳は記載しない方針）
-  price: { status: 'fixed', label: '19,800円（税込）' },
-  priceNote: 'セミナー＋懇親会込み',
+  // 2026-09-09 料金改定: 19,800円 → 25,000円。
+  // 参加区分が2つあり**どちらも同額**（t iku指示に2回明記された意図的な同額）なので、
+  // ヒーロー等の代表価格はこの1つで正しく表せる。区分ごとの違いは
+  // REAL_ATTEND_TIERS を参照（時間・会場・含まれるものが異なる）。
+  price: { status: 'fixed', label: '25,000円（税込）' },
+  priceNote: '参加区分は2つ・どちらも同額',
   // 参加費を大きく強調（/ai-seminar と統一意匠）
   emphasizePrice: true,
   capacity: { status: 'fixed', label: 'セミナー 20名' },
@@ -230,6 +254,25 @@ export const REAL_SEMINAR: SeminarConfig = {
     '掲載説明',
     '支援者と繋がる交流会',
   ],
+  program: [
+    // 第1部〜第5部は CORE_PROGRAM（オンライン回と共通・同一文言）
+    ...CORE_PROGRAM,
+    {
+      label: '特別セッション',
+      title: '鴨頭嘉人 リアル登壇',
+      body: '「挑戦する人に、共犯者が集まる理由」をテーマに、応援される人の考え方を会場で直接お伝えします。参加者の企画への公開アドバイスと質疑応答も行います。',
+      special: true,
+    },
+    {
+      label: '懇親会',
+      title: '支援者と繋がる交流会',
+      body: '18:30〜20:00、会場を移して懇親会を行います。あなたの挑戦を応援してくれる支援者や、同じように挑戦する仲間と直接つながれます。',
+      party: true,
+    },
+  ],
+  // セミナー本編は15:00〜18:30＝3時間半（懇親会を足すと5時間だが、
+  // 企画が完成するのはセミナー部分なので「3時間半」が正しい）
+  programClosing: '3時間半後には、あなたのクラウドファンディング企画と掲載ページのたたき台が完成します。',
   // 10/25 第1回は開催中止（2026-09-05・t iku判断）。
   // DB側も events.status='cancelled' にして非表示にしている。
   // 12/8 は「第2回」のまま維持する方針のため round を明示している
@@ -246,6 +289,74 @@ export const REAL_SEMINAR: SeminarConfig = {
   ],
   venue: { seminar: REAL_VENUE.seminar, party: REAL_VENUE.party },
 };
+
+/**
+ * リアル回（12/8）の参加区分。
+ *
+ * 2026-09-09 の料金改定で「セミナーから参加」「交流会から参加」の2区分になった。
+ * **どちらも25,000円（税込）**で、違うのは開始時刻・会場・含まれる内容。
+ *
+ * 🔴 実装方針: 区分ごとに **events の行を分ける**（DBスキーマは変更しない）。
+ *   registrations に区分カラムを足すマイグレーションは不要で、
+ *   既存の申込フロー（/api/apply の満席判定・中止判定・完了メール・
+ *   当日リマインドcron）が**そのまま両区分に効く**。
+ *   完了メールの日時も events.event_date から出るので、
+ *   交流会のみの方には自動的に「18:30〜20:00」が入る（15:00は出ない）。
+ *
+ * 🔴 定員の注意: 懇親会の上限は35名で、**セミナー参加者20名も懇親会に入る**。
+ *   そのため交流会のみの枠は 35 − 20 = **15名** を上限にしてあり、
+ *   両方が満席でも懇親会は35名を超えない。
+ *   （events.capacity は行ごとに独立して判定されるため、
+ *     この配分で持たせるのが、跨ぎの在庫管理を作らずに上限を守る唯一の方法）
+ */
+export interface RealAttendTier {
+  /** 区分の表示名 */
+  label: string;
+  /** DBの events.event_date と突き合わせるISO時刻（JST） */
+  isoDate: string;
+  /** 時間の表示 */
+  timeLabel: string;
+  /** この区分の参加者にとっての会場（メール・ページ共通） */
+  venue: { main: string; sub?: string };
+  /** 定員 */
+  capacity: number;
+  /** 一言説明 */
+  summary: string;
+  /** 懇親会のみの区分か（セミナー本編の案内を出さない判定に使う） */
+  partyOnly?: boolean;
+}
+
+export const REAL_ATTEND_TIERS: RealAttendTier[] = [
+  {
+    label: 'セミナーから参加',
+    isoDate: '2026-12-08T15:00:00+09:00',
+    timeLabel: '15:00〜20:00（懇親会込み）',
+    venue: { main: REAL_VENUE.seminar, sub: REAL_VENUE.party },
+    capacity: 20,
+    summary: 'セミナー本編（第1部〜第5部・鴨頭嘉人リアル登壇）から参加し、そのまま懇親会にも参加できます。',
+  },
+  {
+    label: '交流会から参加',
+    isoDate: '2026-12-08T18:30:00+09:00',
+    timeLabel: '18:30〜20:00（懇親会のみ）',
+    // 懇親会のみの方はエデュケーションギャラリーには来ないので出さない
+    venue: { main: REAL_VENUE.party },
+    capacity: 15,
+    summary: '懇親会からの参加です。支援者や挑戦する仲間と直接つながれます。',
+    partyOnly: true,
+  },
+];
+
+/**
+ * DBの events.event_date からリアル回の参加区分を引く。
+ * 区分が特定できない行では null（推測で時間や会場を書かない）。
+ */
+export function realTierFor(eventDate?: string | null): RealAttendTier | null {
+  if (!eventDate) return null;
+  const t = new Date(eventDate).getTime();
+  if (Number.isNaN(t)) return null;
+  return REAL_ATTEND_TIERS.find(x => new Date(x.isoDate).getTime() === t) ?? null;
+}
 
 export const SEMINAR_CONFIGS = [AI_SEMINAR, REAL_SEMINAR];
 
@@ -282,7 +393,7 @@ export interface PaymentInfo {
 
 /**
  * pillar から決済案内を決める。
- * 2 = オンラインセミナー（9,800円）／3 = リアルセミナー＆懇親会（19,800円）。
+ * 2 = オンラインセミナー（9,800円）／3 = リアルセミナー＆懇親会（25,000円）。
  * それ以外（無料の掲載説明会など）は null = 決済案内を出さない。
  */
 export function paymentInfoFor(pillar?: number | null): PaymentInfo | null {
@@ -327,6 +438,15 @@ export function realSessionBreakdown(eventDate?: string | null): string | null {
   if (!eventDate) return null;
   const target = new Date(eventDate).getTime();
   if (Number.isNaN(target)) return null;
+
+  // 「交流会から参加」の区分は懇親会だけなので、
+  // セミナー本編の 15:00 を出すと**来る時間を間違える**。懇親会の時間だけ返す。
+  const tier = realTierFor(eventDate);
+  if (tier?.partyOnly) {
+    const party = REAL_SEMINAR.sessions[0]?.partyTimeLabel;
+    return party ?? null;
+  }
+
   const s = REAL_SEMINAR.sessions.find(x => new Date(x.isoDate).getTime() === target);
   if (!s) return null;
   const parts = [s.timeLabel, s.partyTimeLabel].filter(Boolean) as string[];

@@ -123,6 +123,16 @@
 .sl-program-item.is-special .sl-program-body h3 { color: var(--kamo-gold); font-size: 21px; }
 .sl-program-item.is-special .sl-program-body p { color: rgba(255,255,255,.9); }
 
+/* 懇親会枠 — 本編（第1部〜第5部）と区別しつつ、特別セッションほど強くしない */
+.sl-program-item.is-party {
+  background: #FFFBF0;
+  border: 2px solid var(--kamo-gold);
+}
+.sl-program-item.is-party .sl-program-label {
+  background: var(--kamo-gold); color: var(--kamo-navy);
+  min-width: 76px;
+}
+
 /* 締めの一文 */
 .sl-program-closing {
   max-width: 780px; margin: 28px auto 0;
@@ -196,7 +206,7 @@
 .sl-note-suffix { font-size: 14px; font-weight: 700; color: var(--kamo-gray); }
 
 @media (max-width: 768px) {
-  /* スマホでは「参加費」ラベルを金額の上に置き、桁数の多い金額（19,800円）でも
+  /* スマホでは「参加費」ラベルを金額の上に置き、桁数の多い金額（25,000円）でも
      不自然な折り返しやはみ出しが起きないようにする */
   .sl-price-box { padding: 16px 20px; margin-bottom: 20px; width: 100%; max-width: 360px; }
   .sl-price-main { flex-direction: column; gap: 2px; }
@@ -274,3 +284,39 @@
 }
 .sl-empty-title { margin: 0 0 6px; font-size: 18px; font-weight: 900; }
 .sl-empty-sub { margin: 0; font-size: 15px; color: var(--kamo-gray); }
+
+/* ============================================
+   参加区分（リアル回のみ）
+   「セミナーから参加」「交流会から参加」は同額で、違うのは時間・会場・内容。
+   申込前に見比べて選べるよう、日程の直後にカードで並べる。
+   ============================================ */
+.sl-tiers {
+  max-width: 780px;
+  margin: 22px auto 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.sl-tier {
+  background: #fff;
+  border: 2px solid var(--kamo-gold);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: 0 3px 12px rgba(11,29,58,.06);
+}
+.sl-tier-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap;
+  margin-bottom: 10px; padding-bottom: 10px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.sl-tier-name { font-size: 16px; font-weight: 900; color: var(--kamo-navy); }
+.sl-tier-price { font-size: 19px; font-weight: 900; color: var(--kamo-gold); white-space: nowrap; }
+.sl-tier p { margin: 0 0 6px; font-size: 14px; line-height: 1.75; color: #444; }
+.sl-tier-summary { font-size: 13px !important; color: #666 !important; margin: 10px 0 0 !important; }
+
+@media (max-width: 768px) {
+  /* 狭い幅で2列にすると金額と会場名が潰れるため1列に */
+  .sl-tiers { grid-template-columns: 1fr; gap: 14px; }
+  .sl-tier { padding: 16px 18px; }
+}

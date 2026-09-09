@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
 import { formatEventDateJa } from '@/lib/event-format';
-import { realSessionBreakdown } from '@/lib/seminar-config';
+import { realSessionBreakdown, realTierFor } from '@/lib/seminar-config';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
 import { AI_SEMINAR, REAL_SEMINAR } from '@/lib/seminar-config';
 import '@/styles/seminar-hub.css';
@@ -65,7 +65,8 @@ const COMPARE = [
     price: REAL_SEMINAR.price.label,
     priceNote: REAL_SEMINAR.priceNote ?? null,
     format: 'リアル開催（セミナー＋懇親会）',
-    duration: '5時間（15:00〜20:00）',
+    // 参加区分が2つあるため、比較カードでは両方の時間を示す
+    duration: 'セミナーから参加 15:00〜20:00 / 交流会から参加 18:30〜20:00',
     capacity: 'セミナー20名 / 懇親会35名',
     includes: REAL_SEMINAR.contents,
     detailHref: '/real-seminar',
@@ -258,6 +259,11 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
                         {realSessionBreakdown(ev.event_date) && (
                           <span className="sh-slot-breakdown">{realSessionBreakdown(ev.event_date)}</span>
                         )}
+                        {/* 参加区分（セミナーから参加／交流会から参加）を明示する。
+                            同じ12/8で行が2つ並ぶため、これが無いと区別がつかない */}
+                        {realTierFor(ev.event_date) && (
+                          <span className="sh-slot-tier">{realTierFor(ev.event_date)!.label}</span>
+                        )}
                       </div>
                       <div className="sh-slot-body">
                         <span className={`sh-slot-kind sh-kind-${kindOf(ev)}`}>{k.label}</span>
@@ -315,7 +321,9 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
                         <option value="" disabled>選択してください</option>
                         {events.map(ev => (
                           <option key={ev.id} value={ev.id}>
-                            {KIND[kindOf(ev)].short}／{formatEventDateJa(ev.event_date, ev.duration_minutes)}／{KIND[kindOf(ev)].price}
+                            {KIND[kindOf(ev)].short}
+                            {realTierFor(ev.event_date) ? `（${realTierFor(ev.event_date)!.label}）` : ''}
+                            ／{formatEventDateJa(ev.event_date, ev.duration_minutes)}／{KIND[kindOf(ev)].price}
                           </option>
                         ))}
                       </select>

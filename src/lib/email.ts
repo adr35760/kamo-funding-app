@@ -8,6 +8,7 @@ import {
   paymentInfoFor,
   PAYMENT_STORE_URL,
   realSessionBreakdown,
+  realTierFor,
 } from '@/lib/seminar-config';
 
 /**
@@ -82,13 +83,26 @@ export function paymentBlockHtml(pillar?: number | null): string {
   `;
 }
 
-/** リアル開催回の会場案内ブロック（Zoom情報の代わり） */
-function venueBlockHtml(): string {
+/**
+ * リアル開催回の会場案内ブロック（Zoom情報の代わり）
+ *
+ * 🔴 参加区分で会場が変わる。「交流会から参加」の方は
+ *   エデュケーションギャラリーには来ないので出さない（別会場へ行ってしまう）。
+ */
+function venueBlockHtml(eventDate?: string | null): string {
+  const tier = realTierFor(eventDate);
+  const rows = tier
+    ? tier.partyOnly
+      ? `<p style="margin: 0 0 8px;">懇親会会場: <strong>${tier.venue.main}</strong></p>`
+      : `<p style="margin: 0 0 4px;">セミナー会場: <strong>${tier.venue.main}</strong></p>
+         ${tier.venue.sub ? `<p style="margin: 0 0 8px;">懇親会会場: <strong>${tier.venue.sub}</strong></p>` : ''}`
+    : // 区分が特定できない行は従来どおり両方出す（情報を減らさない）
+      `<p style="margin: 0 0 4px;">セミナー会場: <strong>エデュケーションギャラリー</strong></p>
+       <p style="margin: 0 0 8px;">懇親会会場: <strong>YAKINIKUMAFIA</strong></p>`;
   return `
     <div style="margin: 16px 0; padding: 16px; background: #FFFBF0; border: 1px solid #E6D9A8; border-radius: 8px; font-size: 14px;">
       <p style="margin: 0 0 8px; font-weight: 700; color: #8A6D1F;">📍 会場のご案内</p>
-      <p style="margin: 0 0 4px;">セミナー会場: <strong>エデュケーションギャラリー</strong></p>
-      <p style="margin: 0 0 8px;">懇親会会場: <strong>YAKINIKUMAFIA</strong></p>
+      ${rows}
       <p style="margin: 0; font-size: 13px; color: #666;">会場の詳しい住所・アクセス、当日の持ち物などは、開催が近づきましたら改めてご案内します。</p>
     </div>
   `;
@@ -213,6 +227,8 @@ export function applyConfirmationHtml({
   // リアル回は「15:00〜20:00」だけだと懇親会の存在が伝わらないため内訳を添える
   // （ページと同じ値。設定に無い回では null になり、何も足さない）
   const breakdown = isReal ? realSessionBreakdown(eventDate) : null;
+  // 参加区分（セミナーから参加／交流会から参加）。時間・会場・定員がこれで変わる
+  const tier = isReal ? realTierFor(eventDate) : null;
   return `
     <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: #E60012; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
@@ -231,9 +247,10 @@ export function applyConfirmationHtml({
         </div>` : ''}
         ${isReal ? `
         <p style="margin-top: 16px; padding: 16px; background: #FFFBF0; border-radius: 8px; font-size: 14px;">
-          🏢 会場開催（セミナー＋懇親会）<br />
-          💰 参加費：<strong>${pendingLabel(REAL_SEMINAR.price)}</strong>${REAL_SEMINAR.priceNote ? `（${REAL_SEMINAR.priceNote}）` : ''}<br />
-          👥 定員：${pendingLabel(REAL_SEMINAR.capacity)}${REAL_SEMINAR.capacityParty ? ` / ${pendingLabel(REAL_SEMINAR.capacityParty)}` : ''}
+          🏢 ${tier ? `${tier.label}（${tier.timeLabel}）` : '会場開催（セミナー＋懇親会）'}<br />
+          💰 参加費：<strong>${pendingLabel(REAL_SEMINAR.price)}</strong><br />
+          👥 定員：${tier ? `${tier.capacity}名` : `${pendingLabel(REAL_SEMINAR.capacity)}${REAL_SEMINAR.capacityParty ? ` / ${pendingLabel(REAL_SEMINAR.capacityParty)}` : ''}`}
+          ${tier ? `<br /><span style="font-size: 13px; color: #666;">${tier.summary}</span>` : ''}
           ${PRICE_TAX_NOTE ? `<br /><span style="font-size: 12px; color: #666;">${PRICE_TAX_NOTE}</span>` : ''}
         </p>` : isOnlineSeminar ? `
         <p style="margin-top: 16px; padding: 16px; background: #F4F8FF; border-radius: 8px; font-size: 14px;">
@@ -247,9 +264,11 @@ export function applyConfirmationHtml({
           💰 参加費無料
         </p>`}
         ${paymentBlockHtml(pillar)}
-        ${isReal ? venueBlockHtml() : zoomBlockHtml()}
+        ${isReal ? venueBlockHtml(eventDate) : zoomBlockHtml()}
         <p style="margin-top: 20px;">${isReal
-          ? '当日は、開始時刻までに会場へお越しください。'
+          ? (tier
+              ? `当日は、${tier.timeLabel.split('（')[0]} の開始時刻までに ${tier.venue.main} へお越しください。`
+              : '当日は、開始時刻までに会場へお越しください。')
           : '当日、指定の日時までにZoomへアクセスしてください。'}</p>
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />

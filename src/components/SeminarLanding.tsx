@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import '@/styles/kamo-icons.css';
 import '@/styles/seminar-landing.css';
-import { pendingLabel, splitPriceLabel, PRICE_TAX_NOTE, type SeminarConfig } from '@/lib/seminar-config';
+import { pendingLabel, splitPriceLabel, PRICE_TAX_NOTE, realTierFor, REAL_ATTEND_TIERS, type SeminarConfig } from '@/lib/seminar-config';
 import { formatEventDateJa } from '@/lib/event-format';
 import SiteHeader from '@/components/SiteHeader';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
@@ -180,13 +180,27 @@ export default function SeminarLanding({
           {config.program ? (
             <>
               <div className="sl-program">
-                {config.program.map((b, i) => (
-                  <div className={b.special ? 'sl-program-item is-special' : 'sl-program-item'} key={b.label}>
-                    <div className="sl-program-label" style={b.special ? undefined : { background: accent }}>
-                      {b.special ? '特別セッション' : `第${i + 1}部`}
+                {config.program.map(b => (
+                  <div
+                    className={
+                      b.special
+                        ? 'sl-program-item is-special'
+                        : b.party
+                          ? 'sl-program-item is-party'
+                          : 'sl-program-item'
+                    }
+                    key={b.label}
+                  >
+                    {/* ラベルは設定の値をそのまま使う。配列の位置から採番すると
+                        第1部〜第5部の後に懇親会が来たとき「第6部」に化ける */}
+                    <div
+                      className="sl-program-label"
+                      style={b.special || b.party ? undefined : { background: accent }}
+                    >
+                      {b.label}
                     </div>
                     <div className="sl-program-body">
-                      <h3>{b.special ? `${b.title}` : b.title}</h3>
+                      <h3>{b.title}</h3>
                       <p>{b.body}</p>
                     </div>
                   </div>
@@ -274,6 +288,27 @@ export default function SeminarLanding({
               </div>
             ))}
           </div>
+          {/* リアル回は参加区分が2つ（どちらも同額・時間と会場が違う）。
+              申込前にどちらを選ぶか判断できるよう、日程の直後に並べる。 */}
+          {isReal && (
+            <div className="sl-tiers">
+              {REAL_ATTEND_TIERS.map(t => (
+                <div className="sl-tier" key={t.label}>
+                  <div className="sl-tier-head">
+                    <span className="sl-tier-name">{t.label}</span>
+                    <span className="sl-tier-price">{priceParts.amount}</span>
+                  </div>
+                  <p className="sl-tier-time">🕒 {t.timeLabel}</p>
+                  <p className="sl-tier-venue">
+                    📍 {t.venue.main}
+                    {t.venue.sub && <>（懇親会：{t.venue.sub}）</>}
+                  </p>
+                  <p className="sl-tier-cap">👥 定員 {t.capacity}名</p>
+                  <p className="sl-tier-summary">{t.summary}</p>
+                </div>
+              ))}
+            </div>
+          )}
           <p className="sl-note">
             参加費：
             {config.emphasizePrice ? (
@@ -322,6 +357,8 @@ export default function SeminarLanding({
                         ? events.map(ev => (
                             <option key={ev.id} value={ev.id}>
                               {formatEventDateJa(ev.event_date, ev.duration_minutes ?? null)}
+                              {/* リアル回は同じ日に2区分が並ぶので、どちらか分かるようにする */}
+                              {realTierFor(ev.event_date) ? `／${realTierFor(ev.event_date)!.label}` : ''}
                             </option>
                           ))
                         : config.sessions.map(s => (
