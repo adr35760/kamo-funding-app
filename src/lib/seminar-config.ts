@@ -104,6 +104,15 @@ export interface Speaker {
   image: string;
   /** 肩書（役割ラベル・お名前とは別の3段目） */
   title?: string;
+  /**
+   * プロフィール本文。
+   *
+   * 🔴 未提供のあいだは **undefined のままにする**（推測で経歴を書かない）。
+   *   t iku から原稿が届いたら coreSpeakers() の該当者に文字列を入れるだけで、
+   *   /ai-seminar・/real-seminar の両方に同時に出る。
+   *   改行は \n で区切ると段落として表示される。
+   */
+  profile?: string;
   /** 特別枠として強調するか（鴨頭嘉人など） */
   special?: boolean;
 }

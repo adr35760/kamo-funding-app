@@ -248,6 +248,15 @@ export default function SeminarLanding({
                     <div className="sl-speaker-role">{sp.role}</div>
                     <div className="sl-speaker-name">{sp.name}</div>
                     {sp.title && <p className="sl-speaker-title">{sp.title}</p>}
+                    {/* プロフィール本文は未提供のあいだ undefined。
+                        届いて値が入った時点で、両ページに自動で出る */}
+                    {sp.profile && (
+                      <div className="sl-speaker-profile">
+                        {sp.profile.split('\n').filter(Boolean).map((line, i) => (
+                          <p key={i}>{line}</p>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

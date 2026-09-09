@@ -320,3 +320,20 @@
   .sl-tiers { grid-template-columns: 1fr; gap: 14px; }
   .sl-tier { padding: 16px 18px; }
 }
+
+/* 講師プロフィール本文（原稿が届いてから表示される。未提供時は要素ごと出ない） */
+.sl-speaker-profile {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0,0,0,.08);
+  text-align: left;
+}
+.sl-speaker-profile p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.85;
+  color: #555;
+}
+.sl-speaker-profile p:last-child { margin-bottom: 0; }
+.sl-speaker.is-special .sl-speaker-profile { border-top-color: rgba(255,255,255,.22); }
+.sl-speaker.is-special .sl-speaker-profile p { color: rgba(255,255,255,.88); }
