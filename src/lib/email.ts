@@ -8,6 +8,8 @@ import {
   paymentInfoFor,
   PAYMENT_STORE_URL,
   realSessionBreakdown,
+  AWARD_EVENT,
+  awardBreakdown,
   realTierFor,
 } from '@/lib/seminar-config';
 
@@ -114,6 +116,24 @@ function venueBlockHtml(eventDate?: string | null): string {
 }
 
 /**
+ * 11/9アワードの会場案内ブロック。
+ *
+ * 🔴 12/8と違い**参加区分が1つで、参加者は全員が両会場を移動する**。
+ *   よって片方だけ出す分岐（12/8の partyOnly 相当）は**作ってはいけない** —
+ *   全員が行くのに片方しか出さない経路があれば、それ自体がバグの温床になる。
+ */
+function awardVenueBlockHtml(): string {
+  return `
+    <div style="margin: 16px 0; padding: 16px; background: #FFFBF0; border: 1px solid #E6D9A8; border-radius: 8px; font-size: 14px;">
+      <p style="margin: 0 0 8px; font-weight: 700; color: #8A6D1F;">📍 会場のご案内</p>
+      <p style="margin: 0 0 4px;">表彰式会場: <strong>${AWARD_EVENT.venue.main}</strong></p>
+      <p style="margin: 0 0 8px;">懇親会会場: <strong>${AWARD_EVENT.venue.party}</strong></p>
+      <p style="margin: 0; font-size: 13px; color: #666;">第二部の終了後、会場を移して懇親会を行います。会場の詳しい住所・アクセス、当日の持ち物などは、開催が近づきましたら改めてご案内します。</p>
+    </div>
+  `;
+}
+
+/**
  * RESEND_FROM_EMAIL の形式チェック
  * 有効な形式: "email@example.com" または "Name <email@example.com>"
  * コピペで壊れた値（全角括弧・前後余分なスペース・引用符等）は無効とみなし、
@@ -192,9 +212,11 @@ export async function sendApplyConfirmationEmail(
 ): Promise<EmailResult> {
   const bodyLabel = pillar === 3
     ? 'リアルセミナー＆懇親会'
-    : pillar === 2
-      ? 'オンラインセミナー'
-      : '掲載説明会';
+    : pillar === 4
+      ? AWARD_EVENT.shortTitle
+      : pillar === 2
+        ? 'オンラインセミナー'
+        : '掲載説明会';
   const subject = eventTitle ? `【KAMOファンディング】${eventTitle} 申込完了` : `【KAMOファンディング】${bodyLabel} 申込完了`;
   const html = applyConfirmationHtml({ name, eventTitle, eventDateJa, pillar, eventDate });
   return sendEmail(email, subject, html);
@@ -218,20 +240,29 @@ export function applyConfirmationHtml({
   eventDate?: string | null;
 }): string {
   const isReal = pillar === 3;
+  const isAward = pillar === 4;
   const isOnlineSeminar = pillar === 2;
   const headingLabel = isReal
     ? 'リアルセミナー＆懇親会 申込完了'
-    : isOnlineSeminar
-      ? 'オンラインセミナー 申込完了'
-      : '掲載説明会 申込完了';
+    : isAward
+      ? `${AWARD_EVENT.shortTitle} 申込完了`
+      : isOnlineSeminar
+        ? 'オンラインセミナー 申込完了'
+        : '掲載説明会 申込完了';
   const bodyLabel = isReal
     ? 'リアルセミナー＆懇親会'
-    : isOnlineSeminar
-      ? 'オンラインセミナー'
-      : '掲載説明会';
+    : isAward
+      ? AWARD_EVENT.shortTitle
+      : isOnlineSeminar
+        ? 'オンラインセミナー'
+        : '掲載説明会';
   // リアル回は「15:00〜20:00」だけだと懇親会の存在が伝わらないため内訳を添える
   // （ページと同じ値。設定に無い回では null になり、何も足さない）
-  const breakdown = isReal ? realSessionBreakdown(eventDate) : null;
+  const breakdown = isReal
+    ? realSessionBreakdown(eventDate)
+    : isAward
+      ? awardBreakdown()
+      : null;
   // 参加区分（セミナーから参加／交流会から参加）。時間・会場・定員がこれで変わる
   const tier = isReal ? realTierFor(eventDate) : null;
   return `
@@ -257,6 +288,12 @@ export function applyConfirmationHtml({
           👥 定員：${tier ? `${tier.capacity}名` : `${pendingLabel(REAL_SEMINAR.capacity)}${REAL_SEMINAR.capacityParty ? ` / ${pendingLabel(REAL_SEMINAR.capacityParty)}` : ''}`}
           ${tier ? `<br /><span style="font-size: 13px; color: #666;">${tier.summary}</span>` : ''}
           ${PRICE_TAX_NOTE ? `<br /><span style="font-size: 12px; color: #666;">${PRICE_TAX_NOTE}</span>` : ''}
+        </p>` : isAward ? `
+        <p style="margin-top: 16px; padding: 16px; background: #FFFBF0; border-radius: 8px; font-size: 14px;">
+          🏢 ${AWARD_EVENT.format}<br />
+          💰 参加費：<strong>${pendingLabel(AWARD_EVENT.price)}</strong><br />
+          👥 定員：${pendingLabel(AWARD_EVENT.capacity)}
+          ${PRICE_TAX_NOTE ? `<br /><span style="font-size: 12px; color: #666;">${PRICE_TAX_NOTE}</span>` : ''}
         </p>` : isOnlineSeminar ? `
         <p style="margin-top: 16px; padding: 16px; background: #F4F8FF; border-radius: 8px; font-size: 14px;">
           💻 オンライン（Zoom）で開催<br />
@@ -269,12 +306,15 @@ export function applyConfirmationHtml({
           💰 参加費無料
         </p>`}
         ${paymentBlockHtml(pillar, eventDate)}
-        ${isReal ? venueBlockHtml(eventDate) : zoomBlockHtml()}
+        ${isReal ? venueBlockHtml(eventDate) : isAward ? awardVenueBlockHtml() : zoomBlockHtml()}
         <p style="margin-top: 20px;">${isReal
           ? (tier
               ? `当日は、${tier.timeLabel.split('（')[0]} の開始時刻までに ${tier.venue.main} へお越しください。`
               : '当日は、開始時刻までに会場へお越しください。')
-          : '当日、指定の日時までにZoomへアクセスしてください。'}</p>
+          : isAward
+            // 受付開始と本編開始が別時刻なので、12/8の文（開始時刻のみ）とは分けている
+            ? `当日は、${AWARD_EVENT.receptionTimeLabel.replace('受付 ', '').replace('〜', '')}の受付開始以降、${AWARD_EVENT.parts[0].timeLabel.split('〜')[0]}の開始時刻までに ${AWARD_EVENT.venue.main} へお越しください。`
+            : '当日、指定の日時までにZoomへアクセスしてください。'}</p>
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
           https://kamo-funding-app.vercel.app/

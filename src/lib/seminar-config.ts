@@ -405,6 +405,115 @@ export function realTierFor(eventDate?: string | null): RealAttendTier | null {
   return REAL_ATTEND_TIERS.find(x => new Date(x.isoDate).getTime() === t) ?? null;
 }
 
+/**
+ * 11/9 KAMOファンディングアワード（pillar 4）
+ *
+ * 🔴 **12/8のリアル回（pillar 3）とは完全に別のイベント**。
+ *   REAL_VENUE / REAL_ATTEND_TIERS / REAL_SEMINAR.sessions /
+ *   realSessionBreakdown() / realTierFor() には**一切依存しない**。
+ *   12/8側の定数に harevutai を足したり sessions を拡張すると
+ *   12/8の表示・メールが壊れるため、ここに独立して持つ。
+ *
+ * 🔴 **pillar を 4 に分ける理由（最重要）**: paymentInfoFor() は pillar で
+ *   決済券を決めている。11/9を pillar 3 に混ぜると、参加区分が特定できない行で
+ *   **12/8の券が案内される**（25,000円を払って入場できない事故と同じ形）。
+ *   pillar 4 は券が1つに固定されるため、取り違えの余地が構造的に無い。
+ *
+ * 🔴 **定員は 40 のみを持つ**（懇親会会場の定員）。
+ *   t iku 回答（2026-09-10）は「表彰式100名／懇親会40名」だが、
+ *   券は「合同交流会＋KAMOファンアワード参加権付」＝**懇親会込みの1種類だけ**なので
+ *   申込上限は小さい方の40。**100名は設定に持たない** —
+ *   観覧のみの券が無い今、100はお客様の判断材料にならないのに
+ *   「まだ空いている」という誤解だけを生む。観覧券が出たら足す。
+ */
+export interface AwardPart {
+  /** 区分ラベル（第一部／第二部／懇親会） */
+  label: string;
+  title: string;
+  /** 時間の表示 */
+  timeLabel: string;
+  /** この区分の会場 */
+  venue: string;
+  /** 懇親会かどうか（意匠の出し分け用） */
+  party?: boolean;
+}
+
+export const AWARD_VENUE = {
+  main: '池袋 harevutai',
+  party: 'YAKINIKUMAFIA',
+} as const;
+
+export const AWARD_EVENT = {
+  slug: 'award',
+  pillar: 4 as const,
+  title: 'KAMOファンディングアワード',
+  // 🔴 回次は付けない（t iku 確定・2026-09-10）。events.title も同じ文字列にする。
+  shortTitle: 'KAMOファンディングアワード',
+  lead:
+    'KAMOファンディングで挑戦した方々を表彰する年に一度の式典です。表彰式のあとは懇親会で、挑戦者・支援者と直接つながれます。',
+  format: 'リアル開催（表彰式＋懇親会）',
+  dateLabel: '11/9（月）',
+  /**
+   * DBの events.event_date と突き合わせるISO時刻（JST）。
+   * 第一部の開始時刻。受付（17:30）ではなく開始時刻を持つ。
+   */
+  isoDate: '2026-11-09T18:00:00+09:00',
+  receptionTimeLabel: '受付 17:30〜',
+  /**
+   * 🔴 時刻は t iku の公式日程画像を正として確定（2026-09-10）。
+   *   ストアの商品説明（第一部20:30終了・懇親会21:00開始）は誤りで、
+   *   ストア側の説明文修正は t iku 対応。
+   *
+   * 第二部と懇親会の間に30分空く（会場移動）。12/8のように連続していないため、
+   * timeLabel + partyTimeLabel の2本立てではなく**区間の配列**で持つ。
+   */
+  parts: [
+    {
+      label: '第一部',
+      title: 'KAMOファンディング表彰式',
+      timeLabel: '18:00〜20:00',
+      venue: AWARD_VENUE.main,
+    },
+    {
+      label: '第二部',
+      // ストアの説明は「表彰式観覧券＋鴨頭LIVE＋表彰者との懇親会参加権」で、
+      // 鴨頭LIVE = 第二部と思われるが未確認のため画像どおりの表記にしてある。
+      // 確定したらこの title と body を差し替える。
+      title: 'イベント',
+      timeLabel: '18:00〜20:00',
+      venue: AWARD_VENUE.main,
+    },
+    {
+      label: '懇親会',
+      title: '表彰者との懇親会',
+      timeLabel: '20:30〜22:30',
+      venue: AWARD_VENUE.party,
+      party: true,
+    },
+  ] as AwardPart[],
+  price: { status: 'fixed', label: '25,000円（税込）' } as PendingValue,
+  capacity: { status: 'fixed', label: '40名' } as PendingValue,
+  /** 申込上限の判定に使う実数（events.capacity と一致させる） */
+  capacityNumber: 40,
+  venue: AWARD_VENUE,
+  // PM実測（2026-09-10）。商品名は**ストア表記のまま**（全角＋を崩さない）
+  payment: {
+    productName: '合同交流会＋KAMOファンアワード参加権付',
+    productUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/72010',
+  },
+};
+
+/**
+ * 11/9アワードの内訳文字列（メール・ページ共通の単一の情報源）。
+ * 例: 受付 17:30〜／第一部 18:00〜20:00／第二部 18:00〜20:00／懇親会 20:30〜22:30
+ *
+ * 12/8の realSessionBreakdown() とは別関数。**12/8側は触らない**。
+ */
+export function awardBreakdown(): string {
+  const parts = AWARD_EVENT.parts.map(p => `${p.label} ${p.timeLabel}`);
+  return [AWARD_EVENT.receptionTimeLabel, ...parts].join('／');
+}
+
 export const SEMINAR_CONFIGS = [AI_SEMINAR, REAL_SEMINAR];
 
 /**
@@ -446,7 +555,8 @@ export interface PaymentInfo {
 
 /**
  * pillar から決済案内を決める。
- * 2 = オンラインセミナー（9,800円）／3 = リアルセミナー＆懇親会（25,000円）。
+ * 2 = オンラインセミナー（9,800円）／3 = リアルセミナー＆懇親会（25,000円）／
+ * 4 = KAMOファンディングアワード（25,000円）。
  * それ以外（無料の掲載説明会など）は null = 決済案内を出さない。
  */
 export function paymentInfoFor(pillar?: number | null, eventDate?: string | null): PaymentInfo | null {
@@ -455,6 +565,15 @@ export function paymentInfoFor(pillar?: number | null, eventDate?: string | null
       priceLabel: pendingLabel(AI_SEMINAR.price),
       // ストア掲載名と完全一致（2026-09-05 実ページ確認）
       productName: '【鴨頭嘉人特別参加会】AI時代のクラウドファンディング活用セミナー',
+    };
+  }
+  if (pillar === 4) {
+    // 🔴 11/9アワードは券が**1種類だけ**。区分による引き当てが無いので
+    //   取り違えが構造的に起きない（12/8との混同を防ぐため pillar を分けてある）。
+    return {
+      priceLabel: pendingLabel(AWARD_EVENT.price),
+      productName: AWARD_EVENT.payment.productName,
+      productUrl: AWARD_EVENT.payment.productUrl,
     };
   }
   if (pillar === 3) {

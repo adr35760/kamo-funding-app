@@ -5,7 +5,7 @@ import SiteHeader from '@/components/SiteHeader';
 import { formatEventDateJa } from '@/lib/event-format';
 import { realSessionBreakdown, realTierFor } from '@/lib/seminar-config';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
-import { AI_SEMINAR, REAL_SEMINAR } from '@/lib/seminar-config';
+import { AI_SEMINAR, REAL_SEMINAR, AWARD_EVENT, awardBreakdown } from '@/lib/seminar-config';
 import '@/styles/seminar-hub.css';
 import LegalFooter from '@/components/LegalFooter';
 
@@ -48,6 +48,7 @@ function kindOf(ev: HubEvent): KindKey {
 /** 比較カードの内容（料金・形式・所要時間・含まれるもの） */
 const COMPARE = [
   {
+    id: 'online',
     key: 'seminar' as KindKey,
     title: 'オンラインセミナー',
     price: AI_SEMINAR.price.label,
@@ -60,6 +61,7 @@ const COMPARE = [
     accent: 'red' as const,
   },
   {
+    id: 'real',
     key: 'networking' as KindKey,
     title: 'リアルセミナー＆懇親会',
     price: REAL_SEMINAR.price.label,
@@ -70,6 +72,27 @@ const COMPARE = [
     capacity: 'セミナー20名 / 懇親会40名',
     includes: REAL_SEMINAR.contents,
     detailHref: '/real-seminar',
+    accent: 'gold' as const,
+  },
+  {
+    // 🔴 11/9アワードは pillar 4 の別イベント。12/8（networking / pillar 3）とは
+    //   会場も内訳も違うので、比較カードだけを出し、申込は /award で受ける。
+    //   （日程一覧は type で絞っており、そちらには pillar 4 を出さない — 出すと
+    //     「リアルセミナー＆懇親会」というラベルが付いて誤案内になる）
+    id: 'award',
+    key: 'networking' as KindKey,
+    title: AWARD_EVENT.title,
+    price: AWARD_EVENT.price.label,
+    priceNote: `${AWARD_EVENT.dateLabel}／${AWARD_EVENT.venue.main}` as string | null,
+    format: AWARD_EVENT.format,
+    duration: awardBreakdown(),
+    capacity: AWARD_EVENT.capacity.label,
+    includes: [
+      'KAMOファンディング表彰式',
+      '第二部 イベント',
+      '表彰者との懇親会（お食事付き）',
+    ],
+    detailHref: '/award',
     accent: 'gold' as const,
   },
 ];
@@ -89,7 +112,11 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
       .then(r => r.json())
       .then(d => {
         const rows: HubEvent[] = (d.events || []).filter(
-          (e: HubEvent) => e.type === 'seminar' || e.type === 'networking'
+          // 🔴 pillar 4（11/9アワード）は type が networking なので type だけでは除けない。
+          //   サーバー側（page.tsx）と同じ条件にしないと、フォールバック時だけ混入する。
+          (e: HubEvent) =>
+            (e.type === 'seminar' || e.type === 'networking') &&
+            (e.pillar === 2 || e.pillar === 3)
         );
         setEvents(rows);
       })
@@ -173,7 +200,7 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
             <p className="sh-hero-sub">
               オンラインセミナーとリアルセミナー＆懇親会。
               <wbr />
-              2つの日程を見比べて、このページからそのままお申し込みいただけます。
+              日程を見比べて、このページからそのままお申し込みいただけます。
             </p>
             <div className="sh-hero-highlight">
               <span className="sh-hero-highlight-icon" aria-hidden="true">🔥</span>
@@ -190,12 +217,12 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
         <section className="sh-section" id="compare">
           <div className="sh-container">
             <div className="sh-section-title">
-              <h2>2つの<span className="accent">参加スタイル</span></h2>
+              <h2>3つの<span className="accent">参加スタイル</span></h2>
               <p>ご都合と目的に合わせてお選びください。</p>
             </div>
             <div className="sh-compare">
               {COMPARE.map(c => (
-                <div className={`sh-compare-card sh-accent-${c.accent}`} key={c.key}>
+                <div className={`sh-compare-card sh-accent-${c.accent}`} key={c.id}>
                   <div className="sh-compare-head">
                     <span className="sh-compare-kind">{c.title}</span>
                     <span className="sh-compare-price">{c.price}</span>

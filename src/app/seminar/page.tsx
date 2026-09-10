@@ -32,6 +32,10 @@ async function fetchHubEvents(): Promise<HubEvent[]> {
       .select('id, title, type, pillar, event_date, duration_minutes, location, capacity')
       .eq('status', 'upcoming')
       .in('type', HUB_TYPES as unknown as string[])
+      // 🔴 11/9アワード（pillar 4）は type が networking なので type だけでは除けない。
+      //   日程一覧に出すと「リアルセミナー＆懇親会」のラベルが付いて誤案内になるため、
+      //   pillar で明示的に除外する（比較カードから /award へ誘導する）。
+      .in('pillar', [2, 3])
       .order('event_date', { ascending: true });
     if (error || !data) return [];
 
