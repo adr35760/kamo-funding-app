@@ -67,7 +67,7 @@ const COMPARE = [
     format: 'リアル開催（セミナー＋懇親会）',
     // 参加区分が2つあるため、比較カードでは両方の時間を示す
     duration: 'セミナーから参加 15:00〜20:00 / 交流会から参加 18:30〜20:00',
-    capacity: 'セミナー20名 / 懇親会35名',
+    capacity: 'セミナー20名 / 懇親会40名',
     includes: REAL_SEMINAR.contents,
     detailHref: '/real-seminar',
     accent: 'gold' as const,
