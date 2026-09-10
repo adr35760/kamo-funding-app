@@ -61,6 +61,8 @@ export interface SeminarSession {
   dateLabel: string;
   /** 時間の表示（例: 16:00〜20:00） */
   timeLabel: string;
+  /** 受付時刻（リアル回のみ・A区分にのみ出す。交流会のみの方には無関係） */
+  receptionTimeLabel?: string;
   /** 懇親会の時間（リアル回のみ） */
   partyTimeLabel?: string;
   /** events.event_date に対応するISO文字列（JST） */
@@ -288,13 +290,13 @@ export const REAL_SEMINAR: SeminarConfig = {
     {
       label: '懇親会',
       title: '支援者と繋がる交流会',
-      body: '18:30〜20:00、会場を移して懇親会を行います。あなたの挑戦を応援してくれる支援者や、同じように挑戦する仲間と直接つながれます。',
+      body: '18:00〜20:00、会場を移して懇親会を行います。あなたの挑戦を応援してくれる支援者や、同じように挑戦する仲間と直接つながれます。',
       party: true,
     },
   ],
-  // セミナー本編は15:00〜18:30＝3時間半（懇親会を足すと5時間だが、
-  // 企画が完成するのはセミナー部分なので「3時間半」が正しい）
-  programClosing: '3時間半後には、あなたのクラウドファンディング企画と掲載ページのたたき台が完成します。',
+  // セミナー本編は15:30〜18:00＝2時間半（懇親会を足すと受付から5時間だが、
+  // 企画が完成するのはセミナー部分なので「2時間半」が正しい）
+  programClosing: '2時間半後には、あなたのクラウドファンディング企画と掲載ページのたたき台が完成します。',
   // オンライン回と同じ3名。鴨頭嘉人は会場に実際に立つので役割ラベルだけ変える
   speakers: coreSpeakers('特別登壇（リアル登壇）'),
   // 10/25 第1回は開催中止（2026-09-05・t iku判断）。
@@ -306,8 +308,9 @@ export const REAL_SEMINAR: SeminarConfig = {
     {
       round: 2,
       dateLabel: '12/8（火）',
-      timeLabel: 'セミナー 15:00〜18:30',
-      partyTimeLabel: '懇親会 18:30〜20:00',
+      receptionTimeLabel: '受付 15:00〜',
+      timeLabel: 'セミナー 15:30〜18:00',
+      partyTimeLabel: '懇親会 18:00〜20:00',
       isoDate: '2026-12-08T15:00:00+09:00',
     },
   ],
@@ -325,7 +328,7 @@ export const REAL_SEMINAR: SeminarConfig = {
  *   既存の申込フロー（/api/apply の満席判定・中止判定・完了メール・
  *   当日リマインドcron）が**そのまま両区分に効く**。
  *   完了メールの日時も events.event_date から出るので、
- *   交流会のみの方には自動的に「18:30〜20:00」が入る（15:00は出ない）。
+ *   交流会のみの方には自動的に「18:00〜20:00」が入る（15:00・受付行は出ない）。
  *
  * 🔴 定員の注意: 懇親会の上限は40名で、**セミナー参加者20名も懇親会に入る**。
  *   そのため交流会のみの枠は 40 − 20 = **20名** を上限にしてあり、
@@ -376,8 +379,8 @@ export const REAL_ATTEND_TIERS: RealAttendTier[] = [
   },
   {
     label: '交流会から参加',
-    isoDate: '2026-12-08T18:30:00+09:00',
-    timeLabel: '18:30〜20:00（懇親会のみ）',
+    isoDate: '2026-12-08T18:00:00+09:00',
+    timeLabel: '18:00〜20:00（懇親会のみ）',
     // 懇親会のみの方はエデュケーションギャラリーには来ないので出さない
     venue: { main: REAL_VENUE.party },
     capacity: 20,
@@ -477,13 +480,13 @@ export function paymentInfoFor(pillar?: number | null, eventDate?: string | null
  * リアル回の「セミナー／懇親会」の内訳表記を返す。
  *
  * 🔴 リアル回の開催日時は DB では **セミナー開始〜懇親会終了（15:00〜20:00）** の
- *   ひとつの範囲になっている。範囲だけを見せると「18:30に終わる」あるいは
+ *   ひとつの範囲になっている。範囲だけを見せると「18:00に終わる」あるいは
  *   逆に「20:00までセミナー」と誤解されるため、**内訳を必ず添える**。
  *   ページ（/real-seminar）はこの内訳を元から出しているので、
  *   メール側も同じ値を出して数字を揃える。
  *
  * @param eventDate DBの events.event_date（ISO文字列）
- * @returns 内訳の文字列（例: セミナー 15:00〜18:30／懇親会 18:30〜20:00）。
+ * @returns 内訳の文字列（例: 受付 15:00〜／セミナー 15:30〜18:00／懇親会 18:00〜20:00）。
  *          該当セッションが設定に無ければ null（推測で書かない）。
  */
 export function realSessionBreakdown(eventDate?: string | null): string | null {
@@ -492,7 +495,7 @@ export function realSessionBreakdown(eventDate?: string | null): string | null {
   if (Number.isNaN(target)) return null;
 
   // 「交流会から参加」の区分は懇親会だけなので、
-  // セミナー本編の 15:00 を出すと**来る時間を間違える**。懇親会の時間だけ返す。
+  // セミナー本編の 15:30 や受付 15:00 を出すと**来る時間を間違える**。懇親会の時間だけ返す。
   const tier = realTierFor(eventDate);
   if (tier?.partyOnly) {
     const party = REAL_SEMINAR.sessions[0]?.partyTimeLabel;
@@ -501,7 +504,8 @@ export function realSessionBreakdown(eventDate?: string | null): string | null {
 
   const s = REAL_SEMINAR.sessions.find(x => new Date(x.isoDate).getTime() === target);
   if (!s) return null;
-  const parts = [s.timeLabel, s.partyTimeLabel].filter(Boolean) as string[];
+  // A区分のみ受付行を先頭に足す（partyOnly は上で return 済み）
+  const parts = [s.receptionTimeLabel, s.timeLabel, s.partyTimeLabel].filter(Boolean) as string[];
   if (parts.length === 0) return null;
   return parts.join('／');
 }

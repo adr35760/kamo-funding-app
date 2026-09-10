@@ -283,6 +283,9 @@ export default function SeminarLanding({
                   <span className="sl-date">{s.dateLabel}</span>
                 </div>
                 <div className="sl-schedule-body">
+                  {/* 受付はセミナー本編より前。A区分（セミナーから参加）の案内なので
+                      交流会のみの方向けの表示（区分カード側）には出さない */}
+                  {s.receptionTimeLabel && <p className="sl-time sl-time-sub">{s.receptionTimeLabel}</p>}
                   <p className="sl-time">{s.timeLabel}</p>
                   {s.partyTimeLabel && <p className="sl-time sl-time-sub">{s.partyTimeLabel}</p>}
                   {config.venue ? (
