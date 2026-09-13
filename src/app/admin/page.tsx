@@ -105,6 +105,18 @@ export default function AdminPage() {
   const [deleting, setDeleting] = useState<string>('');
   const [showEventForm, setShowEventForm] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string>('');
+  /**
+   * 申込者一覧の**取得結果**（表示件数0の理由を区別するために持つ）。
+   *
+   * なぜ必要か: 以前は「絞り込みで0件」「認証切れ」「取得失敗」のすべてが
+   * 同じ「申込データがありません」になり、**データが消えたように読めた**。
+   * 0件の理由を取り違えると復旧作業の判断まで誤るため、状態として分ける。
+   *
+   *  - 'ok'     … 取得成功（0件なら本当に0件）
+   *  - 'auth'   … 401/403。Basic認証が切れている（ログインし直しで直る）
+   *  - 'error'  … それ以外の失敗（ネットワーク・サーバーエラー）
+   */
+  const [regsFetchState, setRegsFetchState] = useState<'ok' | 'auth' | 'error'>('ok');
   // 一括削除用: チェックされた行の id 集合
   const [selectedRegIds, setSelectedRegIds] = useState<Set<string>>(new Set());
   const [selectedPartnerIds, setSelectedPartnerIds] = useState<Set<string>>(new Set());
@@ -136,10 +148,16 @@ export default function AdminPage() {
       setEvents(eventsData.events || []);
     }
     // 申込者一覧取得（admin API経由 — service role key使用）
+    // 失敗の種類を記録する。空表示になったとき「消えた」と誤読させないため。
     const regsRes = await fetch('/api/admin/registrations');
     if (regsRes.ok) {
       const regsData = await regsRes.json();
       setRegistrations(regsData.registrations || []);
+      // API が 200 でも error を返す経路がある（Supabase エラー時）
+      setRegsFetchState(regsData.error ? 'error' : 'ok');
+    } else {
+      // 取得できなかったときは**前回の値を消さない**（消えたように見せない）
+      setRegsFetchState(regsRes.status === 401 || regsRes.status === 403 ? 'auth' : 'error');
     }
     // パートナー一覧取得
     const partnersRes = await fetch('/api/admin/partners');
@@ -154,7 +172,9 @@ export default function AdminPage() {
       setReferrals(referralsData.referrals || []);
     }
     } catch {
-      // fetch error — 空のまま
+      // fetch 自体が失敗（オフライン等）。**既に表示中の一覧は消さず**、
+      // 「取得できなかった」ことだけを伝える。
+      setRegsFetchState('error');
     }
     setLoading(false);
     // 一括削除後の再取得時は選択をクリア
@@ -357,6 +377,37 @@ export default function AdminPage() {
     ? registrations.filter(r => r.event_id === selectedEventId)
     : registrations;
 
+  /**
+   * イベントごとの申込件数。
+   * プルダウンに件数を出して、**0件のイベントを選ぶ前に分かる**ようにする。
+   */
+  const regCountByEventId = registrations.reduce<Record<string, number>>((acc, r) => {
+    acc[r.event_id] = (acc[r.event_id] || 0) + 1;
+    return acc;
+  }, {});
+
+  /**
+   * 申込者一覧が0件のときに出す文言。
+   * 「消えた」と誤読される空表示を、**0件の理由ごとに**言い分ける。
+   * 件数はすべて state 由来（ハードコードしない）。
+   */
+  const registrationsEmptyMessage = (): string => {
+    if (regsFetchState === 'auth') {
+      return '一覧を取得できませんでした（ログインが切れています）。ページを再読み込みして、管理画面のユーザー名とパスワードを入力し直してください。';
+    }
+    if (regsFetchState === 'error') {
+      return '一覧を取得できませんでした（通信またはサーバー側のエラー）。ページを再読み込みしてください。繰り返す場合は開発担当に連絡してください。';
+    }
+    if (selectedEventId) {
+      const ev = events.find(e => e.id === selectedEventId);
+      const evName = ev ? ev.title : 'このイベント';
+      // 総件数は registrations.length から動的に埋める（来週19件目が入っても正しい）
+      // プルダウンの選択肢名と**完全に同じ文字列**で案内する（画面の言葉と一致させる）
+      return `「${evName}」の申込はまだ0件です。他のイベントの申込は残っています（プルダウンを「全イベント（${registrations.length}件）」に切り替えると${registrations.length}件表示されます）。`;
+    }
+    return '申込データがありません。LPが公開されると申込が蓄積されます。';
+  };
+
   /** 全選択チェックボックス（一覧表示中の行すべて） */
   const allRegsSelected = filteredRegs.length > 0 && filteredRegs.every(r => selectedRegIds.has(r.id));
   const toggleAllRegs = () => {
@@ -555,9 +606,11 @@ export default function AdminPage() {
                       // 長いイベント名でも横幅を押し広げない
                       maxWidth: 260, minWidth: 0,
                     }}>
-                    <option value="">全イベント</option>
+                    <option value="">全イベント（{registrations.length}件）</option>
                     {events.map(ev => (
-                      <option key={ev.id} value={ev.id}>{ev.title}</option>
+                      <option key={ev.id} value={ev.id}>
+                        {ev.title}（{regCountByEventId[ev.id] || 0}件）
+                      </option>
                     ))}
                   </select>
                   <button
@@ -586,7 +639,7 @@ export default function AdminPage() {
               <UtmSummary regs={filteredRegs} />
 
               {filteredRegs.length === 0 ? (
-                <EmptyState message="申込データがありません。LPが公開されると申込が蓄積されます。" />
+                <EmptyState message={registrationsEmptyMessage()} />
               ) : (
                 // 列が多いので横スクロールで受ける（狭い画面でページ全体が横に広がるのを防ぐ）
                 <div style={{ overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
