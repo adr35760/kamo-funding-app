@@ -4,12 +4,37 @@ import { useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
 import LegalFooter from '@/components/LegalFooter';
 import GeneratedPageDoc, { generatedDocStyles } from '@/components/GeneratedPageDoc';
-import { extendedToJapaneseJSON, type ProjectExtended } from '@/lib/ai-extended';
+import { charLength, extendedToJapaneseJSON, type ProjectExtended } from '@/lib/ai-extended';
 import {
   REWARD_CATEGORIES,
   REWARD_CATEGORY_LABELS,
   normalizeRewardCategory,
 } from '@/lib/ai-prompts';
+
+/** プロフィールの上限文字数（t iku指示 2026-09-13: 300文字以内） */
+const PROFILE_MAX_LENGTH = 300;
+
+/**
+ * メールアドレスの形式チェック。
+ * 必須項目の判定に使うだけなので、厳密なRFC準拠より
+ * 「打ち間違いで事務局から連絡が付かない」を防ぐ最小の形にしている。
+ */
+/**
+ * URLの正規化。空欄は空文字のまま返す（空を URL にしない）。
+ * `x.com/kamo` のようにスキーマ無しで入力された値に `https://` を補う。
+ */
+function normalizeUrl(v: string): string {
+  const s = v.trim();
+  if (!s) return '';
+  if (/^https?:\/\//i.test(s)) return s;
+  // `//example.com` のような入力も拾う
+  return `https://${s.replace(/^\/+/, '')}`;
+}
+
+function isValidEmail(v: string): boolean {
+  const s = v.trim();
+  return s.length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
 
 interface GeneratedPage {
   project: {
@@ -31,6 +56,7 @@ interface GeneratedPage {
       avatar: string;
       bio: string;
       organization: string;
+      links?: { x?: string; facebook?: string; instagram?: string; website?: string };
     };
     legal_info: Record<string, string>;
     extended?: ProjectExtended;
@@ -75,8 +101,38 @@ export default function AIToolPage() {
     projectTrigger: '',
     crowdfundingGoal: '',
     activityHistory: '',
+    /** 起案者プロフィール（300文字以内・任意）。生成の creator.bio の起点になる */
+    creatorProfile: '',
+    /**
+     * SNS・サイトのURL（すべて任意）。
+     * URLは公開して差し支えない情報なので、メール・電話とは違い掲載JSON側にも載せる。
+     * 🔴 入力欄は type="text"。type="url" だと `x.com/kamo` のように
+     *   https:// を付けずに入れた人がブラウザ検証で弾かれて先に進めなくなるため、
+     *   入力の敷居は上げず**送信時に https:// を補う正規化**で正しい値にする。
+     */
+    snsX: '',
+    snsFacebook: '',
+    snsInstagram: '',
+    siteUrl: '',
     creatorName: '',
-    organization: '',
+    /**
+     * プロジェクト実施名（個人・法人・団体名のいずれか）。
+     * 旧「組織名」の後継で、掲載内容の事業者名を引き継ぐ。
+     */
+    projectEntityName: '',
+  });
+
+  /**
+   * 🔴 事務局提出用の連絡先（メールアドレス・電話番号）。
+   *
+   * 口座情報と**同じ設計**で form とは別stateに分離している。
+   * AIへの送信ペイロード・掲載用JSON・PDFのどこにも載せないため、
+   * 混入経路を構造的に作れないようにするのが目的
+   * （公開ページに個人の連絡先が出る事故を型と経路の両方で封じる）。
+   */
+  const [contact, setContact] = useState({
+    email: '',
+    phone: '',
   });
 
   /**
@@ -101,20 +157,53 @@ export default function AIToolPage() {
     setBank(prev => ({ ...prev, [key]: value }));
   };
 
+  const updateContact = (key: string, value: string) => {
+    setContact(prev => ({ ...prev, [key]: value }));
+  };
+
   const hasBankInput = Object.values(bank).some(v => v && v !== '普通');
 
+  // プロフィールの残り文字数（日本語はコードポイント数で数える）
+  const profileRemaining = PROFILE_MAX_LENGTH - charLength(form.creatorProfile);
+
+  /**
+   * 送信用に form を正規化する。
+   * URLは入力の敷居を下げるため `https://` 無しでも受けており、ここで補う。
+   * 空欄はそのまま空文字で渡し、**受け取り側が「空なら行を出さない」**を守る。
+   */
+  const normalizedForm = () => ({
+    ...form,
+    snsX: normalizeUrl(form.snsX),
+    snsFacebook: normalizeUrl(form.snsFacebook),
+    snsInstagram: normalizeUrl(form.snsInstagram),
+    siteUrl: normalizeUrl(form.siteUrl),
+  });
+
   const canProceedStep1 =
-    form.industry && form.businessDescription && form.creatorName && form.goalAmount > 0;
+    form.industry &&
+    form.businessDescription &&
+    form.creatorName &&
+    form.goalAmount > 0 &&
+    // メールアドレス・電話番号は必須（事務局からの連絡手段）
+    isValidEmail(contact.email) &&
+    contact.phone.trim().length > 0;
 
   const handleGenerate = async () => {
     setLoading(true);
     setStep(3);
     try {
-      // ⚠️ 送るのは form のみ。口座(bank)は別stateなので構造的に混入しない。
+      // ⚠️ 生成に渡すのは form のみ。口座(bank)と連絡先(contact)は別stateなので
+      //    プロンプト・掲載JSON・PDFには構造的に混入しない。
+      //    contact と口座のマスク表示は**事務局宛リマインドメール専用**として
+      //    別キーで送る（サーバ側で input から除外してから生成に使う）。
       const res = await fetch('/api/ai/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...normalizedForm(),
+          contact,
+          ...(hasBankInput ? { bankMasked: maskBank(bank) } : {}),
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -155,7 +244,18 @@ export default function AIToolPage() {
       起案者: {
         氏名: page.project.creator.name,
         紹介: page.project.creator.bio,
-        組織名: page.project.creator.organization,
+        プロジェクト実施名: page.project.creator.organization,
+        // 入力があったものだけ出す（空欄の「XのURL: 」という行を作らない）
+        ...(page.project.creator.links
+          ? {
+              リンク: {
+                ...(page.project.creator.links.x ? { X: page.project.creator.links.x } : {}),
+                ...(page.project.creator.links.facebook ? { Facebook: page.project.creator.links.facebook } : {}),
+                ...(page.project.creator.links.instagram ? { Instagram: page.project.creator.links.instagram } : {}),
+                ...(page.project.creator.links.website ? { 'HP・ブログ': page.project.creator.links.website } : {}),
+              },
+            }
+          : {}),
       },
       '特定商取引法に基づく表示': page.project.legal_info,
       ...(page.project.extended
@@ -209,8 +309,10 @@ export default function AIToolPage() {
         // サーバ側でも page とは別カラムに保存する。
         body: JSON.stringify({
           page: result,
-          input: form,
+          input: normalizedForm(),
           mode,
+          // 連絡先は page（掲載用JSON）には入らない別カラム扱い。口座と同じ経路。
+          contact,
           ...(hasBankInput ? { bank_account: bank } : {}),
         }),
       });
@@ -380,7 +482,7 @@ export default function AIToolPage() {
             </Field>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <Field label="目標金額（円）" required>
+              <Field label="集めたい金額の希望額（円）" required>
                 <input type="number" value={form.goalAmount}
                   onChange={e => updateForm('goalAmount', Number(e.target.value))}
                   style={inputStyle} min={10000} step={10000} />
@@ -444,6 +546,57 @@ export default function AIToolPage() {
               </p>
             </Field>
 
+            <Field label="あなたのプロフィール（300文字以内）">
+              <textarea value={form.creatorProfile}
+                maxLength={PROFILE_MAX_LENGTH}
+                onChange={e => updateForm('creatorProfile', e.target.value)}
+                style={{ ...inputStyle, minHeight: 90 }}
+                placeholder="例: 2015年に沖縄で創業。地元食材を使った飲食店を2店舗運営しています。食を通じて地域の生産者と消費者をつなぐことをテーマに活動してきました。" />
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, margin: '4px 0 0' }}>
+                <p style={{ fontSize: 11, color: '#999', margin: 0 }}>
+                  入力すると生成結果の「起案者紹介」がこの内容を起点に書かれます（空欄の場合はAIが推定して書きます）。
+                </p>
+                {/* 残り文字数。300を超える入力は maxLength で弾かれる */}
+                <p style={{
+                  fontSize: 11, margin: 0, whiteSpace: 'nowrap',
+                  color: profileRemaining <= 20 ? '#E60012' : '#999',
+                }}>
+                  残り {profileRemaining} 文字
+                </p>
+              </div>
+            </Field>
+
+            {/* SNS・サイトのURL（すべて任意）。
+                type="url" にしないのは、https:// を付けない入力を
+                ブラウザ検証で弾いて先に進めなくしてしまうため。 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <Field label="XのURL">
+                <input type="text" value={form.snsX}
+                  onChange={e => updateForm('snsX', e.target.value)}
+                  style={inputStyle} placeholder="例: x.com/kamofunding" autoComplete="off" />
+              </Field>
+              <Field label="FacebookのURL">
+                <input type="text" value={form.snsFacebook}
+                  onChange={e => updateForm('snsFacebook', e.target.value)}
+                  style={inputStyle} placeholder="例: facebook.com/kamofunding" autoComplete="off" />
+              </Field>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <Field label="InstagramのURL">
+                <input type="text" value={form.snsInstagram}
+                  onChange={e => updateForm('snsInstagram', e.target.value)}
+                  style={inputStyle} placeholder="例: instagram.com/kamofunding" autoComplete="off" />
+              </Field>
+              <Field label="HPやブログのURL">
+                <input type="text" value={form.siteUrl}
+                  onChange={e => updateForm('siteUrl', e.target.value)}
+                  style={inputStyle} placeholder="例: kamofunding.com" autoComplete="off" />
+              </Field>
+            </div>
+            <p style={{ fontSize: 11, color: '#999', margin: '-4px 0 0' }}>
+              すべて任意です。「https://」は無くても構いません（送信時に自動で補います）。
+            </p>
+
             {/* 支援金振込口座 — KAMO事務局への提出用。掲載内容・PDF・AI生成には使いません */}
             <div style={{
               border: '1px solid #E6D9A8', background: '#FFFDF5',
@@ -482,7 +635,13 @@ export default function AIToolPage() {
                 </div>
                 <Field label="口座名義">
                   <input value={bank.accountHolder} onChange={e => updateBank('accountHolder', e.target.value)}
-                    style={inputStyle} placeholder="例: カブシキガイシャ〇〇" autoComplete="off" />
+                    style={inputStyle} placeholder="例: yamada taro" autoComplete="off" />
+                  {/* 🔴 案内のみ。入力値の自動小文字化はしない —
+                      勝手に変換すると、本人の申告と実際の口座情報が食い違ったときに
+                      原因が追えなくなる（入力された文字をそのまま事務局へ渡す）。 */}
+                  <p style={{ fontSize: 11, color: '#8A6D1F', margin: '4px 0 0' }}>
+                    半角小文字で入力ください
+                  </p>
                 </Field>
               </div>
             </div>
@@ -494,10 +653,30 @@ export default function AIToolPage() {
                   style={inputStyle} placeholder="山田 太郎" />
               </Field>
 
-              <Field label="組織名">
-                <input value={form.organization}
-                  onChange={e => updateForm('organization', e.target.value)}
-                  style={inputStyle} placeholder="株式会社〇〇" />
+              <Field label="メールアドレス" required>
+                <input type="email" value={contact.email}
+                  onChange={e => updateContact('email', e.target.value)}
+                  style={inputStyle} placeholder="example@email.com" autoComplete="email" />
+                <p style={{ fontSize: 11, color: '#8A6D1F', margin: '4px 0 0' }}>
+                  KAMO事務局からのご連絡用です。掲載用JSON・PDF・AI生成には使用しません。
+                </p>
+              </Field>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <Field label="電話番号" required>
+                <input type="tel" value={contact.phone}
+                  onChange={e => updateContact('phone', e.target.value)}
+                  style={inputStyle} placeholder="例: 090-1234-5678" autoComplete="tel" />
+                <p style={{ fontSize: 11, color: '#8A6D1F', margin: '4px 0 0' }}>
+                  KAMO事務局からのご連絡用です。掲載用JSON・PDF・AI生成には使用しません。
+                </p>
+              </Field>
+
+              <Field label="プロジェクト実施名（個人・法人・団体名のいずれか）">
+                <input value={form.projectEntityName}
+                  onChange={e => updateForm('projectEntityName', e.target.value)}
+                  style={inputStyle} placeholder="例: 株式会社〇〇 / 〇〇商店 / 山田 太郎" />
               </Field>
             </div>
           </div>
@@ -525,15 +704,23 @@ export default function AIToolPage() {
           <div style={{ background: '#f9f9f9', borderRadius: 8, padding: 20, marginBottom: 20 }}>
             <ConfirmRow label="業種" value={form.industry} />
             <ConfirmRow label="事業概要" value={form.businessDescription} />
-            <ConfirmRow label="目標金額" value={`¥${form.goalAmount.toLocaleString()}`} />
+            <ConfirmRow label="集めたい金額の希望額" value={`¥${form.goalAmount.toLocaleString()}`} />
             <ConfirmRow label="募集期間" value={`${form.deadlineDays}日`} />
             <ConfirmRow label="ターゲット層" value={form.targetAudience} />
             <ConfirmRow label="本業の現状課題" value={form.currentChallenge} />
             <ConfirmRow label="今回プロジェクトをおこなうきっかけ" value={form.projectTrigger} />
             <ConfirmRow label="クラファンで実現したいこと" value={form.crowdfundingGoal} />
             <ConfirmRow label="活動履歴" value={form.activityHistory} />
+            <ConfirmRow label="あなたのプロフィール" value={form.creatorProfile} />
+            {/* 空欄は ConfirmRow が null を返すので行が出ない */}
+            <ConfirmRow label="XのURL" value={form.snsX} />
+            <ConfirmRow label="FacebookのURL" value={form.snsFacebook} />
+            <ConfirmRow label="InstagramのURL" value={form.snsInstagram} />
+            <ConfirmRow label="HPやブログのURL" value={form.siteUrl} />
             <ConfirmRow label="起案者名" value={form.creatorName} />
-            <ConfirmRow label="組織名" value={form.organization} />
+            <ConfirmRow label="メールアドレス" value={contact.email} />
+            <ConfirmRow label="電話番号" value={contact.phone} />
+            <ConfirmRow label="プロジェクト実施名" value={form.projectEntityName} />
             {/* 口座は確認画面でもマスク表示（画面共有・スクショ事故を避ける） */}
             <ConfirmRow label="支援金振込口座" value={hasBankInput ? maskBank(bank) : ''} />
           </div>

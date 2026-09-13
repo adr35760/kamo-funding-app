@@ -19,7 +19,7 @@ export const SYSTEM_PROMPT = `あなたはKAMOファンディングのクラウ�
 7. スポンサー層にはブロンズ/シルバー/ゴールド/ダイヤモンドの名称を使用
 8. project.extended の7項目（名称案3案・概要・なぜ・創出・発表会企画・活動歴・費用内訳）を必ず生成する
 9. 文字数指定は厳守する。特に extended.overview / why_started / what_creates は各400文字（±40文字）で書く
-10. extended.title_proposals は各20文字ちょうど。記号や空白で字数を稼がず、日本語として自然な名称にする
+10. extended.title_proposals と project.title は**各23文字ちょうど**で、**必ず「〜したい！」で終える**。記号や空白で字数を稼がず、日本語として自然な名称にする
 11. extended.cost_breakdown の amount の合計は goal_amount と完全に一致させる`;
 
 /**
@@ -72,7 +72,30 @@ export interface HearingInput {
   projectTrigger?: string;
   crowdfundingGoal: string;  // クラファンで実現したいこと
   creatorName: string;       // 起案者名
-  organization: string;      // 組織名
+  /**
+   * プロジェクト実施名（個人・法人・団体名のいずれか）。
+   * 旧 `organization`（組織名）の後継で、掲載内容の事業者名を引き継ぐ。
+   */
+  projectEntityName?: string;
+  /**
+   * 起案者プロフィール（300文字以内・任意）。
+   * creator.bio と extended の元ネタ。空ならAIが推定で埋める。
+   */
+  creatorProfile?: string;
+  /**
+   * SNS・サイトのURL（すべて任意）。
+   * URLは公開して差し支えない情報なので、メール・電話とは違い掲載JSONにも載せる。
+   * 🔴 **空欄の項目は掲載物にもメールにも行を出さない**（`""` で埋めた行を並べない）。
+   */
+  snsX?: string;
+  snsFacebook?: string;
+  snsInstagram?: string;
+  siteUrl?: string;
+  /**
+   * 🔴 旧「組織名」。互換のため残してあるが**新規入力では使わない**。
+   * `projectEntityName` が未指定のときのフォールバックとしてのみ参照する。
+   */
+  organization?: string;
   /**
    * 活動履歴（起業してからの時系列。任意）。
    * 生成側の「活動歴」の元ネタとして使う。空ならAIが推定で埋める。
@@ -85,12 +108,55 @@ export interface HearingInput {
  * AIプロンプト・掲載用JSON・PDFのどこにも載せないため、
  * 生成系とは完全に別の型・別の経路（/api/ai/submit の bank_account）で扱う。
  */
+
+/**
+ * 🔴 事務局提出用の連絡先（メールアドレス・電話番号）。
+ *
+ * **HearingInput には絶対に含めない。** 口座情報と同じ設計で、
+ * AIプロンプト・掲載用JSON・PDFのどこにも載らないよう
+ * **型のレベルで経路を分けている**（公開ページに個人の連絡先が
+ * 載る事故を構造的に封じるため）。事務局宛メールにのみ載せる。
+ */
+export interface ContactInput {
+  email: string;
+  phone: string;
+}
 export interface BankAccountInput {
   bankName: string;
   branchName: string;
   accountType: string;
   accountNumber: string;
   accountHolder: string;
+}
+
+/** 起案者のSNS・サイトリンク。入力があったキーだけが存在する */
+export interface CreatorLinks {
+  x?: string;
+  facebook?: string;
+  instagram?: string;
+  website?: string;
+}
+
+/**
+ * ヒアリング入力からSNSリンクを組み立てる。
+ * 🔴 **空欄のキーは作らない** — `{ x: '' }` のような行が
+ *   掲載JSON・PDF・メールに出るのを防ぐため、undefined ではなくキー自体を落とす。
+ */
+export function buildCreatorLinks(input: {
+  snsX?: string; snsFacebook?: string; snsInstagram?: string; siteUrl?: string;
+}): CreatorLinks | undefined {
+  const entries: Array<[keyof CreatorLinks, string | undefined]> = [
+    ['x', input.snsX],
+    ['facebook', input.snsFacebook],
+    ['instagram', input.snsInstagram],
+    ['website', input.siteUrl],
+  ];
+  const links: CreatorLinks = {};
+  for (const [k, v] of entries) {
+    const s = (v ?? '').trim();
+    if (s) links[k] = s;
+  }
+  return Object.keys(links).length > 0 ? links : undefined;
 }
 
 export interface ProjectStory {
@@ -131,6 +197,11 @@ export interface CrowdfundingPage {
       avatar: string;
       bio: string;
       organization: string;
+      /**
+       * SNS・サイトのリンク。**入力があったものだけ**が入る
+       * （空欄を空文字で埋めた項目は載せない）。
+       */
+      links?: CreatorLinks;
     };
     legal_info: {
       business_name: string;
@@ -156,6 +227,19 @@ export interface CrowdfundingPage {
 /**
  * ヒアリング入力からプロンプトを構築
  */
+/**
+ * SNS・サイトのURLをプロンプトに載せる行を作る。
+ * 🔴 入力があったものだけを出す（空欄の行を並べない）。
+ */
+function buildLinkLines(input: HearingInput): string {
+  const rows: string[] = [];
+  if (input.snsX?.trim()) rows.push(`- XのURL: ${input.snsX.trim()}`);
+  if (input.snsFacebook?.trim()) rows.push(`- FacebookのURL: ${input.snsFacebook.trim()}`);
+  if (input.snsInstagram?.trim()) rows.push(`- InstagramのURL: ${input.snsInstagram.trim()}`);
+  if (input.siteUrl?.trim()) rows.push(`- HPやブログのURL: ${input.siteUrl.trim()}`);
+  return rows.length ? `\n${rows.join('\n')}` : '';
+}
+
 export function buildPageGenerationPrompt(input: HearingInput): string {
   return `以下のヒアリング情報をもとに、KAMOファンディングのクラウドファンディングページの内容を生成してください。
 
@@ -170,7 +254,9 @@ export function buildPageGenerationPrompt(input: HearingInput): string {
 ${input.projectTrigger}` : ''}
 - クラファンで実現したいこと: ${input.crowdfundingGoal}
 - 起案者名: ${input.creatorName}
-- 組織名: ${input.organization}${input.activityHistory ? `
+- プロジェクト実施名（個人・法人・団体名のいずれか）: ${input.projectEntityName ?? ''}${input.creatorProfile ? `
+- 起案者プロフィール（起案者の申告。**creator.bio と extended はこの内容を必ず起点にして書く**こと。ここに書かれていない経歴を捏造しない）:
+${input.creatorProfile}` : ''}${buildLinkLines(input)}${input.activityHistory ? `
 - これまでの活動履歴（起案者の申告。extended.activity_history はこの内容を時系列に整形して使うこと。捏造しない）:
 ${input.activityHistory}` : ''}
 
@@ -196,10 +282,10 @@ ${input.activityHistory}` : ''}
       "name": "${input.creatorName}",
       "avatar": "",
       "bio": "起案者の簡単な紹介",
-      "organization": "${input.organization}"
+      "organization": "${input.projectEntityName ?? ''}"
     },
     "legal_info": {
-      "business_name": "${input.organization}",
+      "business_name": "${input.projectEntityName ?? ''}",
       "address": "",
       "representative": "${input.creatorName}",
       "contact_email": "",
@@ -211,7 +297,7 @@ ${input.activityHistory}` : ''}
       "defects": "14日以内にお問い合わせ"
     },
     "extended": {
-      "title_proposals": ["20文字ちょうどの名称案1", "20文字ちょうどの名称案2", "20文字ちょうどの名称案3"],
+      "title_proposals": ["23文字ちょうど・したい！で終わる名称案1", "23文字ちょうど・したい！で終わる名称案2", "23文字ちょうど・したい！で終わる名称案3"],
       "overview": "プロジェクト概要（400文字）",
       "why_started": "なぜこの企画を始めたのか（400文字）",
       "what_creates": "この企画で何を創出するのか（400文字）",
@@ -248,7 +334,8 @@ ${input.activityHistory}` : ''}
 }
 
 【extended（追加7項目）の要件（必須）】
-1. title_proposals: プロジェクト名称の提案を**3案**。**各案は必ず20文字ちょうど**（日本語の文字数。半角空白・記号での字数稼ぎは禁止）。3案はそれぞれ切り口を変える（例: 価値訴求型／課題解決型／共感喚起型）
+1. title_proposals: プロジェクト名称の提案を**3案**。**各案は必ず23文字ちょうど**（日本語の文字数。半角空白・記号での字数稼ぎは禁止）で、**必ず「〜したい！」で終える**（例:「地元食材のデリバリーを地域のみんなと実現したい！」）。3案はそれぞれ切り口を変える（例: 価値訴求型／課題解決型／共感喚起型）
+   🔴 **project.title も同じルール（23文字ちょうど・「〜したい！」締め）**で生成すること。名称案と主タイトルで規則が違うと掲載時に不整合になる。
 2. overview: プロジェクト概要。**400文字以上**（360文字未満は不可・上限440文字）。何を、誰に、なぜ、どうやるのかが単体で分かる文章
 3. why_started: なぜこの企画を始めたのか。**400文字以上**（360文字未満は不可・上限440文字）。起案者の実体験・現状の課題・危機感を具体的に
 4. what_creates: この企画で何を創出するのか。**400文字以上**（360文字未満は不可・上限440文字）。支援者・地域・業界にとっての価値を具体的に

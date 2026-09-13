@@ -1,7 +1,7 @@
 /**
  * 生成結果の追加7項目（t iku指示）のスキーマと**サーバ側の検証・補正**。
  *
- * 1. プロジェクト名称の提案（20文字 × 3案）
+ * 1. プロジェクト名称の提案（23文字 × 3案・必ず「したい！」で締める）
  * 2. プロジェクト概要（約400文字）
  * 3. なぜこの企画を始めたのか（約400文字）
  * 4. この企画で何を創出するのか（約400文字）
@@ -14,8 +14,19 @@
  * 文字数は日本語なのでコードポイント数（[...str].length）で数える。
  */
 
-/** 名称案の目標文字数（t iku指示: 20文字） */
-export const TITLE_PROPOSAL_LENGTH = 20;
+/** 名称案の目標文字数（t iku指示 2026-09-13: 20文字 → 23文字） */
+export const TITLE_PROPOSAL_LENGTH = 23;
+
+/**
+ * 名称案の必須の締め（t iku指示 2026-09-13）。
+ *
+ * 🔴 **長すぎて切る経路で最初に落ちるのがここ**。23文字で機械的に切ると
+ *   末尾の「したい！」が消えて仕様を満たさなくなる。adjustTitleProposal() では
+ *   **本体を 23−4=19 文字に収めてから付け直す**順序で組み立てている。
+ */
+export const TITLE_PROPOSAL_SUFFIX = 'したい！';
+/** 本体（接尾語を除いた部分）に使える文字数 */
+const TITLE_BODY_LENGTH = TITLE_PROPOSAL_LENGTH - Array.from(TITLE_PROPOSAL_SUFFIX).length;
 /** 概要・なぜ・創出の目標文字数（約400文字） */
 export const LONG_TEXT_TARGET = 400;
 /** 上記の許容下限。これを下回ったら補正・再生成の対象にする */
@@ -52,7 +63,7 @@ export interface CostBreakdownItem {
 
 /** 生成結果の追加7項目 */
 export interface ProjectExtended {
-  /** 1. プロジェクト名称の提案（20文字 × 3案） */
+  /** 1. プロジェクト名称の提案（23文字 × 3案・必ず「したい！」で終わる） */
   title_proposals: string[];
   /** 2. プロジェクト概要（約400文字） */
   overview: string;
@@ -84,65 +95,193 @@ function sliceChars(s: string, n: number): string {
 }
 
 /**
- * 名称案を「20文字ぴったり」に整える。
- * 長い場合は20文字で切り、短い場合は文脈語（タイトル由来のキーワード）で埋める。
- * 埋め草は日本語として読める語尾に限定し、記号での水増しはしない。
+ * 名称案を「23文字ぴったり・必ず『したい！』で終わる」形に整える。
+ *
+ * 🔴 実装の順序が仕様の核心:
+ *   1. 既にある「したい！」「したい」などの締めを一度**剥がす**（二重化を防ぐ）
+ *   2. 本体を **19文字以内**に収める（長ければここで切る）
+ *   3. 最後に必ず `したい！` を付ける
+ *   先に23文字で切ってから締めを足そうとすると、切った時点で締めが落ちる。
+ *   「切った後に必ず付け直す」ため、本体の長さで管理している。
  */
 export function adjustTitleProposal(raw: string, context: { title?: string; industry?: string }): string {
-  const s = String(raw ?? '').replace(/\s+/g, '').replace(/[「」『』【】]/g, '');
-  if (charLength(s) === TITLE_PROPOSAL_LENGTH) return s;
-  if (charLength(s) > TITLE_PROPOSAL_LENGTH) return sliceChars(s, TITLE_PROPOSAL_LENGTH);
+  // 🔴 最終ゲート: どの分岐を通っても「23文字ちょうど・したい！終わり」を保証する。
+  //   trimBodyTail() で1〜2文字短くなる経路があるため、出口で必ず数え直す。
+  return finalizeTitle(buildTitleCandidate(raw, context));
+}
 
-  // 短い場合は「日本語として自然な接尾語」だけで20文字ぴったりに揃える。
-  // 端数を1文字ずつ埋めると「〜プロジェクト飲」のような不自然な語尾になるため、
-  // 不足文字数と長さがちょうど一致する接尾語の組み合わせを探す。
-  const need = TITLE_PROPOSAL_LENGTH - charLength(s);
-  const suffix = buildSuffix(need);
-  if (suffix !== null) return s + suffix;
+/**
+ * 出口の保証。本体を19文字に合わせ直してから締めを付ける。
+ *
+ * 🔴 ここが「切った後に必ず付け直す」の最終担保。どの分岐を通っても
+ *   この関数を通るので、23文字ちょうど・`したい！` 終わりが崩れない。
+ *   長い場合は cutBody() で**語の区切りに寄せて**切る（単語の途中で
+ *   切れた語尾が残ると「〜デリバリ飲したい！」のように壊れる）。
+ */
+function finalizeTitle(candidate: string): string {
+  const body = stripTitleTail(candidate);
+  const len = charLength(body);
+  if (len === TITLE_BODY_LENGTH) return body + TITLE_PROPOSAL_SUFFIX;
+  if (len > TITLE_BODY_LENGTH) {
+    return trimBodyTail(cutBody(body, TITLE_BODY_LENGTH)) + TITLE_PROPOSAL_SUFFIX;
+  }
+  // 不足分は「途中で切っても読める定型フレーズ」だけで埋める。
+  // 文脈語（業種・タイトル）を足すと単語の途中で切れて語尾が崩れるため使わない。
+  const padded = sliceChars(`${body}をみんなの力で地域に広げて形に`, TITLE_BODY_LENGTH);
+  return trimBodyTail(padded) + TITLE_PROPOSAL_SUFFIX;
+}
 
-  // 不足分を接尾語で作れない場合は、前置きを付けて長さを稼いでから切る
-  // （語尾が崩れるよりは、頭に自然な語を足して20文字で切るほうが読める）
-  const prefixed = `${context.industry ?? ''}${context.industry ? 'の' : ''}${s}`;
-  if (charLength(prefixed) >= TITLE_PROPOSAL_LENGTH) return sliceChars(prefixed, TITLE_PROPOSAL_LENGTH);
-  const need2 = TITLE_PROPOSAL_LENGTH - charLength(prefixed);
-  const suffix2 = buildSuffix(need2);
+function buildTitleCandidate(raw: string, context: { title?: string; industry?: string }): string {
+  const body = stripTitleTail(String(raw ?? '').replace(/\s+/g, '').replace(/[「」『』【】]/g, ''));
+  const len = charLength(body);
+
+  // ちょうど収まる場合はそのまま締めを付ける
+  if (len === TITLE_BODY_LENGTH) return body + TITLE_PROPOSAL_SUFFIX;
+
+  // 長い場合: **本体を19文字に切ってから**締めを付け直す。
+  // 助詞（を・に・へ・で）終わりは「〜をしたい！」と自然に繋がるので触らない。
+  // 読点や開き括弧で終わったときだけ削る。
+  if (len > TITLE_BODY_LENGTH) {
+    return trimBodyTail(cutBody(body, TITLE_BODY_LENGTH)) + TITLE_PROPOSAL_SUFFIX;
+  }
+
+  // 短い場合: 「したい！」で終わる接尾語のうち、不足分とちょうど一致するものを使う。
+  // 本体が読点や中黒で終わっていると「〜挑戦、をみんなで」と崩れるので先に整える。
+  const clean = trimBodyTail(body);
+  const endsWithParticle = /[をにでへとがはのも]$/.test(clean);
+  const suffix = buildSuffix(TITLE_PROPOSAL_LENGTH - charLength(clean), endsWithParticle);
+  if (suffix !== null) return clean + suffix;
+
+  // 接尾語で埋められない場合は、頭に業種を足して長さを稼いでから同じ手順をもう一度
+  const prefixed = `${context.industry ?? ''}${context.industry ? 'の' : ''}${clean}`;
+  if (charLength(prefixed) >= TITLE_BODY_LENGTH) {
+    return trimBodyTail(cutBody(prefixed, TITLE_BODY_LENGTH)) + TITLE_PROPOSAL_SUFFIX;
+  }
+  const suffix2 = buildSuffix(
+    TITLE_PROPOSAL_LENGTH - charLength(prefixed),
+    /[をにでへとがはのも]$/.test(prefixed)
+  );
   if (suffix2 !== null) return prefixed + suffix2;
 
-  // 最後の手段: 定型語で埋めて20文字で切る
-  return sliceChars(`${prefixed}応援プロジェクトにご支援をお願いします`, TITLE_PROPOSAL_LENGTH);
+  // 最後の手段: 定型語で19文字まで埋めてから締めを付ける（ここでも順序は同じ）
+  const padded = sliceChars(`${prefixed}応援プロジェクトを地域のみんなと一緒に`, TITLE_BODY_LENGTH);
+  return trimBodyTail(padded) + TITLE_PROPOSAL_SUFFIX;
+}
+
+/**
+ * 既存の願望表現の締めを剥がす。
+ *
+ * 🔴 LLMは「〜を彩りたい」「〜に変わりたい」のように**「したい」以外の
+ *   願望形**で返してくる。これを剥がさずに接尾語を足すと
+ *   「〜彩りたい計画したい！」「〜変わりたいにしたい！」と二重になる。
+ *   そのため「したい」だけでなく **動詞＋たい／たいです** を落とす。
+ *   ただし「〜みたい」「〜だいたい」のような語は願望ではないので除外する。
+ */
+function stripTitleTail(s: string): string {
+  let t = s.replace(/[。．!！?？]+$/, '');
+  // 「〜したいです」「〜たいです」→ です を落としてから「たい」を処理
+  t = t.replace(/です$/, '');
+  // 願望の「たい」を1回だけ落とす。直前が「み」「だい」等の場合は願望ではない
+  const m = t.match(/^(.*?)(たい)$/);
+  if (m && m[1].length > 0 && !/[みだべみ]$/.test(m[1])) {
+    t = m[1];
+    // 「〜し」「〜きた」などの活用語尾が残るので、サ変の「し」だけ落とす
+    t = t.replace(/し$/, '');
+  }
+  return t.replace(/[。．!！?？]+$/, '');
+}
+
+/**
+ * 本体の末尾が「したい！」に繋がらない文字（読点・開き括弧・中黒・伸ばし棒）で
+ * 終わっている場合だけ削る。助詞終わりは自然に繋がるので触らない。
+ */
+function trimBodyTail(s: string): string {
+  return s.replace(/[、，,・（(〜ー-]+$/, '');
+}
+
+/**
+ * 本体を上限文字数に切る。
+ *
+ * 🔴 単純な切り捨てだと「〜新しいデリバリ」のように**単語の途中**で切れる。
+ *   上限の手前3文字までの範囲に助詞・読点があればそこで切り、
+ *   語の区切りに寄せてから締めを付ける（見出しとして読める形を優先）。
+ */
+function cutBody(s: string, limit: number): string {
+  const cut = sliceChars(s, limit);
+  const chars = toChars(cut);
+  // 語の区切りを探す幅。狭すぎると「デリバリ」のように単語の途中で切れたままになる。
+  for (let back = 0; back <= 6 && chars.length - back > 0; back++) {
+    const i = chars.length - 1 - back;
+    if ('をにでへとがはのも、，,・'.includes(chars[i])) {
+      // 助詞はそのまま残すと「〜をしたい！」と繋がる。読点類は落とす。
+      const end = '、，,・'.includes(chars[i]) ? i : i + 1;
+      const piece = chars.slice(0, end).join('');
+      if (charLength(piece) >= Math.floor(limit * 0.6)) return piece;
+    }
+  }
+  return cut;
 }
 
 /**
  * 指定文字数ぴったりの接尾語を組み立てる。作れない場合は null。
- * 語の並びが日本語として読める順（修飾語 → 名詞 → 述語）になるよう候補を並べている。
+ *
+ * 🔴 **すべての候補が `したい！` で終わる**こと（t iku指示 2026-09-13）。
+ *   旧テーブル（`を成功させたい` `をはじめます` `にご支援を` `への挑戦` `に挑戦` `始動`）は
+ *   「したい！」で終わらないものが大半で、そのまま使うと仕様を満たせないため作り替えた。
+ *   名詞句（0〜8文字）× 述語句（4〜14文字・すべて「したい！」終わり）の組み合わせで
+ *   4〜22文字の不足を埋められるようにしている。
  */
-function buildSuffix(need: number): string | null {
-  if (need <= 0) return null;
-  // 名詞句（1つまで）と述語句（1つまで）。名詞句を2つ重ねると
-  // 「〜プロジェクトクラファン挑戦」のような不自然な語尾になるため分けている。
+function buildSuffix(need: number, bodyEndsWithParticle = false): string | null {
+  // 締めの4文字より短い不足は接尾語では作れない（呼び出し側が本体を切る）
+  if (need < charLength(TITLE_PROPOSAL_SUFFIX)) return null;
+
+  // 名詞句（省略可・1つまで）。2つ重ねると不自然な語尾になる。
   const nouns = [
+    '',                 // 0
+    '計画',             // 2
+    '応援企画',         // 4
     'プロジェクト',     // 6
     '応援プロジェクト', // 8
     '実現プロジェクト', // 8
     '挑戦プロジェクト', // 8
-    '応援企画',         // 4
-    '計画',             // 2
   ];
+  // 述語句。**必ず「したい！」で終わる**。
   const tails = [
-    'を成功させたい', // 7
-    'をはじめます',   // 6
-    'にご支援を',     // 5
-    'への挑戦',       // 4
-    'に挑戦',         // 3
-    '始動',           // 2
+    'したい！',                     // 4
+    'にしたい！',                   // 5
+    'を実現したい！',               // 7
+    'に挑戦したい！',               // 7
+    'を応援したい！',               // 7
+    'をカタチにしたい！',           // 9
+    'を必ず実現したい！',           // 9
+    'を一緒に実現したい！',         // 10
+    'をみんなで実現したい！',       // 11
+    'を地域のみんなと実現したい！', // 14
   ];
 
-  const exact = [...nouns, ...tails].find(w => charLength(w) === need);
-  if (exact) return exact;
+  // 🔴 本体が助詞（を・に・で…）で終わっているとき、助詞で始まる述語句を足すと
+  //   「〜元気にをカタチにしたい！」のように助詞が二重になる。
+  //   その場合は助詞で始まらない候補（名詞句を挟むか、述語句のみ）を優先する。
+  const startsWithParticle = (w: string) => /^[をにでへとがはのも]/.test(w);
+  const ordered = bodyEndsWithParticle
+    ? [...tails.filter(t => !startsWithParticle(t)), ...tails.filter(startsWithParticle)]
+    : tails;
 
   for (const n of nouns) {
-    for (const t of tails) {
-      if (charLength(n) + charLength(t) === need) return n + t;
+    for (const t of ordered) {
+      // 名詞句を挟めば助詞の二重は起きない（n が空のときだけ順序が効く）
+      if (charLength(n) + charLength(t) === need) {
+        if (bodyEndsWithParticle && n === '' && startsWithParticle(t)) continue;
+        return n + t;
+      }
+    }
+  }
+  // 助詞回避で作れなかった場合は、長さ優先でもう一度探す（23文字は必ず守る）
+  if (bodyEndsWithParticle) {
+    for (const n of nouns) {
+      for (const t of tails) {
+        if (charLength(n) + charLength(t) === need) return n + t;
+      }
     }
   }
   return null;
@@ -349,7 +488,7 @@ export function normalizeExtended(
 ): ProjectExtended {
   const fb = ctx.fallback;
 
-  // 1. 名称案（必ず3案・各20文字）
+  // 1. 名称案（必ず3案・各23文字・全案「したい！」終わり）
   const proposalsRaw = Array.isArray(raw?.title_proposals) ? raw!.title_proposals.filter(Boolean) : [];
   const proposals: string[] = [];
   for (let i = 0; i < 3; i++) {

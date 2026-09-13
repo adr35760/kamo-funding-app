@@ -59,3 +59,41 @@ export async function logEmailResult(params: {
     return false;
   }
 }
+
+/**
+ * AI生成リマインドメール（事務局宛）の送信結果を記録する。
+ *
+ * 🔴 既存の `email_logs` は `registration_id NOT NULL REFERENCES registrations(id)` で、
+ *   **申込に紐づかないこのメールは構造上入れられない**（外部キー違反になる）。
+ *   `template_type` の CHECK 制約にも該当する値が無い。
+ *   したがって専用テーブル `ai_generation_email_logs` を使う。
+ *   テーブル未作成でも**黙って諦めるだけ**で、送信・生成には影響しない。
+ */
+export async function logAiGenerationNotify(params: {
+  title: string;
+  success: boolean;
+  error?: string;
+}): Promise<boolean> {
+  const { title, success, error } = params;
+  try {
+    const supabase = getSupabaseAdmin();
+    const { error: insErr } = await supabase.from('ai_generation_email_logs').insert({
+      title: title.slice(0, 200),
+      status: success ? 'sent' : 'failed',
+      error_message: success ? null : (error ?? 'unknown error').slice(0, 500),
+      sent_at: new Date().toISOString(),
+    });
+    if (insErr) {
+      if (isMissingTable(insErr)) {
+        console.warn('ai_generation_email_logs テーブルが未作成のため記録をスキップしました');
+      } else {
+        console.error('ai_generation_email_logs insert failed:', insErr.message);
+      }
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error('ai_generation_email_logs 記録中の例外:', e);
+    return false;
+  }
+}

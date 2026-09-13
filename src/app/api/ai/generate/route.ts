@@ -5,15 +5,19 @@ import {
   calculateRewardTiers,
   normalizeRewardCategory,
   REWARD_CATEGORIES,
+  buildCreatorLinks,
   type HearingInput,
   type CrowdfundingPage,
   type RewardCategory,
 } from '@/lib/ai-prompts';
+import { sendAiGenerationNotifyEmail } from '@/lib/email';
+import { logAiGenerationNotify } from '@/lib/email-log';
 import {
   normalizeExtended,
   parseActivityHistory,
   isTruncatedText,
   charLength,
+  adjustTitleProposal,
   LONG_TEXT_MIN,
   type ProjectExtended,
 } from '@/lib/ai-extended';
@@ -27,9 +31,25 @@ import {
  * Body: HearingInput
  * Response: { success: true, page: CrowdfundingPage, mode: "live" | "mock" }
  */
+/**
+ * リクエストボディ。
+ *
+ * 🔴 `contact`（メール・電話）は **HearingInput の外**に置く。
+ *   プロンプト生成に渡る `input` と型レベルで分離しておくことで、
+ *   掲載JSON・PDF・AIプロンプトへ連絡先が混入する経路を作らない。
+ *   使うのは事務局宛メールだけ。口座情報と同じ設計。
+ */
+interface GenerateRequestBody extends HearingInput {
+  contact?: { email?: string; phone?: string };
+  /** 口座のマスク済み表示のみ（生値は受け取らない） */
+  bankMasked?: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const input: HearingInput = await request.json();
+    const body: GenerateRequestBody = await request.json();
+    // contact / bankMasked を除いた残りだけを生成用の入力として扱う
+    const { contact, bankMasked, ...input } = body as GenerateRequestBody;
 
     // 入力バリデーション
     if (!input.industry || !input.goalAmount || !input.creatorName) {
@@ -45,6 +65,7 @@ export async function POST(request: NextRequest) {
     if (!apiKey) {
       // モック応答（APIキー未到着時のUIテスト用）
       const mockPage = generateMockPage(input);
+      notifyOffice(mockPage, input, 'mock', contact, bankMasked);
       return NextResponse.json({
         success: true,
         page: mockPage,
@@ -71,7 +92,7 @@ export async function POST(request: NextRequest) {
       const userPrompt =
         attempt === 0
           ? prompt
-          : `${prompt}\n\n【再生成の注意】前回の出力は文章として不完全でした（途中で切れている、または短すぎる）。extended.overview / why_started / what_creates は**各400文字前後（360文字以上）**で、**必ず文を言い切って句点で終える**こと。「三つの価値」等と数を宣言したら**その数だけ必ず列挙**してください。title_proposals は**各20文字ちょうど**にしてください。`;
+          : `${prompt}\n\n【再生成の注意】前回の出力は文章として不完全でした（途中で切れている、または短すぎる）。extended.overview / why_started / what_creates は**各400文字前後（360文字以上）**で、**必ず文を言い切って句点で終える**こと。「三つの価値」等と数を宣言したら**その数だけ必ず列挙**してください。title_proposals は**各23文字ちょうど**で、**必ず「〜したい！」で終える**ようにしてください。project.title も同じ規則です。`;
 
       const result = await callLLM({
         apiBaseUrl, apiKey, model,
@@ -95,6 +116,7 @@ export async function POST(request: NextRequest) {
       console.error('OpenAI API error:', lastError);
       // フォールバック to mock（追加7項目もモック側で埋まる）
       const mockPage = generateMockPage(input);
+      notifyOffice(mockPage, input, 'mock_fallback', contact, bankMasked);
       return NextResponse.json({
         success: true,
         page: mockPage,
@@ -106,6 +128,8 @@ export async function POST(request: NextRequest) {
     let page = ensureAllRewardCategories(parsed, input);
     // 追加7項目をサーバ側で検証・補正する（文字数・費用内訳の合計＝目標金額）
     page = withNormalizedExtended(page, input);
+
+    notifyOffice(page, input, 'live', contact, bankMasked);
 
     return NextResponse.json({
       success: true,
@@ -185,6 +209,62 @@ async function callLLM(args: {
 }
 
 /**
+ * 事務局（info@local-creation.com）へ生成リマインドを送る。
+ *
+ * 🔴 **await しない**。送信の成否は生成レスポンスと切り離す（t iku/PM合意）:
+ *   ユーザーは自分の生成結果が見られれば目的を達しているので、
+ *   事務局通知の失敗で画面がエラーになるのは筋が違う。失敗はログのみ。
+ * 🔴 **DB（ai_generations）とは独立**。マイグレーション未実行でも届く。
+ */
+function notifyOffice(
+  page: CrowdfundingPage,
+  input: HearingInput,
+  mode: string,
+  contact?: { email?: string; phone?: string },
+  bankMasked?: string
+): void {
+  void sendAiGenerationNotifyEmail({
+    title: page.project.title,
+    subtitle: page.project.subtitle,
+    goalAmount: page.project.goal_amount || input.goalAmount,
+    mode,
+    creatorName: input.creatorName,
+    projectEntityName: entityNameOf(input),
+    contactEmail: contact?.email,
+    contactPhone: contact?.phone,
+    creatorProfile: input.creatorProfile,
+    industry: input.industry,
+    businessDescription: input.businessDescription,
+    titleProposals: page.project.extended?.title_proposals,
+    links: buildCreatorLinks(input),
+    bankMasked,
+  })
+    .then(r => {
+      if (!r.success) console.error('AI生成リマインド送信失敗:', r.error);
+      // 「届いていない」と言われたときに実測で答えられるよう記録を残す。
+      // 記録の失敗も無視する（email-log 側で例外を飲んでいる）。
+      return logAiGenerationNotify({
+        title: page.project.title,
+        success: r.success,
+        error: r.error,
+      });
+    })
+    .catch(e => console.error('AI生成リマインド処理中の例外:', e));
+}
+
+/**
+ * 掲載内容に載せる事業者名。
+ *
+ * B-1（2026-09-13）: ヒアリングの「組織名」は「プロジェクト実施名
+ * （個人・法人・団体名のいずれか）」に置き換わった。掲載内容には事業者名が
+ * 必要なので、消すのではなく**実施名が引き継ぐ**。
+ * 旧 organization は過去データ互換のためのフォールバックとしてのみ見る。
+ */
+function entityNameOf(input: HearingInput): string {
+  return (input.projectEntityName || input.organization || input.creatorName || '').trim();
+}
+
+/**
  * 追加7項目をサーバ側で検証・補正して page に載せ直す。
  * LLMは文字数も金額合計も外すので、必ずここを通す。
  */
@@ -202,7 +282,21 @@ function withNormalizedExtended(page: CrowdfundingPage, input: HearingInput): Cr
   const declared = parseActivityHistory(input.activityHistory);
   if (declared.length > 0) extended.activity_history = declared;
 
-  return { ...page, project: { ...page.project, extended } };
+  // C（2026-09-13）: 主タイトルも名称案と同じ規則（23文字ちょうど・「したい！」締め）に揃える。
+  // 名称案だけ23文字で主タイトルが別ルールだと掲載時に不整合になるため両方に効かせる。
+  // 🔴 片方に絞る判断が出たらこの1行を外すだけで主タイトルは元の自由形式に戻る。
+  const title = adjustTitleProposal(page.project.title, {
+    title: page.project.title,
+    industry: input.industry,
+  });
+
+  // SNSリンクは**ヒアリング入力を正**とする（LLMに作らせず、入力のあるキーだけ載せる）。
+  // 空欄のキーは buildCreatorLinks() が落とすので、掲載JSON・PDFに空行が出ない。
+  const links = buildCreatorLinks(input);
+  const creator = { ...page.project.creator, ...(links ? { links } : {}) };
+  if (!links) delete (creator as { links?: unknown }).links;
+
+  return { ...page, project: { ...page.project, title, creator, extended } };
 }
 
 /**
@@ -211,7 +305,9 @@ function withNormalizedExtended(page: CrowdfundingPage, input: HearingInput): Cr
  * ヒアリング入力と既存ストーリーから組み立てるので、常に読める内容になる。
  */
 function buildFallbackExtended(input: HearingInput, page?: CrowdfundingPage): ProjectExtended {
-  const org = input.organization || input.creatorName;
+  // B-1（2026-09-13）: 旧「組織名」は廃止され、プロジェクト実施名が引き継ぐ。
+  //   互換のため organization も見るが、優先は projectEntityName。
+  const org = entityNameOf(input);
   const goal = page?.project.goal_amount || input.goalAmount;
   const now = new Date();
   const y = now.getFullYear();
@@ -226,10 +322,11 @@ function buildFallbackExtended(input: HearingInput, page?: CrowdfundingPage): Pr
   const what = `本プロジェクトで創出するのは、三つの価値です。第一に、支援者の皆様にとっての価値。${input.industry}ならではのリターンを通じて、支援が具体的な体験や商品として返る仕組みをつくります。第二に、地域にとっての価値。${input.crowdfundingGoal || '新しい取り組み'}が実現すれば、${input.targetAudience || '地域の皆様'}が受け取れる選択肢が増え、雇用や取引先とのつながりにも波及します。第三に、事業としての価値。今回の挑戦で得た顧客との関係やノウハウは一過性のものではなく、プロジェクト終了後も継続する収益の土台になります。単発のキャンペーンで終わらせず、ここで生まれたつながりを起点に本業の売上を押し上げていくことが、このプロジェクトの本当のゴールです。`;
 
   return {
+    // 🔴 ここは素の候補。normalizeExtended() が 23文字・「したい！」締めに整える。
     title_proposals: [
-      `${input.industry}の未来をつくる挑戦`,
-      `${input.crowdfundingGoal || '新事業'}を実現したい`,
-      `${org}と一緒につくる物語`,
+      `${input.industry}の未来をみんなの力でつくりたい`,
+      `${input.crowdfundingGoal || '新事業'}を地域の仲間と実現したい`,
+      `${org}の挑戦を一緒にカタチにしたい`,
     ],
     overview,
     why_started: why,
@@ -331,7 +428,7 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
       goal_amount: input.goalAmount,
       project_type: '実行確約型',
       story: {
-        lead: `${startStr}、${input.organization || input.creatorName}の${input.creatorName}です。${input.businessDescription}${input.currentChallenge ? `\n\n今、${input.currentChallenge}という課題に直面しています。この課題を乗り越えるため、皆様のお力添えを借りたく、このプロジェクトを立ち上げました。` : ''}`,
+        lead: `${startStr}、${entityNameOf(input)}の${input.creatorName}です。${input.businessDescription}${input.currentChallenge ? `\n\n今、${input.currentChallenge}という課題に直面しています。この課題を乗り越えるため、皆様のお力添えを借りたく、このプロジェクトを立ち上げました。` : ''}`,
         background: `${input.businessDescription}\n\nしかし、${input.currentChallenge || '市場環境の変化により、従来のやり方だけでは成長の限界を感じています'}。このままでは、${templates.backgroundRisk}という危機感があります。\n\nだからこそ、今、大胆な一手を打つ必要があります。${input.crowdfundingGoal || templates.defaultGoal} — これが実現できれば、${templates.backgroundHope}ことができます。`,
         vision: `${input.crowdfundingGoal || templates.defaultGoal}。\n\nこれが実現した未来を想像してください。\n${templates.visionDescription}\n\n${input.targetAudience || '地域の皆様'}にとって、${templates.visionBenefit}。これが私たちの描く未来です。`,
         use_of_funds: `皆様からいただいた支援金は、以下の用途で活用いたします。\n\n■ 内訳（目安）\n・${templates.fundUse1}: 約${Math.round(input.goalAmount * 0.4).toLocaleString()}円（40%）\n・${templates.fundUse2}: 約${Math.round(input.goalAmount * 0.3).toLocaleString()}円（30%）\n・${templates.fundUse3}: 約${Math.round(input.goalAmount * 0.2).toLocaleString()}円（20%）\n・クラファン手数料・事務費: 約${Math.round(input.goalAmount * 0.1).toLocaleString()}円（10%）\n\nすべての資金を、${input.crowdfundingGoal || 'プロジェクトの実現'}のために真摯に活用いたします。`,
@@ -341,11 +438,15 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
       creator: {
         name: input.creatorName,
         avatar: '',
-        bio: `${input.industry}で事業を展開する${input.organization || input.creatorName}。${input.businessDescription.split('。')[0]}。本業の課題をクラウドファンディングの力で突破すべく、挑戦中。`,
-        organization: input.organization || '',
+        // B-3: プロフィール入力があればそれを起点にする（捏造しない）
+        bio: input.creatorProfile?.trim()
+          ? input.creatorProfile.trim()
+          : `${input.industry}で事業を展開する${entityNameOf(input)}。${input.businessDescription.split('。')[0]}。本業の課題をクラウドファンディングの力で突破すべく、挑戦中。`,
+        organization: input.projectEntityName || input.organization || '',
+        ...(buildCreatorLinks(input) ? { links: buildCreatorLinks(input) } : {}),
       },
       legal_info: {
-        business_name: input.organization || input.creatorName,
+        business_name: entityNameOf(input),
         address: '',
         representative: input.creatorName,
         contact_email: '',

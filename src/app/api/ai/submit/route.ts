@@ -24,6 +24,11 @@ export async function POST(request: NextRequest) {
       mode?: string;
       /** 支援金振込口座。page とは別カラムに保存する（掲載用JSONに混ぜない） */
       bank_account?: Partial<BankAccountInput>;
+      /**
+       * 事務局提出用の連絡先。口座と同じく **page には混ぜない**別カラム扱い。
+       * 列が未追加の環境（migration 未実行）でも送信自体は通す。
+       */
+      contact?: { email?: string; phone?: string };
     };
     const page = body.page;
     const bankAccount = sanitizeBankAccount(body.bank_account);
@@ -46,13 +51,19 @@ export async function POST(request: NextRequest) {
         title: page.project.title,
         subtitle: page.project.subtitle ?? null,
         creator_name: page.project.creator?.name ?? body.input?.creatorName ?? null,
-        organization: page.project.creator?.organization ?? body.input?.organization ?? null,
+        organization:
+          page.project.creator?.organization ??
+          body.input?.projectEntityName ??
+          body.input?.organization ??
+          null,
         goal_amount: page.project.goal_amount ?? null,
         generation_mode: body.mode ?? null,
         hearing_input: body.input ?? null,
         page,
         // 掲載用の page とは別カラム。管理画面のみで表示する。
         bank_account: bankAccount,
+        contact_email: body.contact?.email?.trim() || null,
+        contact_phone: body.contact?.phone?.trim() || null,
         content_hash: contentHash,
       })
       .select('id, created_at')
@@ -72,7 +83,11 @@ export async function POST(request: NextRequest) {
             title: page.project.title,
             subtitle: page.project.subtitle ?? null,
             creator_name: page.project.creator?.name ?? body.input?.creatorName ?? null,
-            organization: page.project.creator?.organization ?? body.input?.organization ?? null,
+            organization:
+              page.project.creator?.organization ??
+              body.input?.projectEntityName ??
+              body.input?.organization ??
+              null,
             goal_amount: page.project.goal_amount ?? null,
             generation_mode: body.mode ?? null,
             hearing_input: body.input ?? null,
@@ -153,12 +168,16 @@ function sanitizeBankAccount(
 }
 
 /** bank_account カラムが未追加（マイグレーション未実行）かを判定する */
+/**
+ * 追加カラム（bank_account / contact_email / contact_phone）が未追加かを判定する。
+ * どれが欠けていても「追加カラム無しで再挿入」に落として送信自体は通す。
+ */
 function isMissingBankColumn(error: { code?: string; message?: string }): boolean {
   const msg = error.message || '';
   return (
     error.code === 'PGRST204' ||
     error.code === '42703' ||
-    (/bank_account/.test(msg) && /column|could not find/i.test(msg))
+    (/bank_account|contact_email|contact_phone/.test(msg) && /column|could not find/i.test(msg))
   );
 }
 

@@ -712,3 +712,134 @@ export async function sendPartnerSessionAdminNotification(
   // 複数宛先に対応（Resend は to に配列を渡せる）
   return sendEmail(to.length === 1 ? to[0] : to, subject, html);
 }
+
+/**
+ * AIクラファンページ生成の事務局リマインドメール（t iku指示 2026-09-13）。
+ *
+ * 🔴 設計の前提:
+ *  - **「AIで生成する」を押して生成が成功するたびに自動送信**する。
+ *    「結果をKAMOに送信」ボタンとは独立（試し打ちや作り直しも全部届く仕様）。
+ *  - **送信の失敗が生成を失敗させない。** 呼び出し側は待たずに投げるか、
+ *    結果を無視する。ユーザーは自分の生成結果が見られれば目的を達しており、
+ *    事務局通知の失敗で画面がエラーになるのは筋が違う。
+ *  - **DB（ai_generations）とは完全に独立**。マイグレーション未実行でも届く。
+ *  - 件名で案件と回数を見分けられるようにする（同一案件の再生成が並ぶ前提）。
+ *  - 事務局宛＝内部宛なので、**メールアドレス・電話番号・実施名・プロフィールを
+ *    載せてよい**（公開物への露出を禁じたのは掲載JSON・PDF・プロンプト）。
+ *    口座は既存方針どおり**マスク**する。
+ */
+export const AI_GENERATION_NOTIFY_EMAIL = 'info@local-creation.com';
+
+export interface AiGenerationNotifyInput {
+  /** 生成されたタイトル */
+  title: string;
+  subtitle?: string;
+  goalAmount?: number;
+  /** 生成モード（live / mock / mock_fallback） */
+  mode?: string;
+  creatorName?: string;
+  /** プロジェクト実施名（個人・法人・団体名） */
+  projectEntityName?: string;
+  /** 事務局提出用の連絡先。掲載物には出さないが、この内部メールには載せる */
+  contactEmail?: string;
+  contactPhone?: string;
+  creatorProfile?: string;
+  industry?: string;
+  businessDescription?: string;
+  /** 名称案3案（文字数付きで出す） */
+  titleProposals?: string[];
+  /** SNS・サイトのリンク。**入力があったキーだけ**が入る（空欄の行を出さない） */
+  links?: { x?: string; facebook?: string; instagram?: string; website?: string };
+  /** 口座のマスク済み表示（生値は渡さない） */
+  bankMasked?: string;
+}
+
+/** 生成日時（JST）の表示。件名・本文冒頭で使う */
+function nowJst(): string {
+  return new Intl.DateTimeFormat('ja-JP', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  }).format(new Date());
+}
+
+export function aiGenerationNotifySubject(input: AiGenerationNotifyInput): string {
+  // 同一案件の再生成が並ぶので、**件名だけで案件と回数（＝日時）が判別できる**ようにする
+  const entity = (input.projectEntityName || '実施名未入力').trim();
+  const creator = (input.creatorName || '起案者未入力').trim();
+  return `【AIクラファンページ生成】${entity} / ${creator}（${nowJst()}）`;
+}
+
+export function aiGenerationNotifyHtml(input: AiGenerationNotifyInput): string {
+  const row = (label: string, value?: string | number | null) =>
+    value === undefined || value === null || value === ''
+      ? ''
+      : `<tr><th style="text-align:left;padding:6px 12px 6px 0;color:#666;font-weight:600;white-space:nowrap;vertical-align:top;">${label}</th><td style="padding:6px 0;white-space:pre-wrap;">${escapeHtml(String(value))}</td></tr>`;
+
+  const proposals = (input.titleProposals ?? [])
+    .map((t, i) => `<li>案${i + 1}: ${escapeHtml(t)}（${Array.from(t).length}文字）</li>`)
+    .join('');
+
+  return `
+    <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 680px; margin: 0 auto; padding: 20px;">
+      <div style="background:#E60012;color:#fff;padding:16px 20px;border-radius:8px 8px 0 0;">
+        <h1 style="margin:0;font-size:18px;">AIクラファンページが生成されました</h1>
+        <p style="margin:4px 0 0;font-size:13px;">生成日時: ${nowJst()}（JST）</p>
+      </div>
+      <div style="border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px;padding:20px;">
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          ${row('タイトル', input.title)}
+          ${row('サブタイトル', input.subtitle)}
+          ${row('希望額', input.goalAmount ? `¥${input.goalAmount.toLocaleString()}` : '')}
+          ${row('生成モード', input.mode)}
+          ${row('起案者名', input.creatorName)}
+          ${row('プロジェクト実施名', input.projectEntityName)}
+          ${row('メールアドレス', input.contactEmail)}
+          ${row('電話番号', input.contactPhone)}
+          ${row('業種', input.industry)}
+          ${row('事業概要', input.businessDescription)}
+          ${row('プロフィール', input.creatorProfile)}
+          ${row('X', input.links?.x)}
+          ${row('Facebook', input.links?.facebook)}
+          ${row('Instagram', input.links?.instagram)}
+          ${row('HP・ブログ', input.links?.website)}
+          ${row('支援金振込口座', input.bankMasked)}
+        </table>
+        ${proposals ? `<div style="margin-top:16px;"><p style="margin:0 0 6px;font-weight:700;font-size:14px;">プロジェクト名称の提案</p><ul style="margin:0;padding-left:20px;font-size:14px;">${proposals}</ul></div>` : ''}
+        <p style="margin-top:20px;font-size:12px;color:#999;">
+          このメールは /ai-tool で「AIで生成する」が押されるたびに自動送信されます（生成結果の保存とは独立）。
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+/** HTMLメールに素の入力値を埋めるのでエスケープする */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * 事務局へリマインドを送る。**例外を投げない**（生成を壊さないため）。
+ * RESEND_API_KEY 未設定の環境では success:false を返すだけで何も起きない。
+ */
+export async function sendAiGenerationNotifyEmail(
+  input: AiGenerationNotifyInput
+): Promise<EmailResult> {
+  try {
+    return await sendEmail(
+      AI_GENERATION_NOTIFY_EMAIL,
+      aiGenerationNotifySubject(input),
+      aiGenerationNotifyHtml(input)
+    );
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    console.error('AI生成リマインドメールの送信に失敗:', error);
+    return { success: false, error };
+  }
+}

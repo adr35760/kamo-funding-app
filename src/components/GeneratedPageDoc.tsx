@@ -37,6 +37,8 @@ export interface GeneratedPageData {
       avatar?: string;
       bio?: string;
       organization: string;
+      /** SNS・サイトのリンク。入力があったキーだけが存在する */
+      links?: { x?: string; facebook?: string; instagram?: string; website?: string };
     };
     legal_info: Record<string, string>;
     /** 追加7項目。過去に保存したデータには無いので optional（無ければ該当節を出さない） */
@@ -101,6 +103,25 @@ export default function GeneratedPageDoc({ page }: { page: GeneratedPageData }) 
               <span style={{ fontSize: 12, color: '#999' }}>起案者</span>
               <div style={{ fontSize: 18 }}>{page.project.creator?.name}</div>
               <div style={{ fontSize: 12, color: '#999' }}>{page.project.creator?.organization}</div>
+              {/* リンクは入力があったものだけ出す（空欄の行を並べない） */}
+              {(() => {
+                const l = page.project.creator?.links;
+                if (!l) return null;
+                const rows = [
+                  ['X', l.x],
+                  ['Facebook', l.facebook],
+                  ['Instagram', l.instagram],
+                  ['HP・ブログ', l.website],
+                ].filter(([, v]) => !!v) as Array<[string, string]>;
+                if (rows.length === 0) return null;
+                return (
+                  <div style={{ fontSize: 12, color: '#666', marginTop: 4, lineHeight: 1.7 }}>
+                    {rows.map(([label, url]) => (
+                      <div key={label}>{label}: {url}</div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
