@@ -89,7 +89,7 @@ const COMPARE = [
     capacity: AWARD_EVENT.capacity.label,
     includes: [
       'KAMOファンディング表彰式',
-      '第二部 イベント',
+      '第二部 KAMOファンディングLIVE',
       '表彰者との懇親会（お食事付き）',
     ],
     detailHref: '/award',

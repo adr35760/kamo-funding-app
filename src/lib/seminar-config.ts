@@ -476,10 +476,10 @@ export const AWARD_EVENT = {
     },
     {
       label: '第二部',
-      // ストアの説明は「表彰式観覧券＋鴨頭LIVE＋表彰者との懇親会参加権」で、
-      // 鴨頭LIVE = 第二部と思われるが未確認のため画像どおりの表記にしてある。
-      // 確定したらこの title と body を差し替える。
-      title: 'イベント',
+      // 第二部の名称は「KAMOファンディングLIVE」で確定（2026-09-13 t iku 指示）。
+      // ストアの説明は「表彰式観覧券＋鴨頭LIVE＋表彰者との懇親会参加権」だが、
+      // 正式名称は鴨頭氏個人名ではなく KAMOファンディングLIVE。
+      title: 'KAMOファンディングLIVE',
       timeLabel: '18:00〜20:00',
       venue: AWARD_VENUE.main,
     },
