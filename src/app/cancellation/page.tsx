@@ -6,9 +6,8 @@ import { LEGAL_DOCS, isLegalPublished } from '@/lib/legal-docs';
 /**
  * /cancellation — キャンセルポリシー
  *
- * 🔴 公開はフラグ制。NEXT_PUBLIC_LEGAL_PAGES_PUBLISHED='true' のときだけ表示し、
- *   未設定なら notFound()（404）。決済ページの特商法表示と原稿の食い違いが
- *   解消するまで公開しない方針のため（詳細は src/lib/legal-docs.ts）。
+ * 公開制御は isLegalPublished()。false のあいだは notFound()（404）を返す。
+ *   2026-09-13 に公開済み（詳細は src/lib/legal-docs.ts）。
  */
 const doc = LEGAL_DOCS.cancellation;
 
