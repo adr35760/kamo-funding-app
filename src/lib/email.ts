@@ -843,3 +843,85 @@ export async function sendAiGenerationNotifyEmail(
     return { success: false, error };
   }
 }
+
+/**
+ * 第3回 掲載説明会 お誘いメール（過去回の申込者で、今回未申込の方へ）
+ *
+ * 位置づけ:
+ *  - 申込完了・リマインド・Zoom変更のいずれでもない**単発の案内**。
+ *  - 件名は `【ご案内／KAMOファンディング】…` で始める。既存は
+ *    `【KAMOファンディング】…`（申込完了・当日リマインド）と
+ *    `【重要／KAMOファンディング】…`（Zoom変更）なので、
+ *    **Gmailの件名前方一致でのスレッド結合を避ける**ためにここを変える。
+ *  - 本文は差し込みが氏名のみ。文面は t iku 承認済みのものを
+ *    `seminarInviteHtml()` に閉じ込めてあり、送信処理とは分離している
+ *    （承認前でも本文だけ取り出して確認できる）。
+ *
+ * 呼び出し側は1件ずつ順に呼ぶ。1通ごとに成否を返す。
+ * registrations 側のフラグ（reminder_sent 等）には**一切触れない**。
+ */
+export function seminarInviteSubject(): string {
+  return '【ご案内／KAMOファンディング】第3回 無料掲載説明会（9/15 19:30〜）';
+}
+
+export function seminarInviteHtml(params: {
+  name: string;
+  eventTitle: string;
+  eventDateJa: string;
+}): string {
+  const { name, eventTitle, eventDateJa } = params;
+  // 氏名は入力値なのでエスケープする（姓名に記号が入っていても崩れない）
+  const safeName = escapeHtml(name);
+  return `
+    <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #E60012; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h1 style="margin: 0; font-size: 24px;">🔥 KAMOファンディング</h1>
+        <p style="margin: 4px 0 0; font-size: 14px;">第3回 無料掲載説明会のご案内</p>
+      </div>
+      <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 8px 8px; border: 1px solid #eee;">
+        <p>${safeName}様</p>
+        <p>KAMOファンディング事務局です。<br />
+        先日の無料掲載説明会にご参加・お申し込みいただき、誠にありがとうございました。</p>
+
+        <p style="margin-top: 16px;">このたび<strong>第3回 無料掲載説明会</strong>を開催いたします。<br />
+        <strong>内容は前回と同じ流れ</strong>ですので、前回ご都合が合わなかった方、もう一度ご覧になりたい方、
+        ご紹介したい方がいらっしゃる方もお気軽にご参加ください。</p>
+
+        <div style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; border: 1px solid #FFD6D6;">
+          <p style="margin: 0 0 4px; font-weight: 700; color: #E60012;">📅 開催日時</p>
+          <p style="margin: 0 0 8px; font-size: 18px; font-weight: 700;">${eventDateJa}</p>
+          <p style="margin: 0 0 4px; font-size: 13px; color: #666;">${eventTitle}</p>
+          <p style="margin: 0; font-size: 14px;">💻 オンライン（Zoom）／⏱️ 約90分／💰 参加費無料</p>
+        </div>
+
+        <p style="margin-top: 16px;">
+          お申し込みはこちらから承っております。<br />
+          <a href="https://kamo-funding-app.vercel.app/seminar-info"
+             style="color: #E60012; font-weight: 700; word-break: break-all;">https://kamo-funding-app.vercel.app/seminar-info</a>
+        </p>
+
+        <p style="margin-top: 16px; padding: 16px; background: #FFFDF0; border: 1px solid #F2E6B8; border-radius: 8px; font-size: 14px;">
+          🔥 <strong>AIクラファンページ作成ツール</strong>をご用意しました。
+          ヒアリングに答えるだけで、クラウドファンディングの掲載ページの原案が数分でできあがります。
+          説明会でも使い方をご紹介します。
+        </p>
+
+        <p style="margin-top: 20px;">当日お会いできるのを楽しみにしております。</p>
+
+        <p style="margin-top: 20px; font-size: 12px; color: #999;">
+          KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
+          https://kamo-funding-app.vercel.app/
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+export async function sendSeminarInviteEmail(
+  name: string,
+  email: string,
+  eventTitle: string,
+  eventDateJa: string
+): Promise<EmailResult> {
+  return sendEmail(email, seminarInviteSubject(), seminarInviteHtml({ name, eventTitle, eventDateJa }));
+}
