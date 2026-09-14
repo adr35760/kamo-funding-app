@@ -244,8 +244,9 @@ async function callLongTextLLM(args: {
           { role: 'user', content: args.userPrompt },
         ],
         temperature: 0.7,
-        // 7項目×400字級。JSONは7キーだけなので構造ぶんの余裕は要らない。
-        max_completion_tokens: 8000,
+        // 7項目×400〜460字級（11文以上）。JSONは7キーだけなので構造ぶんの余裕は要らない。
+        // 🔴 8000だと11文指示では上限に当たって JSON が途中で切れる可能性があるため引き上げた。
+        max_completion_tokens: 12000,
         response_format: { type: 'json_object' },
       }),
     });
