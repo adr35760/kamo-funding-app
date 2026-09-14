@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   SYSTEM_PROMPT,
   buildPageGenerationPrompt,
+  buildLongTextPrompt,
+  LONG_TEXT_KEYS,
   calculateRewardTiers,
   normalizeRewardCategory,
   REWARD_CATEGORIES,
@@ -18,9 +20,9 @@ import {
   isTruncatedText,
   charLength,
   adjustTitleProposal,
+  adjustLongText,
   normalizeLongStory,
   LONG_STORY_KEYS,
-  LONG_TEXT_MIN,
   type ProjectExtended,
 } from '@/lib/ai-extended';
 
@@ -80,47 +82,37 @@ export async function POST(request: NextRequest) {
     // Gensparkプロキシの場合は利用可能なモデルを使用、直接OpenAIの場合はgpt-4o
     const model = apiBaseUrl.includes('genspark') ? 'gpt-5.1' : 'gpt-4o';
 
-    // 出力が長いので上限を明示的に引き上げる。
-    // 2026-09-14 の増量後の実測: 400文字級が7項目（story 4 + extended 3）＋リターン15件。
-    // 12,000 で試したところ**3回に1回ほどJSONが途中で切れてモックに落ちた**ため 16,000 にする。
-    // （切れると mode=mock_fallback になり、実測では 7項目が164〜207字まで落ちる＝品質が別物になる）
+    // 1回目: ページの**構造**を作らせる（リターン15件・名称案・費用内訳・法務情報）。
+    // 400文字級の本文はここでは要求しない（2〜3文の要約で足りる）。
+    //
+    // 🔴 なぜ2回に分けるか（2026-09-14 の実測）:
+    //   1回のリクエストで構造と長文7項目を同時に要求すると、本番で**170〜277字**しか
+    //   返らなかった。プロンプト3通り・入力材料の増量・maxTokens 16,000 いずれも効果なし。
+    //   レスポンス全体が7,139字＝トークン上限にも余裕があり、切られてもいない。
+    //   一方、同じモデルに**見出し1つだけ渡して400字以上を要求すると658字**返る。
+    //   字数指示が他の制約（15件・23文字ちょうど・合計一致）に埋もれて薄まっていた。
+    //   → 本文は「長文を書くこと」だけを要求する2回目の呼び出しに分離する。
     let parsed: CrowdfundingPage | null = null;
     let best: CrowdfundingPage | null = null;
     let lastError = '';
 
-    // 再生成は**1回だけ**。発火条件は「文章として使えない」ときに限る:
-    //   - 言いかけで途切れている（末尾が句点でない／「三つの」と言って第三が無い）
-    //   - 極端に短い（下限の3/4未満）
-    // 単に400字に少し足りないだけなら再生成しない（PM決定: 自然な360字 > 継ぎ接ぎの400字）。
+    // 構造の生成。JSONが途中で切れた場合だけ1回やり直す（本文の短さでは再生成しない）。
     for (let attempt = 0; attempt < 2; attempt++) {
-      const userPrompt =
-        attempt === 0
-          ? prompt
-          : `${prompt}\n\n【再生成の注意】前回の出力は文章として不完全でした（途中で切れている、または短すぎる）。extended.overview / why_started / what_creates と story.background / vision / use_of_funds / appeal は**各400文字前後（360文字以上）**で、**必ず文を言い切って句点で終える**こと。story.lead と story.schedule は短いままで構いません（字数を稼がないこと）。リターンは**合計15件**（商品6・体験4・サービス3・スポンサー2）にしてください。「三つの価値」等と数を宣言したら**その数だけ必ず列挙**してください。title_proposals は**各23文字ちょうど**で、**必ず「〜したい！」で終える**ようにしてください。project.title も同じ規則です。`;
-
       const result = await callLLM({
         apiBaseUrl, apiKey, model,
-        userPrompt,
-        // 出力が長いので生成の取りこぼしを防ぐ（上記の実測どおり 16,000）
-        maxTokens: 16000,
+        userPrompt: prompt,
+        // 構造＋リターン15件ぶん。本文要求を外したので 12,000 で足りる。
+        maxTokens: 12000,
       });
       if (!result.ok) {
         lastError = result.error;
-        // 🔴 JSONが途中で切れた場合は**もう1回だけ引く**（2026-09-14）。
-        //   以前は即 break でモックに落ちていたが、モックの本文は7項目が
-        //   164〜207字で、LLM出力（390〜457字）とは品質が別物になる。
-        //   出力量が増えて切れる確率が上がったので、諦める前に1回やり直す。
-        console.info(`ai/generate: LLM call failed (attempt ${attempt + 1}): ${result.error}`);
+        // JSONが途中で切れた場合は**もう1回だけ引く**。即モックに落とすと本文の品質が別物になる。
+        console.info(`ai/generate: structure call failed (attempt ${attempt + 1}): ${result.error}`);
         continue;
       }
-
       parsed = result.page;
-      if (!best) best = result.page;
-      if (!needsRegeneration(result.page)) { best = result.page; break; }
-      // 文章が不完全だったので1回だけ書き直させる（何が起きたか追えるようにログを残す）
-      console.info(`ai/generate: regenerating extended texts (attempt ${attempt + 1})`);
-      // 破綻していた場合は best を更新せず、次の試行結果を優先する
-      if (attempt === 1) best = result.page;
+      best = result.page;
+      break;
     }
     parsed = best ?? parsed;
 
@@ -129,17 +121,20 @@ export async function POST(request: NextRequest) {
       // フォールバック to mock（追加7項目もモック側で埋まる）
       const mockPage = generateMockPage(input);
       notifyOffice(mockPage, input, 'mock_fallback', contact, bankMasked);
-      return NextResponse.json({
-        success: true,
-        page: mockPage,
-        mode: 'mock_fallback',
-      });
+      return NextResponse.json({ success: true, page: mockPage, mode: 'mock_fallback' });
     }
 
     // LLM出力の category のゆらぎを正規化し、4カテゴリが欠けたらモック側の該当リターンで補う
     let page = ensureAllRewardCategories(parsed, input);
     // 追加7項目をサーバ側で検証・補正する（文字数・費用内訳の合計＝目標金額）
     page = withNormalizedExtended(page, input);
+
+    // 2回目: 400文字級の本文7項目だけを書かせて差し替える。
+    // 失敗しても1回目の要約が残るので、**ページが出ないことはない**。
+    // 🔴 採用件数は console に出す（`long texts adopted 7/7 (...)`）。
+    //   本番で短い出力が報告されたとき、**1回目が短いのか2回目が失敗しているのか**を
+    //   ログだけで切り分けられるようにするため。推測で原因を探さないための装備。
+    page = await withLongTexts(page, input, { apiBaseUrl, apiKey, model });
 
     notifyOffice(page, input, 'live', contact, bankMasked);
 
@@ -159,38 +154,115 @@ export async function POST(request: NextRequest) {
 
 
 /**
- * 再生成を発火させる文字数の下限（LONG_TEXT_MIN の 3/4）。
- * ここを下回るものだけ「文章として使えない」とみなして1回だけ書き直させる。
+ * 2回目のLLM呼び出しで400文字級の本文7項目を書かせ、1回目の要約を置き換える。
+ *
+ * 🔴 この関数は**失敗しても例外を投げない**。書き直せなかった場合は1回目の
+ *   要約がそのまま残るので、ページが出ないことはない。長文化は「良くなる方」
+ *   の処理であって、生成の成否を握らせるべきものではない。
+ *
+ * 採否の基準:
+ *   - 1回目の要約より**長くなったものだけ**採用する（短くなるなら意味がない）
+ *   - 言いかけで途切れているものは採用しない（`pickLongText` と同じ考え方）
+ *   - 長すぎるものは句点で切り詰める（`adjustLongText`）
  */
-const REGENERATE_MIN = Math.floor(LONG_TEXT_MIN * 0.75);
+async function withLongTexts(
+  page: CrowdfundingPage,
+  input: HearingInput,
+  llm: { apiBaseUrl: string; apiKey: string; model: string }
+): Promise<CrowdfundingPage> {
+  const story = page.project.story as unknown as Record<string, string>;
+  const ext = (page.project.extended ?? {}) as unknown as Record<string, string>;
+  const summaries: Record<string, string> = {};
+  for (const k of LONG_TEXT_KEYS) {
+    summaries[k] = String((k in story ? story[k] : ext[k]) ?? '');
+  }
+
+  const prompt = buildLongTextPrompt(input, {
+    title: page.project.title,
+    subtitle: page.project.subtitle,
+    summaries,
+    costBreakdown: page.project.extended?.cost_breakdown ?? [],
+  });
+
+  const result = await callLongTextLLM({ ...llm, userPrompt: prompt });
+  if (!result.ok) {
+    // 本文の書き直しに失敗しただけ。1回目の要約を残して続行する。
+    console.info(`ai/generate: long-text call failed: ${result.error}`);
+    return page;
+  }
+
+  const nextStory: Record<string, string> = { ...story };
+  const nextExt: Record<string, string> = { ...ext };
+  const adopted: string[] = [];
+  for (const k of LONG_TEXT_KEYS) {
+    const raw = String(result.texts[k] ?? '');
+    if (!raw) continue;
+    const cleaned = adjustLongText(raw);
+    if (!cleaned || isTruncatedText(cleaned)) continue;
+    // 要約より短くなるなら置き換えない
+    if (charLength(cleaned) <= charLength(summaries[k])) continue;
+    if (k in nextStory) nextStory[k] = cleaned;
+    else nextExt[k] = cleaned;
+    adopted.push(`${k}=${charLength(cleaned)}`);
+  }
+  console.info(`ai/generate: long texts adopted ${adopted.length}/${LONG_TEXT_KEYS.length} (${adopted.join(' ')})`);
+
+  return {
+    ...page,
+    project: {
+      ...page.project,
+      story: nextStory as unknown as CrowdfundingPage['project']['story'],
+      extended: nextExt as unknown as CrowdfundingPage['project']['extended'],
+    },
+  };
+}
 
 /**
- * 再生成が必要かを判定する。
- * 「文章として使えない」場合だけ true にする（少し短いだけでは再生成しない）。
+ * 本文専用の呼び出し。返るJSONは7キーだけなので、ページ全体のパースとは分けている。
  */
-function needsRegeneration(page: CrowdfundingPage): boolean {
-  const ext = (page.project as { extended?: Partial<ProjectExtended> } | undefined)?.extended;
-  if (!ext) return true;
-  // 400文字級の項目は extended の3つ＋story の4つ。**同じ判定に乗せる**。
-  // 片方だけ厳しいと、story 側が200文字で返ってきても素通りしてしまう。
-  const story = (page.project?.story ?? {}) as unknown as Record<string, unknown>;
-  const texts = [
-    ...[ext.overview, ext.why_started, ext.what_creates],
-    ...LONG_STORY_KEYS.map(k => story[k]),
-  ].map(t => String(t ?? ''));
-  // 🔴 再生成の発火条件を「言いかけ・極端に短い」に限定している（2026-09-14 実測に基づく）。
-  //
-  //   実測: このモデルは400文字を指示しても各項目 270〜330字で返す。プロンプトを
-  //   3通り（字数明示／7文以上／各文の内容を列挙）試したがいずれも届かなかった。
-  //   `< LONG_TEXT_MIN`（360字）を条件にすると**毎回必ず再生成が走る**ため、
-  //   生成1回が LLM 2回呼び出しになり実測 110 秒 — Vercel の関数上限を超える。
-  //   「少し短い」は再生成で直らないことが分かっているので、時間を倍にする価値がない。
-  //
-  //   下限は REGENERATE_MIN（270字＝LONG_TEXT_MIN の3/4）。これを下回るのは
-  //   文章として使えない水準なので、そのときだけ1回書き直させる。
-  // 🔴 リターン件数（15件）は再生成の理由にしない。15件揃わないことで生成全体が
-  //   失敗するのが最悪なので、件数は努力目標として扱い、生成は通す（PM合意）。
-  return texts.some(t => !t || charLength(t) < REGENERATE_MIN || isTruncatedText(t));
+async function callLongTextLLM(args: {
+  apiBaseUrl: string;
+  apiKey: string;
+  model: string;
+  userPrompt: string;
+}): Promise<{ ok: true; texts: Record<string, string> } | { ok: false; error: string }> {
+  try {
+    const response = await fetch(`${args.apiBaseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${args.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: args.model,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'あなたは日本語のクラウドファンディングページのライターです。指定された項目を、指定された文の本数で、地の文（散文）で書き切ってください。要約や箇条書きにしないこと。',
+          },
+          { role: 'user', content: args.userPrompt },
+        ],
+        temperature: 0.7,
+        // 7項目×400字級。JSONは7キーだけなので構造ぶんの余裕は要らない。
+        max_completion_tokens: 8000,
+        response_format: { type: 'json_object' },
+      }),
+    });
+    if (!response.ok) {
+      return { ok: false, error: `status=${response.status} ${await response.text()}` };
+    }
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    if (!content) return { ok: false, error: 'empty response from LLM' };
+    try {
+      return { ok: true, texts: JSON.parse(content) as Record<string, string> };
+    } catch {
+      return { ok: false, error: 'JSON parse failed (truncated response?)' };
+    }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 /**
