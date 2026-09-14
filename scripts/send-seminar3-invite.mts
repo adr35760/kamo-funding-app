@@ -27,7 +27,7 @@
 import { writeFileSync } from 'fs';
 import { createClient } from '@supabase/supabase-js';
 import { sendSeminarInviteEmail, seminarInviteSubject, seminarInviteHtml } from '../src/lib/email';
-import { formatEventDateJa } from '../src/lib/event-format';
+import { formatEventDateJa, formatEventDateFullJa } from '../src/lib/event-format';
 
 /** 第3回 掲載説明会（9/15）— 案内する回。ここに申込済みの人は対象外 */
 const TARGET_EVENT_ID = '94f5db1d-bc92-4cfd-bd14-fe9a3d463183';
@@ -69,12 +69,15 @@ async function main() {
 
   const eventTitle = ev.title as string;
   const eventDateJa = formatEventDateJa(ev.event_date as string, ev.duration_minutes as number | null);
-  console.log(`案内するイベント: ${eventTitle} / ${eventDateJa}`);
-  console.log(`件名: ${seminarInviteSubject()}`);
+  // 本文の「2026年9月15日（火）」は **event_date から算出**する。
+  // 曜日を文面にベタ書きすると年が変わった瞬間に嘘になる（9/15は2026年は火、2025年は月）。
+  const eventDateFullJa = formatEventDateFullJa(ev.event_date as string, ev.duration_minutes as number | null);
+  console.log(`案内するイベント: ${eventTitle} / ${eventDateFullJa}`);
+  console.log(`件名: ${seminarInviteSubject(eventDateJa)}`);
 
   if (DUMP_HTML) {
     const path = '/tmp/seminar3-invite-preview.html';
-    writeFileSync(path, seminarInviteHtml({ name: '◯◯', eventTitle, eventDateJa }), 'utf-8');
+    writeFileSync(path, seminarInviteHtml({ name: '◯◯', eventTitle, eventDateFullJa }), 'utf-8');
     console.log(`本文HTMLを保存: ${path}`);
   }
 
@@ -127,7 +130,7 @@ async function main() {
   let ok = 0;
   const failed: string[] = [];
   for (const [i, r] of recipients.entries()) {
-    const res = await sendSeminarInviteEmail(r.name, r.email, eventTitle, eventDateJa);
+    const res = await sendSeminarInviteEmail(r.name, r.email, eventTitle, eventDateJa, eventDateFullJa);
     if (res.success) {
       ok++;
       console.log(`  [${i + 1}/${recipients.length}] OK   ${r.name} ${mask(r.email)}`);

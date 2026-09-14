@@ -860,16 +860,26 @@ export async function sendAiGenerationNotifyEmail(
  * 呼び出し側は1件ずつ順に呼ぶ。1通ごとに成否を返す。
  * registrations 側のフラグ（reminder_sent 等）には**一切触れない**。
  */
-export function seminarInviteSubject(): string {
-  return '【ご案内／KAMOファンディング】第3回 無料掲載説明会（9/15 19:30〜）';
+export function seminarInviteSubject(eventDateJa: string): string {
+  // 件名の日付も event_date 由来の文字列から作る。
+  // eventDateJa = "9/15（火）19:30〜21:00" → 件名は "9/15 19:30〜"
+  const md = eventDateJa.split('（')[0];                     // "9/15"
+  const start = eventDateJa.split('）')[1]?.split('〜')[0] ?? ''; // "19:30"
+  return `【ご案内／KAMOファンディング】第3回 無料掲載説明会（${md} ${start}〜）`;
 }
 
 export function seminarInviteHtml(params: {
   name: string;
   eventTitle: string;
-  eventDateJa: string;
+  /**
+   * 年を含む正式表記。例: "2026年9月15日（火）19:30〜21:00"
+   *
+   * 🔴 曜日を文面にベタ書きしないこと。人が手で書いた曜日は年が変わるとずれる
+   *    （2026/9/15 は火曜、2025年の同日は月曜）。必ず event_date から算出する。
+   */
+  eventDateFullJa: string;
 }): string {
-  const { name, eventTitle, eventDateJa } = params;
+  const { name, eventTitle, eventDateFullJa } = params;
   // 氏名は入力値なのでエスケープする（姓名に記号が入っていても崩れない）
   const safeName = escapeHtml(name);
   return `
@@ -889,7 +899,7 @@ export function seminarInviteHtml(params: {
 
         <div style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; border: 1px solid #FFD6D6;">
           <p style="margin: 0 0 4px; font-weight: 700; color: #E60012;">📅 開催日時</p>
-          <p style="margin: 0 0 8px; font-size: 18px; font-weight: 700;">${eventDateJa}</p>
+          <p style="margin: 0 0 8px; font-size: 18px; font-weight: 700;">${eventDateFullJa}</p>
           <p style="margin: 0 0 4px; font-size: 13px; color: #666;">${eventTitle}</p>
           <p style="margin: 0; font-size: 14px;">💻 オンライン（Zoom）／⏱️ 約90分／💰 参加費無料</p>
         </div>
@@ -921,7 +931,12 @@ export async function sendSeminarInviteEmail(
   name: string,
   email: string,
   eventTitle: string,
-  eventDateJa: string
+  eventDateJa: string,
+  eventDateFullJa: string
 ): Promise<EmailResult> {
-  return sendEmail(email, seminarInviteSubject(), seminarInviteHtml({ name, eventTitle, eventDateJa }));
+  return sendEmail(
+    email,
+    seminarInviteSubject(eventDateJa),
+    seminarInviteHtml({ name, eventTitle, eventDateFullJa })
+  );
 }

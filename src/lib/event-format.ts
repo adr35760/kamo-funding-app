@@ -44,6 +44,15 @@ function tokyoParts(iso: string): { month: number; day: number; weekday: number;
   return { month: m, day: dayNum, weekday: wd, hour, minute: get('minute') };
 }
 
+/** tokyoParts に年を足したもの（年を含む表記用） */
+function tokyoPartsWithYear(iso: string): { year: number } & ReturnType<typeof tokyoParts> {
+  const base = tokyoParts(iso);
+  const year = Number(
+    new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Tokyo', year: 'numeric' }).format(new Date(iso))
+  );
+  return { year, ...base };
+}
+
 /**
  * 例: formatEventDateJa('2026-08-18T10:30:00+00:00', 90) → "8/18（火）19:30〜21:00"
  */
@@ -75,6 +84,24 @@ export function eventCardParts(eventDate: string, durationMinutes?: number | nul
     dateJa: `${s.month}/${s.day}（${WEEKDAYS[s.weekday]}）`,
     timeRange: `${hhmm(s)}〜${hhmm(e)}`,
   };
+}
+
+/**
+ * 年を含む正式表記。メール本文など「2026年9月15日（火）」と書きたい場所で使う。
+ *
+ * 🔴 曜日を文面にベタ書きしないこと。手で書いた曜日は年が変わると必ずずれる
+ *    （2026/9/15 は火曜だが、2025年の同日は月曜）。必ず event_date から出す。
+ *
+ * 例: formatEventDateFullJa('2026-09-15T10:30:00+00:00', 90)
+ *       → "2026年9月15日（火）19:30〜21:00"
+ */
+export function formatEventDateFullJa(eventDate: string, durationMinutes?: number | null): string {
+  const s = tokyoPartsWithYear(eventDate);
+  const dur = durationMinutes ?? 90;
+  const e = tokyoParts(new Date(new Date(eventDate).getTime() + dur * 60_000).toISOString());
+  const hhmm = (p: { hour: number; minute: number }) =>
+    `${String(p.hour).padStart(2, '0')}:${String(p.minute).padStart(2, '0')}`;
+  return `${s.year}年${s.month}月${s.day}日（${WEEKDAYS[s.weekday]}）${hhmm(s)}〜${hhmm(e)}`;
 }
 
 /** タイトルの末尾に付与されている "(8/18)" 等の飾りを除去して返す */
