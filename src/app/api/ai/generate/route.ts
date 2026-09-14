@@ -18,6 +18,8 @@ import {
   isTruncatedText,
   charLength,
   adjustTitleProposal,
+  normalizeLongStory,
+  LONG_STORY_KEYS,
   LONG_TEXT_MIN,
   type ProjectExtended,
 } from '@/lib/ai-extended';
@@ -78,8 +80,10 @@ export async function POST(request: NextRequest) {
     // Gensparkプロキシの場合は利用可能なモデルを使用、直接OpenAIの場合はgpt-4o
     const model = apiBaseUrl.includes('genspark') ? 'gpt-5.1' : 'gpt-4o';
 
-    // 追加7項目（400文字×3・費用内訳など）で出力が長くなったため、
-    // 途中で切れた壊れたJSONを避けるために上限を明示的に引き上げる。
+    // 出力が長いので上限を明示的に引き上げる。
+    // 2026-09-14 の増量後の実測: 400文字級が7項目（story 4 + extended 3）＋リターン15件。
+    // 12,000 で試したところ**3回に1回ほどJSONが途中で切れてモックに落ちた**ため 16,000 にする。
+    // （切れると mode=mock_fallback になり、実測では 7項目が164〜207字まで落ちる＝品質が別物になる）
     let parsed: CrowdfundingPage | null = null;
     let best: CrowdfundingPage | null = null;
     let lastError = '';
@@ -92,15 +96,23 @@ export async function POST(request: NextRequest) {
       const userPrompt =
         attempt === 0
           ? prompt
-          : `${prompt}\n\n【再生成の注意】前回の出力は文章として不完全でした（途中で切れている、または短すぎる）。extended.overview / why_started / what_creates は**各400文字前後（360文字以上）**で、**必ず文を言い切って句点で終える**こと。「三つの価値」等と数を宣言したら**その数だけ必ず列挙**してください。title_proposals は**各23文字ちょうど**で、**必ず「〜したい！」で終える**ようにしてください。project.title も同じ規則です。`;
+          : `${prompt}\n\n【再生成の注意】前回の出力は文章として不完全でした（途中で切れている、または短すぎる）。extended.overview / why_started / what_creates と story.background / vision / use_of_funds / appeal は**各400文字前後（360文字以上）**で、**必ず文を言い切って句点で終える**こと。story.lead と story.schedule は短いままで構いません（字数を稼がないこと）。リターンは**合計15件**（商品6・体験4・サービス3・スポンサー2）にしてください。「三つの価値」等と数を宣言したら**その数だけ必ず列挙**してください。title_proposals は**各23文字ちょうど**で、**必ず「〜したい！」で終える**ようにしてください。project.title も同じ規則です。`;
 
       const result = await callLLM({
         apiBaseUrl, apiKey, model,
         userPrompt,
-        // 出力が長いので生成の取りこぼしを防ぐ
-        maxTokens: 8000,
+        // 出力が長いので生成の取りこぼしを防ぐ（上記の実測どおり 16,000）
+        maxTokens: 16000,
       });
-      if (!result.ok) { lastError = result.error; break; }
+      if (!result.ok) {
+        lastError = result.error;
+        // 🔴 JSONが途中で切れた場合は**もう1回だけ引く**（2026-09-14）。
+        //   以前は即 break でモックに落ちていたが、モックの本文は7項目が
+        //   164〜207字で、LLM出力（390〜457字）とは品質が別物になる。
+        //   出力量が増えて切れる確率が上がったので、諦める前に1回やり直す。
+        console.info(`ai/generate: LLM call failed (attempt ${attempt + 1}): ${result.error}`);
+        continue;
+      }
 
       parsed = result.page;
       if (!best) best = result.page;
@@ -147,16 +159,38 @@ export async function POST(request: NextRequest) {
 
 
 /**
+ * 再生成を発火させる文字数の下限（LONG_TEXT_MIN の 3/4）。
+ * ここを下回るものだけ「文章として使えない」とみなして1回だけ書き直させる。
+ */
+const REGENERATE_MIN = Math.floor(LONG_TEXT_MIN * 0.75);
+
+/**
  * 再生成が必要かを判定する。
  * 「文章として使えない」場合だけ true にする（少し短いだけでは再生成しない）。
  */
 function needsRegeneration(page: CrowdfundingPage): boolean {
   const ext = (page.project as { extended?: Partial<ProjectExtended> } | undefined)?.extended;
   if (!ext) return true;
-  const texts = [ext.overview, ext.why_started, ext.what_creates].map(t => String(t ?? ''));
-  // 下限（360字）未満か、言いかけで途切れているものがあれば1回だけ再生成する。
-  // 再生成後も足りなければ**短いまま出す**（他テキストの連結による字数稼ぎはしない）。
-  return texts.some(t => !t || charLength(t) < LONG_TEXT_MIN || isTruncatedText(t));
+  // 400文字級の項目は extended の3つ＋story の4つ。**同じ判定に乗せる**。
+  // 片方だけ厳しいと、story 側が200文字で返ってきても素通りしてしまう。
+  const story = (page.project?.story ?? {}) as unknown as Record<string, unknown>;
+  const texts = [
+    ...[ext.overview, ext.why_started, ext.what_creates],
+    ...LONG_STORY_KEYS.map(k => story[k]),
+  ].map(t => String(t ?? ''));
+  // 🔴 再生成の発火条件を「言いかけ・極端に短い」に限定している（2026-09-14 実測に基づく）。
+  //
+  //   実測: このモデルは400文字を指示しても各項目 270〜330字で返す。プロンプトを
+  //   3通り（字数明示／7文以上／各文の内容を列挙）試したがいずれも届かなかった。
+  //   `< LONG_TEXT_MIN`（360字）を条件にすると**毎回必ず再生成が走る**ため、
+  //   生成1回が LLM 2回呼び出しになり実測 110 秒 — Vercel の関数上限を超える。
+  //   「少し短い」は再生成で直らないことが分かっているので、時間を倍にする価値がない。
+  //
+  //   下限は REGENERATE_MIN（270字＝LONG_TEXT_MIN の3/4）。これを下回るのは
+  //   文章として使えない水準なので、そのときだけ1回書き直させる。
+  // 🔴 リターン件数（15件）は再生成の理由にしない。15件揃わないことで生成全体が
+  //   失敗するのが最悪なので、件数は努力目標として扱い、生成は通す（PM合意）。
+  return texts.some(t => !t || charLength(t) < REGENERATE_MIN || isTruncatedText(t));
 }
 
 /**
@@ -296,7 +330,16 @@ function withNormalizedExtended(page: CrowdfundingPage, input: HearingInput): Cr
   const creator = { ...page.project.creator, ...(links ? { links } : {}) };
   if (!links) delete (creator as { links?: unknown }).links;
 
-  return { ...page, project: { ...page.project, title, creator, extended } };
+  // story の400文字級4項目（background / vision / use_of_funds / appeal）を
+  // extended の3項目と同じ経路で仕上げる（長すぎは句点で切り、言いかけの尾は落とす）。
+  // lead / schedule は対象外。
+  const fallbackStory = buildMockPageBase(input).project.story as unknown as Record<string, string>;
+  const story = normalizeLongStory(
+    page.project.story as unknown as Record<string, unknown>,
+    fallbackStory
+  ) as unknown as CrowdfundingPage['project']['story'];
+
+  return { ...page, project: { ...page.project, title, creator, story, extended } };
 }
 
 /**
@@ -365,8 +408,20 @@ function buildFallbackExtended(input: HearingInput, page?: CrowdfundingPage): Pr
 }
 
 /**
+ * 目標のリターン件数（t iku指示 2026-09-14: 合計15件）。
+ * カテゴリ別の目安は 商品6 / 体験4 / サービス3 / スポンサー2。
+ *
+ * 🔴 **これは努力目標で、達成できなくても生成は通す**（PM合意 2026-09-14）。
+ *   15件揃わないことを理由に生成全体を失敗させるのが最悪なので、
+ *   不足分はモック側から補い、それでも届かなければ届いた件数で出す。
+ */
+const REWARD_TARGET_COUNT = 15;
+
+/**
  * リターンの category を正規化し、4カテゴリ（商品/体験/サービス/スポンサー）が
- * すべて1件以上存在することを保証する。
+ * すべて1件以上存在することを保証する。さらに合計15件に届かない場合は
+ * モック側のリターンから不足分を補う。
+ *
  * 欠けたカテゴリはモック生成の同カテゴリのリターンで補完する（空カテゴリを作らない）。
  */
 function ensureAllRewardCategories(page: CrowdfundingPage, input: HearingInput): CrowdfundingPage {
@@ -377,11 +432,41 @@ function ensureAllRewardCategories(page: CrowdfundingPage, input: HearingInput):
 
   const present = new Set<RewardCategory>(rewards.map((r) => r.category));
   const missing = REWARD_CATEGORIES.filter((c) => !present.has(c));
+  const fallbackRewards = missing.length > 0 || rewards.length < REWARD_TARGET_COUNT
+    ? generateMockPage(input).rewards
+    : [];
   if (missing.length > 0) {
-    const fallback = generateMockPage(input).rewards;
     for (const cat of missing) {
-      const spare = fallback.find((r) => r.category === cat);
+      const spare = fallbackRewards.find((r) => r.category === cat);
       if (spare) rewards.push(spare);
+    }
+  }
+
+  // 15件に届かない分をモック側から補う。
+  // 既に入っている title と重複するものは足さない（同じリターンを2度並べない）。
+  if (rewards.length < REWARD_TARGET_COUNT) {
+    const taken = new Set(rewards.map((r) => String(r.title ?? '').trim()));
+    // カテゴリの配分（商品6・体験4・サービス3・スポンサー2）に近づく順で足す
+    const wanted: Record<RewardCategory, number> = {
+      product: 6, experience: 4, service: 3, sponsor: 2,
+    } as Record<RewardCategory, number>;
+    const countOf = (c: RewardCategory) => rewards.filter((r) => r.category === c).length;
+    // 不足の大きいカテゴリから順に埋める
+    const byNeed = [...fallbackRewards].sort((a, b) => {
+      const na = (wanted[a.category] ?? 0) - countOf(a.category);
+      const nb = (wanted[b.category] ?? 0) - countOf(b.category);
+      return nb - na;
+    });
+    for (const spare of byNeed) {
+      if (rewards.length >= REWARD_TARGET_COUNT) break;
+      const key = String(spare.title ?? '').trim();
+      if (taken.has(key)) continue;
+      taken.add(key);
+      rewards.push(spare);
+    }
+    if (rewards.length < REWARD_TARGET_COUNT) {
+      // 補ってもなお届かない場合は**そのまま出す**。件数不足で失敗させない。
+      console.info(`ai/generate: rewards ${rewards.length}/${REWARD_TARGET_COUNT} (件数不足のまま生成を通します)`);
     }
   }
 
@@ -433,7 +518,7 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
         vision: `${input.crowdfundingGoal || templates.defaultGoal}。\n\nこれが実現した未来を想像してください。\n${templates.visionDescription}\n\n${input.targetAudience || '地域の皆様'}にとって、${templates.visionBenefit}。これが私たちの描く未来です。`,
         use_of_funds: `皆様からいただいた支援金は、以下の用途で活用いたします。\n\n■ 内訳（目安）\n・${templates.fundUse1}: 約${Math.round(input.goalAmount * 0.4).toLocaleString()}円（40%）\n・${templates.fundUse2}: 約${Math.round(input.goalAmount * 0.3).toLocaleString()}円（30%）\n・${templates.fundUse3}: 約${Math.round(input.goalAmount * 0.2).toLocaleString()}円（20%）\n・クラファン手数料・事務費: 約${Math.round(input.goalAmount * 0.1).toLocaleString()}円（10%）\n\nすべての資金を、${input.crowdfundingGoal || 'プロジェクトの実現'}のために真摯に活用いたします。`,
         schedule: `■ 募集期間: ${startStr}〜${endStr}（${input.deadlineDays}日間）\n■ 達成後のスケジュール:\n・${endDate.getMonth() + 1}月下旬: 実行プロジェクト開始\n・${deliveryDate.getMonth() + 1}月: リターン製作・発送開始\n・${deliveryStr}頃: 全リターンのお届け完了予定\n\n※進捗は随时報告いたします。`,
-        appeal: `最後まで読んでいただき、ありがとうございます。\n\n${input.creatorName}として、本業を本気で立て直そうとしています。${input.currentChallenge ? `${input.currentChallenge} — この壁を、皆様と一緒に乗り越えたい。` : 'この壁を、皆様と一緒に乗り越えたい。'}\n\n「共犯者」を募集します。このプロジェクトに共感してくださる方、一緒に${templates.appealGoal}を実現しませんか？\n\nあなたの支援が、私たちの挑戦を現実に変えます。ひとりひとりの支援が、大きなうねりになります。\n\nどうか、ご支援よろしくお願いいたします。`,
+        appeal: `最後まで読んでいただき、ありがとうございます。\n\n${input.supporterMessage?.trim() ? `${input.supporterMessage.trim()}${/[。！？]$/.test(input.supporterMessage.trim()) ? '' : '。'}\n\n` : ''}${input.creatorName}として、本業を本気で立て直そうとしています。${input.currentChallenge ? `${input.currentChallenge} — この壁を、皆様と一緒に乗り越えたい。` : 'この壁を、皆様と一緒に乗り越えたい。'}\n\n「共犯者」を募集します。このプロジェクトに共感してくださる方、一緒に${templates.appealGoal}を実現しませんか？\n\nあなたの支援が、私たちの挑戦を現実に変えます。ひとりひとりの支援が、大きなうねりになります。\n\nどうか、ご支援よろしくお願いいたします。`,
       },
       creator: {
         name: input.creatorName,
@@ -537,6 +622,127 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
         is_designated: false,
         designated_name: '',
         sponsor_name: 'ダイヤモンド',
+      },
+      // ここから下は**15件構成のための補完用**（2026-09-14）。
+      // LLMが15件に届かなかったときに ensureRewardCount() が不足カテゴリから
+      // 順に採用する。既存6件と内容が重複しないよう、切り口を変えてある。
+      {
+        category: 'product',
+        tier: 'entry',
+        title: `【ミニ応援コース】ステッカー＆お礼メッセージ`,
+        description: `気軽に応援いただけるコースです。\n\nプロジェクトオリジナルのステッカーと、${input.creatorName}からのお礼メッセージカードをお送りします。\n\n※少額から参加いただける入口のコースです。`,
+        image_url: '',
+        price: Math.max(1000, Math.round(tiers.entry * 0.6 / 100) * 100),
+        shipping_included: true,
+        estimated_delivery: deliveryStr,
+        stock_limit: null,
+        is_designated: false,
+        designated_name: '',
+      },
+      {
+        category: 'product',
+        tier: 'standard',
+        title: `【定番セットコース】${templates.standardRewardName}（通常サイズ）`,
+        description: `${templates.standardRewardDesc}\n\nお試しサイズではなく、普段使いできる通常サイズでお届けします。リピートを前提に内容量を増やした構成です。`,
+        image_url: '',
+        price: Math.round(tiers.standard * 1.3 / 100) * 100,
+        shipping_included: true,
+        estimated_delivery: deliveryStr,
+        stock_limit: 80,
+        is_designated: false,
+        designated_name: '',
+      },
+      {
+        category: 'product',
+        tier: 'premium',
+        title: `【ギフトコース】${templates.premiumRewardName}（ラッピング付き）`,
+        description: `${templates.premiumRewardDesc}\n\n贈り物としてそのままお渡しいただけるよう、専用の箱とラッピングでお届けします。メッセージカードの同封も承ります。`,
+        image_url: '',
+        price: Math.round(tiers.premium * 1.2 / 100) * 100,
+        shipping_included: true,
+        estimated_delivery: deliveryStr,
+        stock_limit: 30,
+        is_designated: false,
+        designated_name: '',
+      },
+      {
+        category: 'experience',
+        tier: 'standard',
+        title: `【オンライン見学コース】${input.creatorName}が現場を案内`,
+        description: `現地に行かなくても参加いただけるオンライン見学です。\n\n${templates.vipRewardDesc}\n\n※後日アーカイブもご視聴いただけます。遠方の方におすすめです。`,
+        image_url: '',
+        price: Math.round(tiers.standard * 1.6 / 100) * 100,
+        shipping_included: false,
+        estimated_delivery: deliveryStr,
+        stock_limit: 40,
+        is_designated: false,
+        designated_name: '',
+      },
+      {
+        category: 'experience',
+        tier: 'premium',
+        title: `【体験コース】${templates.vipRewardName}（1名様）`,
+        description: `${templates.vipRewardDesc}\n\nVIPコースより短い時間で、要点を体験いただける構成です。おひとりでのご参加を歓迎します。`,
+        image_url: '',
+        price: Math.round(tiers.premium * 1.1 / 100) * 100,
+        shipping_included: false,
+        estimated_delivery: deliveryStr,
+        stock_limit: 20,
+        is_designated: false,
+        designated_name: '',
+      },
+      {
+        category: 'experience',
+        tier: 'premium',
+        title: `【支援者交流会コース】発表会へご招待`,
+        description: `プロジェクト達成後に開催する支援者向け発表会にご招待します。\n\n${input.creatorName}から進捗と今後の計画を直接ご報告し、支援者同士で交流いただける場です。\n\n※開催形式・日程は決定後にご案内します。`,
+        image_url: '',
+        price: Math.round(tiers.premium * 0.8 / 100) * 100,
+        shipping_included: false,
+        estimated_delivery: deliveryStr,
+        stock_limit: 25,
+        is_designated: false,
+        designated_name: '',
+      },
+      {
+        category: 'service',
+        tier: 'entry',
+        title: `【オンライン相談コース】30分の個別相談`,
+        description: `${input.industry}に関するご相談を、オンラインで30分お受けします。\n\n${templates.serviceRewardDesc}\n\n※日程はご相談の上で決定いたします。`,
+        image_url: '',
+        price: Math.round(tiers.entry * 1.5 / 100) * 100,
+        shipping_included: false,
+        estimated_delivery: deliveryStr,
+        stock_limit: 20,
+        is_designated: false,
+        designated_name: '',
+      },
+      {
+        category: 'service',
+        tier: 'premium',
+        title: `【優先サポートコース】${templates.serviceRewardName}（1年間）`,
+        description: `${templates.serviceRewardDesc}\n\n1年間にわたって優先的にご対応します。困ったときにすぐ相談できる窓口としてお使いください。`,
+        image_url: '',
+        price: Math.round(tiers.premium * 1.4 / 100) * 100,
+        shipping_included: false,
+        estimated_delivery: deliveryStr,
+        stock_limit: 15,
+        is_designated: false,
+        designated_name: '',
+      },
+      {
+        category: 'sponsor',
+        tier: 'sponsor',
+        title: `【ゴールドスポンサー】企業・団体様向け`,
+        description: `企業・団体様向けの協賛コースです。\n\n${templates.sponsorRewardDesc}\n\n■ スポンサー特典\n・プロジェクトページへのロゴ掲載\n・SNSでの感謝投稿\n・活動報告レポートの送付（3ヶ月間）\n\n※ダイヤモンドスポンサーより内容を絞った構成です。`,
+        image_url: '',
+        price: Math.max(100000, Math.round(tiers.sponsor * 0.6 / 100) * 100),
+        shipping_included: true,
+        estimated_delivery: deliveryStr,
+        stock_limit: 10,
+        is_designated: false,
+        designated_name: '',
+        sponsor_name: 'ゴールド',
       },
     ],
   };
@@ -700,3 +906,18 @@ function getIndustryTemplate(industry: string) {
 
   return templates[industry] || templates['サービス'];
 }
+
+/**
+ * 関数の実行時間上限（秒）。
+ *
+ * 2026-09-14 の増量（400文字級7項目＋リターン15件、maxTokens 16,000）で
+ * 生成1回が実測 64〜82 秒かかるため明示する。既定値では足りない。
+ *
+ * 🔴 300 を指定できる根拠（推測ではなく実測）:
+ *   増量前の本番 /api/ai/generate が **61秒・68秒** で完走している。
+ *   Hobby プランの上限は60秒なので、60秒を超えて完走している事実から
+ *   このプロジェクトは Pro（上限300秒）である。Hobby なら既にタイムアウトしている。
+ *
+ * 🔴 実測が 82 秒まで出ているので、60 では足りない。ここを下げないこと。
+ */
+export const maxDuration = 300;

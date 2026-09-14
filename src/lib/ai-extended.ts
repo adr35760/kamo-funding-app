@@ -395,6 +395,44 @@ function pickLongText(raw: string | undefined, fallback: string): string {
   return adjustLongText(fallback);
 }
 
+/**
+ * 400文字級の検証をかける story の項目。
+ *
+ * 🔴 `lead` と `schedule` は**意図的に外している**（PM決定 2026-09-14）:
+ *   - lead は「読者を引き込む一文」。400字のリード文は掲載ページの冒頭として機能しない
+ *   - schedule は日程の列挙。字数を稼ぐと日付が読み取りにくくなる
+ * 「9項目すべて400文字」に方針が変わったら、この配列に 'lead' / 'schedule' を足すだけで
+ * プロンプト以外の検証・正規化・再生成判定はすべて追随する。
+ */
+export const LONG_STORY_KEYS = ['background', 'vision', 'use_of_funds', 'appeal'] as const;
+export type LongStoryKey = (typeof LONG_STORY_KEYS)[number];
+
+/**
+ * story の400文字級項目を、extended の3項目と**同じ経路**で仕上げる。
+ * 長すぎは句点で切り詰め、言いかけの尾は落とす。
+ * 破綻していたら元の文（モック由来のフォールバック）に差し替える。
+ *
+ * 片方だけ検証が厳しいと、story 側が200文字で返ってきても素通りしてしまうため、
+ * extended と同じ `pickLongText` に通している。
+ */
+export function normalizeLongStory(
+  story: Record<string, unknown> | undefined,
+  fallback: Record<string, string>
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(story ?? {})) out[k] = String(v ?? '');
+  for (const key of LONG_STORY_KEYS) {
+    out[key] = pickLongText(out[key], String(fallback[key] ?? out[key] ?? ''));
+  }
+  // lead は字数調整の対象外だが、言いかけの尾だけ落として原稿の体裁を保つ。
+  if (out.lead) out.lead = trimIncompleteTail(out.lead);
+  // 🔴 schedule には trimIncompleteTail をかけない。
+  //   日程の箇条書き（「2026年7月 サービス開始」）は句点で終わらないのが正しい形で、
+  //   末尾を「最後の句点まで」で切ると**最終行の日程が丸ごと消える**。
+  //   実生成でも句点を1つも含まない出力になっており、文章用の整形を当てる対象ではない。
+  return out;
+}
+
 /** 本文が許容範囲（下限以上）に収まっているか */
 export function isLongTextOk(s: string): boolean {
   const n = charLength(s);

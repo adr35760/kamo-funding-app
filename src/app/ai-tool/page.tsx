@@ -14,6 +14,9 @@ import {
 /** プロフィールの上限文字数（t iku指示 2026-09-13: 300文字以内） */
 const PROFILE_MAX_LENGTH = 300;
 
+/** 支援者へのメッセージの上限文字数（t iku指示 2026-09-14: 400文字以内） */
+const SUPPORTER_MESSAGE_MAX_LENGTH = 400;
+
 /**
  * メールアドレスの形式チェック。
  * 必須項目の判定に使うだけなので、厳密なRFC準拠より
@@ -103,6 +106,7 @@ export default function AIToolPage() {
     activityHistory: '',
     /** 起案者プロフィール（300文字以内・任意）。生成の creator.bio の起点になる */
     creatorProfile: '',
+    supporterMessage: '',
     /**
      * SNS・サイトのURL（すべて任意）。
      * URLは公開して差し支えない情報なので、メール・電話とは違い掲載JSON側にも載せる。
@@ -165,6 +169,8 @@ export default function AIToolPage() {
 
   // プロフィールの残り文字数（日本語はコードポイント数で数える）
   const profileRemaining = PROFILE_MAX_LENGTH - charLength(form.creatorProfile);
+  const supporterMessageRemaining =
+    SUPPORTER_MESSAGE_MAX_LENGTH - charLength(form.supporterMessage);
 
   /**
    * 送信用に form を正規化する。
@@ -566,6 +572,28 @@ export default function AIToolPage() {
               </div>
             </Field>
 
+            {/* 支援者へのメッセージ（任意・400文字）。
+                story.appeal の起点になるので、空欄ならAIが推定して書く。 */}
+            <Field label="達成したい想い！支援者さんへのメッセージ（400文字以内）">
+              <textarea value={form.supporterMessage}
+                maxLength={SUPPORTER_MESSAGE_MAX_LENGTH}
+                onChange={e => updateForm('supporterMessage', e.target.value)}
+                style={{ ...inputStyle, minHeight: 120 }}
+                placeholder="例: 台風で店を閉めた数日間、常連さんから「大丈夫ですか」と連絡をもらいました。あのとき、うちの店は自分ひとりのものではないと気づきました。今回のプロジェクトは、その恩返しです。沖縄の食を全国に届けて、応援してくれた方に胸を張って報告したいと思っています。" />
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, margin: '4px 0 0' }}>
+                <p style={{ fontSize: 11, color: '#999', margin: 0 }}>
+                  入力すると生成結果の「支援者へのメッセージ」がこの内容を起点に書かれます（空欄の場合はAIが推定して書きます）。
+                </p>
+                {/* 残り文字数。400を超える入力は maxLength で弾かれる */}
+                <p style={{
+                  fontSize: 11, margin: 0, whiteSpace: 'nowrap',
+                  color: supporterMessageRemaining <= 20 ? '#E60012' : '#999',
+                }}>
+                  残り {supporterMessageRemaining} 文字
+                </p>
+              </div>
+            </Field>
+
             {/* SNS・サイトのURL（すべて任意）。
                 type="url" にしないのは、https:// を付けない入力を
                 ブラウザ検証で弾いて先に進めなくしてしまうため。 */}
@@ -712,6 +740,7 @@ export default function AIToolPage() {
             <ConfirmRow label="クラファンで実現したいこと" value={form.crowdfundingGoal} />
             <ConfirmRow label="活動履歴" value={form.activityHistory} />
             <ConfirmRow label="あなたのプロフィール" value={form.creatorProfile} />
+            <ConfirmRow label="達成したい想い！支援者さんへのメッセージ" value={form.supporterMessage} />
             {/* 空欄は ConfirmRow が null を返すので行が出ない */}
             <ConfirmRow label="XのURL" value={form.snsX} />
             <ConfirmRow label="FacebookのURL" value={form.snsFacebook} />
