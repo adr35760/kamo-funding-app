@@ -68,6 +68,60 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * DELETE /api/admin/ai-generations?id=<uuid>
+ * AI生成結果を1件だけ削除する（不可逆操作）。
+ *
+ * 🔴 意図的に「1件ずつ」だけを受け付ける。
+ * 過去に申込データの一括削除で実ユーザーの行を巻き込んだ事故があったため、
+ * カンマ区切りの複数指定・条件一致削除は実装しない（id は厳密にUUID1件）。
+ */
+export async function DELETE(request: NextRequest) {
+  const id = request.nextUrl.searchParams.get('id');
+
+  if (!id) {
+    return NextResponse.json({ ok: false, error: 'id が必要です' }, { status: 400 });
+  }
+  // 複数指定・ワイルドカードを構造的に受け付けない
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_RE.test(id.trim())) {
+    return NextResponse.json(
+      { ok: false, error: 'id は1件のみ指定してください（複数削除は行えません）' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const supabase = getSupabaseAdmin();
+    // 削除対象が実在するかを先に確認し、0件削除を「成功」と見せない
+    const { data: target, error: findError } = await supabase
+      .from('ai_generations')
+      .select('id, title')
+      .eq('id', id.trim())
+      .maybeSingle();
+    if (findError) {
+      return NextResponse.json({ ok: false, error: findError.message }, { status: 500 });
+    }
+    if (!target) {
+      return NextResponse.json(
+        { ok: false, error: '対象の生成結果が見つかりませんでした（すでに削除済みの可能性があります）' },
+        { status: 404 }
+      );
+    }
+
+    const { error } = await supabase.from('ai_generations').delete().eq('id', id.trim());
+    if (error) {
+      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true, deleted: 1, title: target.title ?? null });
+  } catch (err) {
+    return NextResponse.json(
+      { ok: false, error: err instanceof Error ? err.message : '削除に失敗しました' },
+      { status: 500 }
+    );
+  }
+}
+
 /** bank_account 列が未追加（migration-ai-bank-account.sql 未実行）かを判定する */
 function isMissingBankColumn(error: { code?: string; message?: string }): boolean {
   const msg = error.message || '';

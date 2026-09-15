@@ -974,6 +974,8 @@ function AIGenerationsPanel() {
   const [detail, setDetail] = useState<AIGenerationDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  // 削除処理中の行id（ボタンの二度押し防止）
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -999,6 +1001,40 @@ function AIGenerationsPanel() {
       setDetail(data.generation ?? null);
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  /**
+   * AI生成結果を1件だけ削除する（確認ダイアログあり・不可逆）。
+   * 一括削除は意図的に用意していない（誤削除の巻き込みを構造的に防ぐ）。
+   */
+  const handleDelete = async (row: { id: string; title: string; created_at: string }) => {
+    const label = row.title || '（案件名なし）';
+    const confirmMsg =
+      `この生成結果を削除しますか？\n\n` +
+      `案件名: ${label}\n` +
+      `送信日時: ${formatJst(row.created_at)}\n\n` +
+      `この操作は取り消せません。`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeletingId(row.id);
+    try {
+      const res = await fetch(`/api/admin/ai-generations?id=${encodeURIComponent(row.id)}`, {
+        method: 'DELETE',
+      });
+      const result = await res.json();
+      if (!res.ok || !result.ok) {
+        alert(`削除に失敗しました: ${result.error || '不明なエラー'}`);
+        return;
+      }
+      alert('生成結果を削除しました。');
+      // 詳細を開いたまま削除した場合は一覧に戻す
+      setDetail(prev => (prev && prev.id === row.id ? null : prev));
+      setRows(prev => prev.filter(r => r.id !== row.id));
+    } catch {
+      alert('削除中にエラーが発生しました');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -1079,6 +1115,18 @@ function AIGenerationsPanel() {
                 >
                   PDFでダウンロード
                 </a>
+                <button
+                  onClick={() => handleDelete(detail)}
+                  disabled={deletingId === detail.id}
+                  style={{
+                    padding: '10px 18px', borderRadius: 6, border: '1px solid #C0392B',
+                    background: '#fff', color: '#C0392B', fontSize: 13,
+                    cursor: deletingId === detail.id ? 'default' : 'pointer',
+                    opacity: deletingId === detail.id ? 0.6 : 1,
+                  }}
+                >
+                  {deletingId === detail.id ? '削除中...' : 'この生成結果を削除'}
+                </button>
                 {copied && <span style={{ alignSelf: 'center', color: '#27AE60', fontSize: 13, fontWeight: 'bold' }}>✅ コピーしました</span>}
               </div>
               {/* 掲載内容の全文。PDFと同じ体裁で表示する（JSONの生データは「JSONをコピー」から取得） */}
@@ -1108,6 +1156,7 @@ function AIGenerationsPanel() {
                 <Th>振込口座</Th>
                 <Th>詳細</Th>
                 <Th>PDF</Th>
+                <Th>削除</Th>
               </tr>
             </thead>
             <tbody>
@@ -1148,6 +1197,21 @@ function AIGenerationsPanel() {
                     >
                       PDF
                     </a>
+                  </td>
+                  <td style={{ padding: '10px 12px' }}>
+                    <button
+                      onClick={() => handleDelete(r)}
+                      disabled={deletingId === r.id}
+                      style={{
+                        padding: '6px 12px', borderRadius: 6, border: '1px solid #C0392B',
+                        background: '#fff', color: '#C0392B', fontSize: 12,
+                        whiteSpace: 'nowrap',
+                        cursor: deletingId === r.id ? 'default' : 'pointer',
+                        opacity: deletingId === r.id ? 0.6 : 1,
+                      }}
+                    >
+                      {deletingId === r.id ? '削除中...' : '削除'}
+                    </button>
                   </td>
                 </tr>
               ))}
