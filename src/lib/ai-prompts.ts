@@ -414,7 +414,7 @@ export function buildLongTextPrompt(
     subtitle: string;
     /** 1回目で得た要約。書き直しの 材料として渡す */
     summaries: Record<string, string>;
-    /** 費用内訳（use_of_funds の根拠に使わせる） */
+    /** 費用内訳（本文が金額に触れるときの根拠に使わせる） */
     costBreakdown: Array<{ item: string; amount: number; ratio: number }>;
   }
 ): string {
@@ -445,20 +445,19 @@ ${input.supporterMessage.trim()}` : ''}${input.activityHistory?.trim() ? `
 - これまでの活動履歴（起案者の申告）:
 ${input.activityHistory.trim()}` : ''}
 
-【資金の使途（確定済み。use_of_funds はこの費目と金額をそのまま使うこと）】
+【資金の使途（確定済み。金額に触れるときはこの費目と金額をそのまま使い、矛盾させないこと）】
 ${cost}
 
 【すでに作成済みの要約（これを膨らませてください。内容を矛盾させないこと）】
 - background: ${context.summaries.background ?? ''}
 - vision: ${context.summaries.vision ?? ''}
-- use_of_funds: ${context.summaries.use_of_funds ?? ''}
 - appeal: ${context.summaries.appeal ?? ''}
 - overview: ${context.summaries.overview ?? ''}
 - why_started: ${context.summaries.why_started ?? ''}
 - what_creates: ${context.summaries.what_creates ?? ''}
 
 【書き方（最重要）】
-🔴 **7つの項目すべてを、それぞれ「11文以上」で書いてください。** 10文以下は不合格です。
+🔴 **6つの項目すべてを、それぞれ「11文以上」で書いてください。** 10文以下は不合格です。
    **1文は40〜60文字程度**で書いてください。短い一言だけの文（20字未満）を並べると
    箇条書きのような文章になり不合格です。40〜60字 × 11文で自然に400文字を超えます。
    **11文を書き切ることを守ってください。**
@@ -479,9 +478,6 @@ ${cost}
 - vision（実現したい未来）:
   ①実現したい状態 ②支援者にとっての変化 ③地域にとっての変化 ④事業者自身にとっての変化
   ⑤1年後の姿 ⑥3年後の姿 ⑦その未来に向けた決意
-- use_of_funds（資金の使途）:
-  ①資金の総額と使途の全体像 ②〜⑥上記の費目それぞれの金額と、その費目が必要な理由
-  ⑦使途と進捗の報告方法
 - appeal（支援者へのメッセージ）:
   ①読んでくれたお礼 ②起案者の実体験のエピソード ③そこで感じたこと ④このプロジェクトへの想い
   ⑤支援者が受け取るもの ⑥一緒に実現したい未来 ⑦支援のお願い
@@ -495,12 +491,11 @@ ${cost}
   ⑤新しく生まれる仕組み ⑥続けることで積み上がるもの ⑦その先の展望
 
 【出力形式】
-次の7キーだけを持つJSONを出力してください。値はすべて文字列（改行は含めない）:
+次の6キーだけを持つJSONを出力してください。値はすべて文字列（改行は含めない）:
 
 {
   "background": "…",
   "vision": "…",
-  "use_of_funds": "…",
   "appeal": "…",
   "overview": "…",
   "why_started": "…",
@@ -510,9 +505,21 @@ ${cost}
 JSONのみ出力してください。markdownのコードブロックは不要です。`;
 }
 
-/** 2回目の呼び出しで書かせる本文のキー */
+/**
+ * 2回目の呼び出しで書かせる本文のキー（= 400文字級の項目）。
+ *
+ * 🔴 t iku 指定の6項目（2026-09-15）:
+ *   プロジェクト概要 / なぜこの企画を始めたのか / この企画で何を創出するのか /
+ *   背景・現状 / ビジョン / 訴求メッセージ
+ *
+ * 意図的に外しているもの:
+ *   - lead      … 読者を引き込む一文。400字だと掲載ページの冒頭として機能しない
+ *   - schedule  … 日程の列挙。字数を稼ぐと日付が読み取りにくくなる
+ *   - use_of_funds … 費目と金額の説明。**費用内訳の表が別にある**ので、
+ *                    同じ数字を400字で言い直すと重複して読みにくい（t iku 指定外）
+ */
 export const LONG_TEXT_KEYS = [
-  'background', 'vision', 'use_of_funds', 'appeal',
+  'background', 'vision', 'appeal',
   'overview', 'why_started', 'what_creates',
 ] as const;
 export type LongTextKey = (typeof LONG_TEXT_KEYS)[number];

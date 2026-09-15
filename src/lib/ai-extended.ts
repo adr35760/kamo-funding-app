@@ -398,13 +398,16 @@ function pickLongText(raw: string | undefined, fallback: string): string {
 /**
  * 400文字級の検証をかける story の項目。
  *
- * 🔴 `lead` と `schedule` は**意図的に外している**（PM決定 2026-09-14）:
+ * 🔴 `lead` / `schedule` / `use_of_funds` は**意図的に外している**:
  *   - lead は「読者を引き込む一文」。400字のリード文は掲載ページの冒頭として機能しない
  *   - schedule は日程の列挙。字数を稼ぐと日付が読み取りにくくなる
- * 「9項目すべて400文字」に方針が変わったら、この配列に 'lead' / 'schedule' を足すだけで
- * プロンプト以外の検証・正規化・再生成判定はすべて追随する。
+ *   - use_of_funds は費目と金額の説明。**費用内訳の表が別にある**ので、
+ *     同じ数字を400字で言い直すと重複する（t iku 指定の6項目に含まれない／2026-09-15）
+ *
+ * 対象を増やす場合はこの配列に足すだけで、プロンプト以外の検証・正規化・
+ * 再生成判定はすべて追随する（プロンプト側は ai-prompts.ts の LONG_TEXT_KEYS）。
  */
-export const LONG_STORY_KEYS = ['background', 'vision', 'use_of_funds', 'appeal'] as const;
+export const LONG_STORY_KEYS = ['background', 'vision', 'appeal'] as const;
 export type LongStoryKey = (typeof LONG_STORY_KEYS)[number];
 
 /**

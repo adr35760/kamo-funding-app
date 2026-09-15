@@ -244,7 +244,7 @@ async function callLongTextLLM(args: {
           { role: 'user', content: args.userPrompt },
         ],
         temperature: 0.7,
-        // 7項目×400〜460字級（11文以上）。JSONは7キーだけなので構造ぶんの余裕は要らない。
+        // 6項目×400〜460字級（11文以上）。JSONは6キーだけなので構造ぶんの余裕は要らない。
         // 🔴 8000だと11文指示では上限に当たって JSON が途中で切れる可能性があるため引き上げた。
         max_completion_tokens: 12000,
         response_format: { type: 'json_object' },
@@ -403,9 +403,9 @@ function withNormalizedExtended(page: CrowdfundingPage, input: HearingInput): Cr
   const creator = { ...page.project.creator, ...(links ? { links } : {}) };
   if (!links) delete (creator as { links?: unknown }).links;
 
-  // story の400文字級4項目（background / vision / use_of_funds / appeal）を
+  // story の400文字級3項目（background / vision / appeal）を
   // extended の3項目と同じ経路で仕上げる（長すぎは句点で切り、言いかけの尾は落とす）。
-  // lead / schedule は対象外。
+  // lead / schedule / use_of_funds は対象外。
   const fallbackStory = buildMockPageBase(input).project.story as unknown as Record<string, string>;
   const story = normalizeLongStory(
     page.project.story as unknown as Record<string, unknown>,
