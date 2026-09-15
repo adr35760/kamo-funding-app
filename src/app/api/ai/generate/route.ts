@@ -177,25 +177,39 @@ async function withLongTexts(
     summaries[k] = String((k in story ? story[k] : ext[k]) ?? '');
   }
 
-  const prompt = buildLongTextPrompt(input, {
+  // 🔴 項目ごとに1回ずつ、並列で呼ぶ。
+  //   1リクエストで6項目まとめて書かせると、モデルが回答全体で長さを配分して
+  //   1項目230〜290字で止まる（2026-09-15 本番実測）。項目を分けると配分相手が
+  //   無くなり、1項目に集中して約400字を書く。
+  //   並列なので所要時間は「6回ぶんの合計」ではなく「いちばん遅い1回」に近い。
+  const ctx = {
     title: page.project.title,
     subtitle: page.project.subtitle,
     summaries,
     costBreakdown: page.project.extended?.cost_breakdown ?? [],
-  });
+  };
 
-  const result = await callLongTextLLM({ ...llm, userPrompt: prompt });
-  if (!result.ok) {
-    // 本文の書き直しに失敗しただけ。1回目の要約を残して続行する。
-    console.info(`ai/generate: long-text call failed: ${result.error}`);
-    return page;
-  }
+  const results = await Promise.all(
+    LONG_TEXT_KEYS.map(async k => ({
+      key: k,
+      result: await callLongTextLLM({
+        ...llm,
+        userPrompt: buildLongTextPrompt(k, input, ctx),
+      }),
+    }))
+  );
 
   const nextStory: Record<string, string> = { ...story };
   const nextExt: Record<string, string> = { ...ext };
   const adopted: string[] = [];
-  for (const k of LONG_TEXT_KEYS) {
-    const raw = String(result.texts[k] ?? '');
+  const failed: string[] = [];
+  for (const { key: k, result } of results) {
+    if (!result.ok) {
+      // その項目の書き直しに失敗しただけ。1回目の要約を残して続行する。
+      failed.push(`${k}(${result.error})`);
+      continue;
+    }
+    const raw = String(result.texts.text ?? '');
     if (!raw) continue;
     const cleaned = adjustLongText(raw);
     if (!cleaned || isTruncatedText(cleaned)) continue;
@@ -206,6 +220,7 @@ async function withLongTexts(
     adopted.push(`${k}=${charLength(cleaned)}`);
   }
   console.info(`ai/generate: long texts adopted ${adopted.length}/${LONG_TEXT_KEYS.length} (${adopted.join(' ')})`);
+  if (failed.length) console.info(`ai/generate: long-text calls failed: ${failed.join(' ')}`);
 
   return {
     ...page,
@@ -218,7 +233,8 @@ async function withLongTexts(
 }
 
 /**
- * 本文専用の呼び出し。返るJSONは7キーだけなので、ページ全体のパースとは分けている。
+ * 本文専用の呼び出し。**1項目ぶん**を書かせ、返るJSONは `{"text": "…"}` の1キーだけ。
+ * ページ全体のパースとは分けている。
  */
 async function callLongTextLLM(args: {
   apiBaseUrl: string;
@@ -239,14 +255,15 @@ async function callLongTextLLM(args: {
           {
             role: 'system',
             content:
-              'あなたは日本語のクラウドファンディングページのライターです。指定された項目を、指定された文の本数で、地の文（散文）で書き切ってください。要約や箇条書きにしないこと。',
+              'あなたは日本語のクラウドファンディングページのライターです。指定された1項目を、指定された①〜⑪の骨組みのとおり1スロット1文で、合計11文の地の文（散文）で書き切ってください。要約・箇条書き・番号の書き写しは禁止です。',
           },
           { role: 'user', content: args.userPrompt },
         ],
         temperature: 0.7,
-        // 6項目×400〜460字級（11文以上）。JSONは6キーだけなので構造ぶんの余裕は要らない。
-        // 🔴 8000だと11文指示では上限に当たって JSON が途中で切れる可能性があるため引き上げた。
-        max_completion_tokens: 12000,
+        // 1項目ぶん（約400〜460字・11文）。JSONは1キーだけなので構造ぶんの余裕は要らない。
+        // 6項目まとめてではなくなったので上限は大きく下げられるが、
+        // 推論トークンを食う可能性を見て余裕を残す。
+        max_completion_tokens: 4000,
         response_format: { type: 'json_object' },
       }),
     });
