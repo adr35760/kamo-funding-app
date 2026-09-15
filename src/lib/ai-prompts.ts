@@ -407,6 +407,11 @@ export function calculateRewardTiers(goalAmount: number, estimatedSupporters: nu
  *
  * 出力は7キーだけの小さなJSON。構造が単純なので途中で切れるリスクも下がる。
  */
+/** 項目ごとのラベル（外部から本文の見出し名を引くのに使う） */
+export function longTextLabel(key: string): string {
+  return LONG_TEXT_OUTLINES[key]?.label ?? key;
+}
+
 /** 項目ごとの「①〜⑬の骨組み」。1スロット1文で書かせる（スロット数＝文数がこのモデルで最も効く）。 */
 const LONG_TEXT_OUTLINES: Record<string, { label: string; slots: string[] }> = {
   background: {
@@ -548,6 +553,49 @@ ${Object.entries(context.summaries)
 
 【この項目に書く内容（①〜⑬を順に、1つ1文ずつ、必ず全部）】
 ${slots}
+
+【出力形式】
+次の1キーだけを持つJSONを出力してください。値は文字列（改行は含めない）:
+
+{ "text": "…" }
+
+JSONのみ出力してください。markdownのコードブロックは不要です。`;
+}
+
+/**
+ * 短すぎた本文を**書き直させる**プロンプト。
+ *
+ * 🔴 このモデルは「文数」は正確に守るが、**1回の回答の総量をだいたい一定に保つ**ため、
+ *   文数を増やすと1文を短くして同じ長さに収めてしまう（本番実測: 11文→13文でも
+ *   合計は約350字のまま）。そこで**一度書かせた本文を渡して「この文章を長くする」**
+ *   という差分タスクに変える。総量を決める基準が「元の文章」になるので伸びる。
+ */
+export function buildLongTextExpandPrompt(args: {
+  label: string;
+  /** 1回目で書けた本文 */
+  current: string;
+  /** 目標下限・上限 */
+  min: number;
+  max: number;
+}): string {
+  const shortfall = Math.max(0, args.min - Array.from(args.current).length);
+  return `次の文章は**${Array.from(args.current).length}文字**で、必要な長さに足りていません。
+**${args.min}〜${args.max}文字**に書き直してください（あと約${shortfall}文字必要です）。
+
+【項目】${args.label}
+
+【今の文章】
+${args.current}
+
+【書き直しのルール】
+🔴 **文の数は増やさないでください。** 今ある文を**それぞれ長くする**ことで字数を足します。
+🔴 各文に**「具体的な数字」「固有名詞」「その場の場面描写」「そうなる理由」**のいずれかを
+   足して、**1文を40〜50文字**にしてください。**今の文の順番と内容は変えないでください。**
+🔴 **新しい事実を作らないこと。** 上の文章に書かれている内容と、そこから当然言えることの
+   範囲で膨らませてください。書かれていない数字や出来事を追加してはいけません。
+🔴 同じ内容を言い換えて繰り返す**水増しは禁止**です。情報が増える形で長くしてください。
+🔴 **${args.max}文字を超えないこと。** 超えるとシステム側で末尾が切られます。
+🔴 必ず句点（。）で言い切ってください。箇条書き・記号の羅列にしないこと。
 
 【出力形式】
 次の1キーだけを持つJSONを出力してください。値は文字列（改行は含めない）:

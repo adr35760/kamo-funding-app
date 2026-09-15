@@ -3,6 +3,8 @@ import {
   SYSTEM_PROMPT,
   buildPageGenerationPrompt,
   buildLongTextPrompt,
+  buildLongTextExpandPrompt,
+  longTextLabel,
   LONG_TEXT_KEYS,
   calculateRewardTiers,
   normalizeRewardCategory,
@@ -23,6 +25,8 @@ import {
   adjustLongText,
   normalizeLongStory,
   LONG_STORY_KEYS,
+  LONG_TEXT_MIN,
+  LONG_TEXT_MAX,
   type ProjectExtended,
 } from '@/lib/ai-extended';
 
@@ -190,13 +194,40 @@ async function withLongTexts(
   };
 
   const results = await Promise.all(
-    LONG_TEXT_KEYS.map(async k => ({
-      key: k,
-      result: await callLongTextLLM({
+    LONG_TEXT_KEYS.map(async k => {
+      const first = await callLongTextLLM({
         ...llm,
         userPrompt: buildLongTextPrompt(k, input, ctx),
-      }),
-    }))
+      });
+      if (!first.ok) return { key: k, result: first };
+
+      // 🔴 短かった項目だけ、**書いた本文を渡して「長くする」**2回目を投げる。
+      //   このモデルは文数の指示は守るが1回の回答の総量をだいたい一定に保つため、
+      //   骨組みを増やしても1文が短くなって合計は伸びない（本番実測）。
+      //   「ゼロから書く」ではなく「この文章を伸ばす」に変えると基準が元の文章になる。
+      const draft = adjustLongText(String(first.texts.text ?? ''));
+      if (!draft || isTruncatedText(draft) || charLength(draft) >= LONG_TEXT_MIN) {
+        return { key: k, result: first };
+      }
+
+      const retry = await callLongTextLLM({
+        ...llm,
+        userPrompt: buildLongTextExpandPrompt({
+          label: longTextLabel(k),
+          current: draft,
+          min: LONG_TEXT_MIN,
+          max: LONG_TEXT_MAX,
+        }),
+      });
+      if (!retry.ok) return { key: k, result: first };
+
+      // 伸ばし直しが短くなった／壊れた場合は1回目を採る（悪い方に倒さない）
+      const expanded = adjustLongText(String(retry.texts.text ?? ''));
+      if (!expanded || isTruncatedText(expanded) || charLength(expanded) <= charLength(draft)) {
+        return { key: k, result: first };
+      }
+      return { key: k, result: retry };
+    })
   );
 
   const nextStory: Record<string, string> = { ...story };
