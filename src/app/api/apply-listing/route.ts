@@ -20,18 +20,60 @@ export async function POST(request: NextRequest) {
     const companyName = str(body.companyName);
     const contactName = str(body.contactName);
     const contactEmail = str(body.contactEmail);
+    const projectSummary = str(body.projectSummary);
 
-    // 必須3項目だけを弾く。他は申込書でも空欄のまま返送されることがあるため
-    // フォーム側の必須表示に任せ、APIでは落とさない（入力が消えるのが最悪）。
-    if (!companyName) {
-      return NextResponse.json({ success: false, error: '会社名は必須です' }, { status: 400 });
-    }
-    if (!contactName) {
-      return NextResponse.json({ success: false, error: 'ご担当者のお名前は必須です' }, { status: 400 });
+    /**
+     * 🔴 必須項目（2026-09-17 t iku 指定で拡大）:
+     *   会社名 / 担当者（氏名・電話・メール・郵便番号・住所）/ 規約同意 /
+     *   プロジェクト全部（名称・概要300字以上・販売予定品目・種類・目標金額・募集希望日）/
+     *   振込先 全部。
+     *
+     *   サーバー側でも必ず弾く。ブラウザの required は「開発者ツールで外せる」ため、
+     *   片方だけに任せると**必須の意味が無くなる**。
+     *   エラー文言はフォームの該当項目にそのまま出るので、項目名を具体的に書く。
+     */
+    const missing: string[] = [];
+    const need = (label: string, value: string) => {
+      if (!value) missing.push(label);
+    };
+    need('会社名', companyName);
+    need('プロジェクト担当者 氏名', contactName);
+    need('プロジェクト担当者 電話番号', str(body.contactPhone));
+    need('プロジェクト担当者 メールアドレス', contactEmail);
+    need('プロジェクト担当者 郵便番号', str(body.contactPostalCode));
+    need('プロジェクト担当者 住所', str(body.contactAddress));
+    need('プロジェクト名', str(body.projectName));
+    need('プロジェクトの概要', projectSummary);
+    need('主な販売予定品目', str(body.sellingItems));
+    need('種類', str(body.projectType));
+    need('目標金額', str(body.goalAmount));
+    need('募集開始希望日', str(body.recruitStartHope));
+    need('募集終了希望日', str(body.recruitEndHope));
+    need('銀行名', str(body.bankName));
+    need('支店名', str(body.bankBranch));
+    need('預金種別', str(body.bankAccountType));
+    need('口座番号', str(body.bankAccountNumber));
+    need('口座名義', str(body.bankAccountHolder));
+
+    if (missing.length) {
+      return NextResponse.json(
+        { success: false, error: `次の項目をご入力ください：${missing.join('、')}` },
+        { status: 400 }
+      );
     }
     if (!contactEmail.includes('@')) {
       return NextResponse.json(
         { success: false, error: '有効なメールアドレスを入力してください' },
+        { status: 400 }
+      );
+    }
+    // 概要は300文字以上（t iku 指定）。文字数はコードポイントで数える
+    if (Array.from(projectSummary).length < SUMMARY_MIN) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `プロジェクトの概要は${SUMMARY_MIN}文字以上でご入力ください（現在${Array.from(projectSummary).length}文字）`,
+        },
         { status: 400 }
       );
     }
@@ -48,13 +90,14 @@ export async function POST(request: NextRequest) {
       company_postal_code: str(body.companyPostalCode) || null,
       company_address: str(body.companyAddress) || null,
       contact_name: contactName,
-      contact_department: str(body.contactDepartment) || null,
+      // 部署名は 2026-09-17 に t iku 指定でフォームから削除（列は残すが受け取らない）
       contact_phone: str(body.contactPhone) || null,
       contact_email: contactEmail,
       contact_postal_code: str(body.contactPostalCode) || null,
       contact_address: str(body.contactAddress) || null,
       project_name: str(body.projectName) || null,
-      project_summary: str(body.projectSummary) || null,
+      project_summary: projectSummary,
+      selling_items: str(body.sellingItems) || null,
       project_type: str(body.projectType) || null,
       goal_amount: toAmount(body.goalAmount),
       recruit_start_hope: str(body.recruitStartHope) || null,
@@ -107,13 +150,13 @@ export async function POST(request: NextRequest) {
       companyPostalCode: insertData.company_postal_code ?? undefined,
       companyAddress: insertData.company_address ?? undefined,
       contactName,
-      contactDepartment: insertData.contact_department ?? undefined,
       contactPhone: insertData.contact_phone ?? undefined,
       contactEmail,
       contactPostalCode: insertData.contact_postal_code ?? undefined,
       contactAddress: insertData.contact_address ?? undefined,
       projectName: insertData.project_name ?? undefined,
       projectSummary: insertData.project_summary ?? undefined,
+      sellingItems: insertData.selling_items ?? undefined,
       projectType: insertData.project_type ?? undefined,
       goalAmount: insertData.goal_amount,
       recruitStartHope: insertData.recruit_start_hope ?? undefined,
@@ -136,6 +179,9 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+/** プロジェクト概要の最低文字数（t iku 指定 2026-09-17） */
+const SUMMARY_MIN = 300;
 
 function str(v: unknown): string {
   return typeof v === 'string' ? v.trim() : '';

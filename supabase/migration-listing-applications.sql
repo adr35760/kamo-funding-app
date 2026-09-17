@@ -37,7 +37,10 @@ CREATE TABLE IF NOT EXISTS listing_applications (
 
   -- ===== プロジェクト =====
   project_name TEXT,
+  -- プロジェクト概要（300文字以上必須）
   project_summary TEXT,
+  -- 主な販売予定品目（概要の直下・必須。2026-09-17 t iku 指定）
+  selling_items TEXT,
   -- 目標達成型 / 実行確約型
   project_type TEXT,
   -- EC型は記載不要のため NULL 可

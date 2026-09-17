@@ -853,13 +853,14 @@ export interface ListingApplicationNotifyInput {
   companyPostalCode?: string;
   companyAddress?: string;
   contactName: string;
-  contactDepartment?: string;
   contactPhone?: string;
   contactEmail: string;
   contactPostalCode?: string;
   contactAddress?: string;
   projectName?: string;
   projectSummary?: string;
+  /** 主な販売予定品目（概要の直下） */
+  sellingItems?: string;
   projectType?: string;
   goalAmount?: number | null;
   recruitStartHope?: string;
@@ -912,7 +913,6 @@ export function listingApplicationNotifyHtml(
         ].join(''))}
         ${section('プロジェクト担当者', [
           row('氏名', input.contactName),
-          row('部署名', input.contactDepartment),
           row('電話番号', input.contactPhone),
           row('メールアドレス', input.contactEmail),
           row('郵便番号', input.contactPostalCode),
@@ -921,6 +921,7 @@ export function listingApplicationNotifyHtml(
         ${section('プロジェクト', [
           row('プロジェクト名', input.projectName),
           row('概要', input.projectSummary),
+          row('主な販売予定品目', input.sellingItems),
           row('種類', input.projectType),
           row('目標金額', input.goalAmount ? `¥${input.goalAmount.toLocaleString()}` : ''),
           row('募集開始希望日', input.recruitStartHope),

@@ -1641,7 +1641,6 @@ function ListingApplicationsPanel() {
               ]} />
               <ListingSection title="プロジェクト担当者" rows={[
                 ['氏名', detail.contact_name],
-                ['部署名', detail.contact_department],
                 ['電話番号', detail.contact_phone],
                 ['メールアドレス', detail.contact_email],
                 ['郵便番号', detail.contact_postal_code],
@@ -1650,6 +1649,7 @@ function ListingApplicationsPanel() {
               <ListingSection title="プロジェクト" rows={[
                 ['プロジェクト名', detail.project_name],
                 ['概要', detail.project_summary],
+                ['主な販売予定品目', detail.selling_items],
                 ['種類', detail.project_type],
                 ['目標金額', detail.goal_amount ? `¥${Number(detail.goal_amount).toLocaleString()}` : ''],
                 ['募集開始希望日', detail.recruit_start_hope],
@@ -1804,10 +1804,10 @@ interface ListingApplicationRow {
 interface ListingApplicationDetail extends ListingApplicationRow {
   company_postal_code: string | null;
   company_address: string | null;
-  contact_department: string | null;
   contact_postal_code: string | null;
   contact_address: string | null;
   project_summary: string | null;
+  selling_items: string | null;
   recruit_start_hope: string | null;
   recruit_end_hope: string | null;
   support_hope: string | null;

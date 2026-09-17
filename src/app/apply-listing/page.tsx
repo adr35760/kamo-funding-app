@@ -28,6 +28,8 @@ export default function ListingApplyPage() {
   const [projectType, setProjectType] = useState('');
   const [supportHope, setSupportHope] = useState('');
   const [accountType, setAccountType] = useState('');
+  // プロジェクト概要は300文字以上必須。残り文字数を出すため長さを保持する
+  const [summaryLength, setSummaryLength] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -47,13 +49,13 @@ export default function ListingApplyPage() {
           companyPostalCode: get('companyPostalCode'),
           companyAddress: get('companyAddress'),
           contactName: get('contactName'),
-          contactDepartment: get('contactDepartment'),
           contactPhone: get('contactPhone'),
           contactEmail: get('contactEmail'),
           contactPostalCode: get('contactPostalCode'),
           contactAddress: get('contactAddress'),
           projectName: get('projectName'),
           projectSummary: get('projectSummary'),
+          sellingItems: get('sellingItems'),
           projectType: get('projectType'),
           goalAmount: get('goalAmount'),
           recruitStartHope: get('recruitStartHope'),
@@ -168,35 +170,40 @@ export default function ListingApplyPage() {
                         <input type="text" name="contactName" required placeholder="鴨頭 太郎" />
                       </div>
                       <div className="form-group">
-                        <label>部署名</label>
-                        <input type="text" name="contactDepartment" placeholder="広報部" />
+                        <label>
+                          電話番号 <span className="required">必須</span>
+                        </label>
+                        <input type="tel" name="contactPhone" required placeholder="090-1234-5678" />
                       </div>
                     </div>
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>電話番号</label>
-                        <input type="tel" name="contactPhone" placeholder="090-1234-5678" />
-                      </div>
-                      <div className="form-group">
-                        <label>
-                          メールアドレス <span className="required">必須</span>
-                        </label>
-                        <input
-                          type="email"
-                          name="contactEmail"
-                          required
-                          placeholder="example@email.com"
-                        />
-                      </div>
+                    <div className="form-group">
+                      <label>
+                        メールアドレス <span className="required">必須</span>
+                      </label>
+                      <input
+                        type="email"
+                        name="contactEmail"
+                        required
+                        placeholder="example@email.com"
+                      />
                     </div>
                     <div className="form-row is-postal">
                       <div className="form-group">
-                        <label>郵便番号</label>
-                        <input type="text" name="contactPostalCode" placeholder="123-4567" />
+                        <label>
+                          郵便番号 <span className="required">必須</span>
+                        </label>
+                        <input type="text" name="contactPostalCode" required placeholder="123-4567" />
                       </div>
                       <div className="form-group">
-                        <label>住所</label>
-                        <input type="text" name="contactAddress" placeholder="会社と同じ場合は「同上」" />
+                        <label>
+                          住所 <span className="required">必須</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="contactAddress"
+                          required
+                          placeholder="会社と同じ場合は「同上」"
+                        />
                       </div>
                     </div>
                   </div>
@@ -205,22 +212,50 @@ export default function ListingApplyPage() {
                   <div className="apply-section">
                     <div className="apply-section-title">プロジェクト</div>
                     <div className="form-group">
-                      <label>プロジェクト名</label>
+                      <label>
+                        プロジェクト名 <span className="required">必須</span>
+                      </label>
                       <input
                         type="text"
                         name="projectName"
-                        placeholder="決まっていない場合は空欄で構いません"
+                        required
+                        placeholder="〇〇で□□したい！"
                       />
                     </div>
                     <div className="form-group">
-                      <label>プロジェクトの概要</label>
+                      <label>
+                        プロジェクトの概要 <span className="required">必須</span>
+                        <span className="apply-count is-over">300文字以上</span>
+                      </label>
                       <textarea
                         name="projectSummary"
-                        placeholder="どんなプロジェクトか、何のために資金を集めるのかをご記入ください"
+                        required
+                        minLength={300}
+                        rows={8}
+                        onChange={e => setSummaryLength(e.target.value.length)}
+                        placeholder="どんなプロジェクトか、何のために資金を集めるのかを300文字以上でご記入ください"
+                      ></textarea>
+                      <p className={`apply-count-line${summaryLength > 0 && summaryLength < 300 ? ' is-short' : ''}`}>
+                        {summaryLength > 0 && summaryLength < 300
+                          ? `あと${300 - summaryLength}文字必要です（現在${summaryLength}文字）`
+                          : `現在${summaryLength}文字`}
+                      </p>
+                    </div>
+                    <div className="form-group">
+                      <label>
+                        主な販売予定品目 <span className="required">必須</span>
+                      </label>
+                      <textarea
+                        name="sellingItems"
+                        required
+                        rows={3}
+                        placeholder="例：自家製味噌、旬の野菜セット、収穫体験ツアー など"
                       ></textarea>
                     </div>
                     <div className="form-group">
-                      <label>種類</label>
+                      <label>
+                        種類 <span className="required">必須</span>
+                      </label>
                       <div className="apply-radios">
                         {PROJECT_TYPES.map(t => (
                           <label
@@ -231,6 +266,7 @@ export default function ListingApplyPage() {
                               type="radio"
                               name="projectType"
                               value={t}
+                              required
                               checked={projectType === t}
                               onChange={() => setProjectType(t)}
                             />
@@ -240,20 +276,33 @@ export default function ListingApplyPage() {
                       </div>
                     </div>
                     <div className="form-group">
-                      <label>目標金額</label>
-                      <input type="text" name="goalAmount" placeholder="1,500,000（円）" />
-                      <p className="apply-section-note" style={{ margin: '8px 0 0' }}>
-                        ※ EC型の場合は記載不要です。
-                      </p>
+                      <label>
+                        目標金額 <span className="required">必須</span>
+                      </label>
+                      <input type="text" name="goalAmount" required placeholder="1,500,000（円）" />
                     </div>
                     <div className="form-row">
                       <div className="form-group">
-                        <label>募集開始希望日</label>
-                        <input type="text" name="recruitStartHope" placeholder="2026年11月1日 / 未定" />
+                        <label>
+                          募集開始希望日 <span className="required">必須</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="recruitStartHope"
+                          required
+                          placeholder="2026年11月1日 / 未定"
+                        />
                       </div>
                       <div className="form-group">
-                        <label>募集終了希望日</label>
-                        <input type="text" name="recruitEndHope" placeholder="2026年12月31日 / 未定" />
+                        <label>
+                          募集終了希望日 <span className="required">必須</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="recruitEndHope"
+                          required
+                          placeholder="2026年12月31日 / 未定"
+                        />
                       </div>
                     </div>
                   </div>
@@ -289,22 +338,28 @@ export default function ListingApplyPage() {
                   <div className="apply-section">
                     <div className="apply-section-title">プロジェクト資金 振込先</div>
                     <p className="apply-section-note">
-                      支援金のお振込先です。<strong>申込者さまご本人（個人・法人）の口座のみ</strong>お受けできます。
-                      この時点でお決まりでなければ空欄で送信いただき、後日ご連絡いただいても構いません。
+                      支援金のお振込先です。🔴<strong>プロジェクト起案者さまの関連する口座のみ</strong>が振込対象口座となります。
+                      それ以外の口座はお受けできません。
                     </p>
                     <div className="form-row">
                       <div className="form-group">
-                        <label>銀行名</label>
-                        <input type="text" name="bankName" placeholder="〇〇銀行" />
+                        <label>
+                          銀行名 <span className="required">必須</span>
+                        </label>
+                        <input type="text" name="bankName" required placeholder="〇〇銀行" />
                       </div>
                       <div className="form-group">
-                        <label>支店名</label>
-                        <input type="text" name="bankBranch" placeholder="〇〇支店" />
+                        <label>
+                          支店名 <span className="required">必須</span>
+                        </label>
+                        <input type="text" name="bankBranch" required placeholder="〇〇支店" />
                       </div>
                     </div>
                     <div className="form-row">
                       <div className="form-group">
-                        <label>預金種別</label>
+                        <label>
+                          預金種別 <span className="required">必須</span>
+                        </label>
                         <div className="apply-radios">
                           {ACCOUNT_TYPES.map(t => (
                             <label
@@ -315,6 +370,7 @@ export default function ListingApplyPage() {
                                 type="radio"
                                 name="bankAccountType"
                                 value={t}
+                                required
                                 checked={accountType === t}
                                 onChange={() => setAccountType(t)}
                               />
@@ -324,15 +380,25 @@ export default function ListingApplyPage() {
                         </div>
                       </div>
                       <div className="form-group">
-                        <label>口座番号</label>
-                        <input type="text" name="bankAccountNumber" placeholder="1234567" />
+                        <label>
+                          口座番号 <span className="required">必須</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="bankAccountNumber"
+                          required
+                          placeholder="1234567"
+                        />
                       </div>
                     </div>
                     <div className="form-group">
-                      <label>口座名義</label>
+                      <label>
+                        口座名義 <span className="required">必須</span>
+                      </label>
                       <input
                         type="text"
                         name="bankAccountHolder"
+                        required
                         placeholder="かもがしら たろう（半角小文字での入力も可）"
                       />
                     </div>
@@ -393,6 +459,13 @@ export default function ListingApplyPage() {
                 <div className="apply-notice">
                   <h3>ご確認ください</h3>
                   <ul>
+                    <li>
+                      掲載概要および販売品目によっては、<strong>掲載をお受けできない場合がございます。</strong>
+                      不可の場合の理由についてはお答えできませんので、あらかじめご了承ください。
+                    </li>
+                    <li>
+                      支援金のお振込先は、<strong>プロジェクト起案者さまの関連する口座のみ</strong>が対象です。
+                    </li>
                     <li>
                       利用料金は、目標達成型・実行確約型ともに
                       <strong>収受されたプロジェクト代金総額の20％（税別）</strong>

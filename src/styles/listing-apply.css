@@ -101,3 +101,17 @@
   font-size: 14px;
   line-height: 1.8;
 }
+
+/* 文字数の目安・残り文字数（プロジェクト概要の300文字以上） */
+.apply-count {
+  font-size: 12px; font-weight: 700; color: var(--kamo-red);
+  margin-left: 8px; padding: 2px 8px; border-radius: 100px;
+  background: #FFF5F5; border: 1px solid var(--kamo-border);
+  vertical-align: middle;
+}
+.apply-count-line {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--kamo-gray);
+}
+.apply-count-line.is-short { color: var(--kamo-red); font-weight: 700; }
