@@ -1,0 +1,103 @@
+/* ===== 掲載申込フォーム（/apply-listing 専用） =====
+   基本の意匠は supporter-register.css を import して共有し、
+   このファイルは**申込書の表を再現するための差分だけ**を持つ。
+   フォーム部品（.form-group / .form-row / .form-submit 等）は
+   共有側の定義をそのまま使う。 */
+
+/* 申込書は項目数が多いので、カードを本文幅いっぱいまで広げる */
+.listing-apply .form-card { max-width: 760px; }
+.listing-apply .container { max-width: 860px; }
+
+/* 申込書の「会社名」「プロジェクト担当者」等の区分 = セクション見出し */
+.apply-section {
+  margin: 0 0 8px;
+  padding: 26px 0 0;
+}
+.apply-section:first-of-type { padding-top: 0; }
+.apply-section-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--kamo-navy);
+  padding: 10px 14px;
+  background: var(--navy-bg);
+  border-left: 4px solid var(--kamo-gold);
+  border-radius: 0 6px 6px 0;
+  margin-bottom: 18px;
+}
+/* 区分ごとの補足（「※EC型の場合は記載不要」等） */
+.apply-section-note {
+  font-size: 13px;
+  color: var(--kamo-gray);
+  margin: -10px 0 16px;
+  line-height: 1.7;
+}
+
+/* 郵便番号＋住所のように幅が大きく違う2列 */
+.form-row.is-postal { grid-template-columns: 200px 1fr; }
+@media (max-width: 768px) {
+  .form-row.is-postal { grid-template-columns: 1fr; }
+}
+
+/* 「目標達成型 / 実行確約型」「希望する / 希望しない」のラジオ */
+.apply-radios { display: flex; flex-wrap: wrap; gap: 10px; }
+.apply-radio {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 11px 18px;
+  border: 2px solid var(--navy-border);
+  border-radius: var(--radius);
+  background: #FBFCFE;
+  font-size: 15px; font-weight: 700; color: var(--kamo-navy);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.apply-radio:hover { border-color: var(--kamo-gold); }
+.apply-radio input { width: auto; margin: 0; accent-color: var(--kamo-gold); }
+.apply-radio.is-checked {
+  border-color: var(--kamo-gold);
+  background: #FFFDF5;
+}
+
+/* 規約同意のチェックボックス */
+.apply-agree {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 16px;
+  background: #FFFDF5;
+  border: 1.5px solid var(--kamo-gold);
+  border-radius: var(--radius);
+  margin: 26px 0 8px;
+  font-size: 14px; line-height: 1.8; color: var(--kamo-navy);
+}
+.apply-agree input { width: auto; margin: 4px 0 0; flex-shrink: 0; accent-color: var(--kamo-gold); }
+.apply-agree a { color: var(--kamo-red); text-decoration: underline; }
+
+/* 注意事項（申込書の【注意事項】【提出書類について】をそのまま載せる） */
+.apply-notice {
+  margin-top: 30px;
+  padding: 20px 22px;
+  background: var(--navy-bg);
+  border: 1px solid var(--navy-border);
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  line-height: 1.9;
+  color: #3A4552;
+}
+.apply-notice h3 {
+  font-size: 14.5px; font-weight: 900; color: var(--kamo-navy);
+  margin: 0 0 8px;
+}
+.apply-notice h3 + ul { margin-bottom: 14px; }
+.apply-notice ul { margin: 0; padding-left: 18px; }
+.apply-notice li { margin-bottom: 5px; }
+.apply-notice .is-strong { color: var(--kamo-red); font-weight: 700; }
+
+/* 送信できなかったときの案内（入力が消えるのが最悪なので目立たせる） */
+.apply-error {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  background: #FFF5F5;
+  border: 1.5px solid var(--kamo-border);
+  border-radius: var(--radius);
+  color: #B8000E;
+  font-size: 14px;
+  line-height: 1.8;
+}

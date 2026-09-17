@@ -96,7 +96,9 @@ const partnerTypeLabels: Record<string, string> = {
 };
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<'events' | 'registrations' | 'partners' | 'referrals' | 'ai'>('events');
+  const [tab, setTab] = useState<
+    'events' | 'registrations' | 'partners' | 'referrals' | 'ai' | 'listing'
+  >('events');
   const [events, setEvents] = useState<Event[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -472,6 +474,9 @@ export default function AdminPage() {
         </TabButton>
         <TabButton active={tab === 'ai'} onClick={() => setTab('ai')}>
           AI生成結果
+        </TabButton>
+        <TabButton active={tab === 'listing'} onClick={() => setTab('listing')}>
+          掲載申し込み
         </TabButton>
       </div>
 
@@ -937,6 +942,9 @@ export default function AdminPage() {
 
           {/* AI生成結果タブ */}
           {tab === 'ai' && <AIGenerationsPanel />}
+
+          {/* 掲載申し込みタブ */}
+          {tab === 'listing' && <ListingApplicationsPanel />}
         </>
       )}
 
@@ -1445,6 +1453,373 @@ function UtmSummary({ regs }: { regs: Registration[] }) {
       </p>
     </div>
   );
+}
+
+/** 掲載申し込みの処理状況。DBのCHECK制約と同じ4値 */
+const LISTING_STATUS_LABELS: Record<string, string> = {
+  new: '未対応',
+  in_review: '確認中',
+  approved: '承認',
+  rejected: '見送り',
+};
+const LISTING_STATUS_COLORS: Record<string, string> = {
+  new: '#E60012',
+  in_review: '#D4A017',
+  approved: '#27AE60',
+  rejected: '#999999',
+};
+
+/**
+ * 掲載申し込みタブ（申込書のWebフォームから届いた申込の一覧＋詳細）。
+ *
+ * 🔴 口座情報の扱いは AI生成結果と揃える:
+ *   一覧は「銀行名 ****下4桁」のマスクのみ、詳細で全体を表示する。
+ */
+function ListingApplicationsPanel() {
+  const [rows, setRows] = useState<ListingApplicationRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState('');
+  const [detail, setDetail] = useState<ListingApplicationDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/listing-applications');
+      const data = await res.json();
+      setRows(data.applications ?? []);
+      setNotice(data.needsMigration ? data.error || '保存先テーブルが未作成です' : '');
+    } catch {
+      setNotice('取得に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const openDetail = async (id: string) => {
+    setDetailLoading(true);
+    try {
+      const res = await fetch(`/api/admin/listing-applications?id=${id}`);
+      const data = await res.json();
+      setDetail(data.application ?? null);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const changeStatus = async (id: string, status: string) => {
+    setBusyId(id);
+    try {
+      const res = await fetch(`/api/admin/listing-applications?id=${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.ok) {
+        alert(`更新に失敗しました: ${result.error || '不明なエラー'}`);
+        return;
+      }
+      setRows(prev => prev.map(r => (r.id === id ? { ...r, status } : r)));
+      setDetail(prev => (prev && prev.id === id ? { ...prev, status } : prev));
+    } catch {
+      alert('更新中にエラーが発生しました');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  /**
+   * 掲載申込を1件だけ削除する（確認ダイアログあり・不可逆）。
+   * 一括削除は意図的に用意していない（誤削除の巻き込みを構造的に防ぐ）。
+   */
+  const handleDelete = async (row: { id: string; company_name: string; created_at: string }) => {
+    const confirmMsg =
+      `この掲載申し込みを削除しますか？\n\n` +
+      `会社名: ${row.company_name || '（未入力）'}\n` +
+      `受付日時: ${formatJst(row.created_at)}\n\n` +
+      `この操作は取り消せません。`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setBusyId(row.id);
+    try {
+      const res = await fetch(`/api/admin/listing-applications?id=${encodeURIComponent(row.id)}`, {
+        method: 'DELETE',
+      });
+      const result = await res.json();
+      if (!res.ok || !result.ok) {
+        alert(`削除に失敗しました: ${result.error || '不明なエラー'}`);
+        return;
+      }
+      alert('掲載申し込みを削除しました。');
+      setDetail(prev => (prev && prev.id === row.id ? null : prev));
+      setRows(prev => prev.filter(r => r.id !== row.id));
+    } catch {
+      alert('削除中にエラーが発生しました');
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  if (loading) return <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>読み込み中...</div>;
+
+  const statusSelect = (id: string, status: string) => (
+    <select
+      value={status || 'new'}
+      disabled={busyId === id}
+      onChange={e => changeStatus(id, e.target.value)}
+      style={{
+        padding: '5px 8px', borderRadius: 6, fontSize: 12,
+        border: `1.5px solid ${LISTING_STATUS_COLORS[status || 'new'] ?? '#ddd'}`,
+        color: LISTING_STATUS_COLORS[status || 'new'] ?? '#333',
+        fontWeight: 'bold', background: '#fff', cursor: 'pointer',
+      }}
+    >
+      {Object.entries(LISTING_STATUS_LABELS).map(([v, label]) => (
+        <option key={v} value={v}>{label}</option>
+      ))}
+    </select>
+  );
+
+  return (
+    <div>
+      {notice && (
+        <div style={{
+          background: '#FFF8E1', border: '1px solid #E6D9A8', borderRadius: 8,
+          padding: 16, marginBottom: 16, fontSize: 13,
+        }}>
+          ⚠️ {notice}
+        </div>
+      )}
+
+      {detail ? (
+        <div>
+          <button onClick={() => setDetail(null)} style={{
+            padding: '8px 16px', borderRadius: 6, border: '1px solid #ddd',
+            background: '#fff', cursor: 'pointer', fontSize: 13, marginBottom: 16,
+          }}>
+            ← 一覧に戻る
+          </button>
+          {detailLoading ? (
+            <div style={{ color: '#999' }}>読み込み中...</div>
+          ) : (
+            <div>
+              <h2 style={{ fontSize: 20, margin: '0 0 4px' }}>{detail.company_name}</h2>
+              <p style={{ color: '#999', fontSize: 13, margin: '0 0 16px' }}>
+                受付日時: {formatJst(detail.created_at)}
+                {detail.project_name ? ` ／ ${detail.project_name}` : ''}
+              </p>
+
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20 }}>
+                <span style={{ fontSize: 13, color: '#666' }}>処理状況</span>
+                {statusSelect(detail.id, detail.status)}
+                <button
+                  onClick={() => handleDelete(detail)}
+                  disabled={busyId === detail.id}
+                  style={{
+                    marginLeft: 'auto',
+                    padding: '9px 16px', borderRadius: 6, border: '1px solid #C0392B',
+                    background: '#fff', color: '#C0392B', fontSize: 13,
+                    cursor: busyId === detail.id ? 'default' : 'pointer',
+                    opacity: busyId === detail.id ? 0.6 : 1,
+                  }}
+                >
+                  {busyId === detail.id ? '処理中...' : 'この申し込みを削除'}
+                </button>
+              </div>
+
+              <ListingSection title="申込者（会社）" rows={[
+                ['会社名', detail.company_name],
+                ['役職・氏名', detail.representative],
+                ['郵便番号', detail.company_postal_code],
+                ['住所', detail.company_address],
+              ]} />
+              <ListingSection title="プロジェクト担当者" rows={[
+                ['氏名', detail.contact_name],
+                ['部署名', detail.contact_department],
+                ['電話番号', detail.contact_phone],
+                ['メールアドレス', detail.contact_email],
+                ['郵便番号', detail.contact_postal_code],
+                ['住所', detail.contact_address],
+              ]} />
+              <ListingSection title="プロジェクト" rows={[
+                ['プロジェクト名', detail.project_name],
+                ['概要', detail.project_summary],
+                ['種類', detail.project_type],
+                ['目標金額', detail.goal_amount ? `¥${Number(detail.goal_amount).toLocaleString()}` : ''],
+                ['募集開始希望日', detail.recruit_start_hope],
+                ['募集終了希望日', detail.recruit_end_hope],
+                ['ページ作成・実施アドバイスサポート', detail.support_hope],
+              ]} />
+
+              {/* 🔴 口座情報は詳細画面のみ全体を表示する */}
+              <div style={{
+                background: '#FFF8E1', border: '1px solid #E6D9A8', borderRadius: 8,
+                padding: 16, marginBottom: 16, fontSize: 13,
+              }}>
+                <div style={{ fontWeight: 'bold', marginBottom: 8 }}>プロジェクト資金 振込先</div>
+                <div style={{ display: 'grid', gap: 4, fontFamily: 'monospace' }}>
+                  <div>銀行名: {detail.bank_name || '—'}</div>
+                  <div>支店名: {detail.bank_branch || '—'}</div>
+                  <div>預金種別: {detail.bank_account_type || '—'}</div>
+                  <div>口座番号: {detail.bank_account_number || '—'}</div>
+                  <div>口座名義: {detail.bank_account_holder || '—'}</div>
+                </div>
+                <p style={{ color: '#8A6D1F', margin: '8px 0 0', fontSize: 12 }}>
+                  ※ 通知メールには下4桁のみ記載しています（全体はこの画面でのみ確認できます）。
+                </p>
+              </div>
+
+              <ListingSection title="その他" rows={[
+                ['特記事項／特約事項', detail.remarks],
+                ['代理店', detail.agency],
+                ['規約同意', detail.agreed_terms ? '同意済み' : '未同意'],
+              ]} />
+            </div>
+          )}
+        </div>
+      ) : rows.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 40, color: '#999', fontSize: 14 }}>
+          掲載申し込みはまだありません。
+        </div>
+      ) : (
+        <div style={{ background: '#fff', borderRadius: 8, overflowX: 'auto', border: '1px solid #eee' }}>
+          <table style={{ width: '100%', minWidth: 1040, borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead style={{ background: '#f7f7f7', textAlign: 'left' }}>
+              <tr>
+                <Th>受付日時（JST）</Th>
+                <Th>会社名</Th>
+                <Th>担当者</Th>
+                <Th>プロジェクト名</Th>
+                <Th>種類</Th>
+                <Th>目標金額</Th>
+                <Th>振込口座</Th>
+                <Th>状況</Th>
+                <Th>詳細</Th>
+                <Th>削除</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id} style={{ borderTop: '1px solid #eee' }}>
+                  <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>{formatJst(r.created_at)}</td>
+                  <td style={{ padding: '10px 12px' }}>{r.company_name}</td>
+                  <td style={{ padding: '10px 12px' }}>
+                    {r.contact_name || '—'}
+                    {r.contact_email ? <span style={{ color: '#999' }}>{` / ${r.contact_email}`}</span> : null}
+                  </td>
+                  <td style={{ padding: '10px 12px' }}>{r.project_name || '—'}</td>
+                  <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>{r.project_type || '—'}</td>
+                  <td style={{ padding: '10px 12px', whiteSpace: 'nowrap' }}>
+                    {r.goal_amount ? `¥${Number(r.goal_amount).toLocaleString()}` : '—'}
+                  </td>
+                  <td style={{ padding: '10px 12px', whiteSpace: 'nowrap', fontFamily: 'monospace', fontSize: 12 }}>
+                    {r.bank_masked || '—'}
+                  </td>
+                  <td style={{ padding: '10px 12px' }}>{statusSelect(r.id, r.status)}</td>
+                  <td style={{ padding: '10px 12px' }}>
+                    <button onClick={() => openDetail(r.id)} style={{
+                      padding: '6px 12px', borderRadius: 6, border: '1px solid #E60012',
+                      background: '#fff', color: '#E60012', cursor: 'pointer', fontSize: 12,
+                    }}>
+                      表示
+                    </button>
+                  </td>
+                  <td style={{ padding: '10px 12px' }}>
+                    <button
+                      onClick={() => handleDelete(r)}
+                      disabled={busyId === r.id}
+                      style={{
+                        padding: '6px 12px', borderRadius: 6, border: '1px solid #C0392B',
+                        background: '#fff', color: '#C0392B', fontSize: 12, whiteSpace: 'nowrap',
+                        cursor: busyId === r.id ? 'default' : 'pointer',
+                        opacity: busyId === r.id ? 0.6 : 1,
+                      }}
+                    >
+                      {busyId === r.id ? '処理中...' : '削除'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** 詳細画面の区分ブロック。値が空の行は出さない */
+function ListingSection({ title, rows }: { title: string; rows: [string, unknown][] }) {
+  const filled = rows.filter(([, v]) => v !== null && v !== undefined && String(v) !== '');
+  if (filled.length === 0) return null;
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{
+        fontSize: 14, fontWeight: 'bold', color: '#E60012',
+        borderBottom: '2px solid #E60012', paddingBottom: 6, marginBottom: 10,
+      }}>
+        {title}
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <tbody>
+          {filled.map(([label, value]) => (
+            <tr key={label} style={{ borderBottom: '1px solid #f2f2f2' }}>
+              <th style={{
+                textAlign: 'left', padding: '8px 12px 8px 0', color: '#666',
+                fontWeight: 600, whiteSpace: 'nowrap', verticalAlign: 'top', width: 220,
+              }}>
+                {label}
+              </th>
+              <td style={{ padding: '8px 0', whiteSpace: 'pre-wrap' }}>{String(value)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+interface ListingApplicationRow {
+  id: string;
+  company_name: string;
+  representative: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  project_name: string | null;
+  project_type: string | null;
+  goal_amount: number | null;
+  status: string;
+  created_at: string;
+  /** 一覧では口座は「銀行名 ****下4桁」のマスク文字列のみ受け取る */
+  bank_masked?: string | null;
+}
+
+interface ListingApplicationDetail extends ListingApplicationRow {
+  company_postal_code: string | null;
+  company_address: string | null;
+  contact_department: string | null;
+  contact_postal_code: string | null;
+  contact_address: string | null;
+  project_summary: string | null;
+  recruit_start_hope: string | null;
+  recruit_end_hope: string | null;
+  support_hope: string | null;
+  /** 詳細画面のみ全体を表示する */
+  bank_name: string | null;
+  bank_branch: string | null;
+  bank_account_type: string | null;
+  bank_account_number: string | null;
+  bank_account_holder: string | null;
+  remarks: string | null;
+  agency: string | null;
+  agreed_terms: boolean;
 }
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {

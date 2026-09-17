@@ -14,6 +14,12 @@ const NAV_ITEMS = [
 const DEFAULT_CTA = { href: '/lp', label: '日程を確認する' };
 
 /**
+ * 主CTA（日程を確認する）の**右横**に置くボタン（t iku 指定 2026-09-17）。
+ * 掲載申込フォームへの導線。全ページのヘッダーに出る。
+ */
+const APPLY_CTA = { href: '/apply-listing', label: '掲載申し込みをする' };
+
+/**
  * 主CTA（日程を確認する）の左横に置く副ボタン。
  * 位置や文言の変更はこの定数と SECONDARY_IN_DRAWER_ONLY だけで完結する。
  */
@@ -80,6 +86,7 @@ export default function SiteHeader({ current, cta, pageLinks }: SiteHeaderProps)
             ))}
             <a href={SECONDARY_CTA.href} className="site-header-cta-secondary">{SECONDARY_CTA.label}</a>
             <a href={actionCta.href} className="site-header-cta">{actionCta.label}</a>
+            <a href={APPLY_CTA.href} className="site-header-cta-apply">{APPLY_CTA.label}</a>
           </nav>
 
           {/* スマホ: CTAは常時表示し、その他はハンバーガーへ */}
@@ -102,6 +109,14 @@ export default function SiteHeader({ current, cta, pageLinks }: SiteHeaderProps)
         {/* スマホ用ドロワー */}
         {open && (
           <nav className="site-header-drawer">
+            {/* 🔴 スマホではヘッダーに3つ並べられないため、掲載申込はドロワー最上段に置く */}
+            <a
+              href={APPLY_CTA.href}
+              className="site-header-drawer-apply"
+              onClick={() => setOpen(false)}
+            >
+              {APPLY_CTA.label}
+            </a>
             {SECONDARY_IN_DRAWER_ONLY && (
               <a
                 href={SECONDARY_CTA.href}

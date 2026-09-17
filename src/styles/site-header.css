@@ -40,9 +40,19 @@
 }
 .site-header-cta-secondary:hover { background: var(--kamo-gold); color: var(--kamo-dark) !important; }
 
+/* 掲載申込ボタン（主CTAの右横）。主CTAの赤とは別の役割なので紺系にする
+   — 赤2つを並べるとどちらを押すか迷わせるため */
+.site-header-cta-apply {
+  background: #1A2332; color: var(--kamo-white) !important;
+  padding: 8px 18px; border-radius: 100px; font-weight: 700; font-size: 13px;
+  white-space: nowrap; transition: background 0.2s;
+}
+.site-header-cta-apply:hover { background: #2A3548; }
+
 /* スマホ用の塊はPCでは隠す */
 .site-header-mobile { display: none; }
 .site-header-drawer { display: none; }
+.site-header-drawer-apply { display: none; }
 .site-header-overlay { display: none; }
 
 /* 本文がヘッダーに隠れないための余白。ページ側の padding-top に依存しない */
@@ -59,6 +69,12 @@
     display: block; padding: 14px 20px; font-size: 14.5px; font-weight: 800;
     color: #8A6D1F; background: #FFFDF5;
     border-bottom: 1px solid var(--kamo-border);
+  }
+  /* 掲載申込はヘッダーに並べず（3つは390pxで収まらない）ドロワー最上段に出す */
+  .site-header-cta-apply { display: none; }
+  .site-header-drawer-apply {
+    display: block; padding: 15px 20px; font-size: 15px; font-weight: 800;
+    color: var(--kamo-white) !important; background: #1A2332;
   }
   .site-header-mobile { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .site-header-cta { padding: 8px 14px; font-size: 12.5px; }

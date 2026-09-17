@@ -844,6 +844,123 @@ export async function sendAiGenerationNotifyEmail(
   }
 }
 
+/** 掲載申込書（Web申込）の事務局への通知先 */
+export const LISTING_APPLICATION_NOTIFY_EMAIL = 'info@local-creation.com';
+
+export interface ListingApplicationNotifyInput {
+  companyName: string;
+  representative?: string;
+  companyPostalCode?: string;
+  companyAddress?: string;
+  contactName: string;
+  contactDepartment?: string;
+  contactPhone?: string;
+  contactEmail: string;
+  contactPostalCode?: string;
+  contactAddress?: string;
+  projectName?: string;
+  projectSummary?: string;
+  projectType?: string;
+  goalAmount?: number | null;
+  recruitStartHope?: string;
+  recruitEndHope?: string;
+  supportHope?: string;
+  /**
+   * 🔴 口座は「銀行名 ****下4桁」のマスク文字列だけを受ける。
+   *   口座番号の全体をメール本文に載せない（メールは転送・誤送信の経路になる）。
+   *   全体は管理画面の詳細でのみ確認する。
+   */
+  bankMasked?: string;
+  remarks?: string;
+  agency?: string;
+}
+
+export function listingApplicationNotifySubject(
+  input: ListingApplicationNotifyInput
+): string {
+  const company = (input.companyName || '会社名未入力').trim();
+  const project = (input.projectName || 'プロジェクト名未入力').trim();
+  return `【掲載申込】${company} / ${project}（${nowJst()}）`;
+}
+
+export function listingApplicationNotifyHtml(
+  input: ListingApplicationNotifyInput
+): string {
+  const row = (label: string, value?: string | number | null) =>
+    value === undefined || value === null || value === ''
+      ? ''
+      : `<tr><th style="text-align:left;padding:6px 12px 6px 0;color:#666;font-weight:600;white-space:nowrap;vertical-align:top;">${label}</th><td style="padding:6px 0;white-space:pre-wrap;">${escapeHtml(String(value))}</td></tr>`;
+
+  const section = (title: string, rows: string) =>
+    rows.trim()
+      ? `<p style="margin:18px 0 4px;font-weight:700;font-size:14px;color:#E60012;">${title}</p>
+         <table style="width:100%;border-collapse:collapse;font-size:14px;">${rows}</table>`
+      : '';
+
+  return `
+    <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 680px; margin: 0 auto; padding: 20px;">
+      <div style="background:#E60012;color:#fff;padding:16px 20px;border-radius:8px 8px 0 0;">
+        <h1 style="margin:0;font-size:18px;">掲載申込書が送信されました</h1>
+        <p style="margin:4px 0 0;font-size:13px;">受付日時: ${nowJst()}（JST）</p>
+      </div>
+      <div style="border:1px solid #eee;border-top:none;border-radius:0 0 8px 8px;padding:20px;">
+        ${section('申込者（会社）', [
+          row('会社名', input.companyName),
+          row('役職・氏名', input.representative),
+          row('郵便番号', input.companyPostalCode),
+          row('住所', input.companyAddress),
+        ].join(''))}
+        ${section('プロジェクト担当者', [
+          row('氏名', input.contactName),
+          row('部署名', input.contactDepartment),
+          row('電話番号', input.contactPhone),
+          row('メールアドレス', input.contactEmail),
+          row('郵便番号', input.contactPostalCode),
+          row('住所', input.contactAddress),
+        ].join(''))}
+        ${section('プロジェクト', [
+          row('プロジェクト名', input.projectName),
+          row('概要', input.projectSummary),
+          row('種類', input.projectType),
+          row('目標金額', input.goalAmount ? `¥${input.goalAmount.toLocaleString()}` : ''),
+          row('募集開始希望日', input.recruitStartHope),
+          row('募集終了希望日', input.recruitEndHope),
+          row('ページ作成・実施アドバイスサポート', input.supportHope),
+        ].join(''))}
+        ${section('その他', [
+          row('プロジェクト資金 振込先', input.bankMasked),
+          row('特記事項／特約事項', input.remarks),
+          row('代理店', input.agency),
+        ].join(''))}
+        <p style="margin-top:20px;font-size:12px;color:#999;">
+          このメールは掲載申込フォームが送信されるたびに自動送信されます。<br>
+          🔴 口座番号は下4桁のみ記載しています。全体は管理画面の「掲載申し込み」→ 詳細でご確認ください。
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * 事務局へ掲載申込の通知を送る。**例外を投げない**（申込の保存を壊さないため）。
+ * RESEND_API_KEY 未設定の環境では success:false を返すだけで何も起きない。
+ */
+export async function sendListingApplicationNotifyEmail(
+  input: ListingApplicationNotifyInput
+): Promise<EmailResult> {
+  try {
+    return await sendEmail(
+      LISTING_APPLICATION_NOTIFY_EMAIL,
+      listingApplicationNotifySubject(input),
+      listingApplicationNotifyHtml(input)
+    );
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    console.error('掲載申込の通知メール送信に失敗:', error);
+    return { success: false, error };
+  }
+}
+
 /**
  * 第3回 掲載説明会 お誘いメール（過去回の申込者で、今回未申込の方へ）
  *
