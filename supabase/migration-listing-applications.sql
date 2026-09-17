@@ -75,6 +75,19 @@ CREATE TABLE IF NOT EXISTS listing_applications (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- ============================================================
+-- 🔴 すでにこのSQLの旧版を実行してテーブルを作成済みの場合のための追補。
+--
+--    上の CREATE TABLE IF NOT EXISTS は「テーブルが無いときだけ」効くので、
+--    **既存テーブルには新しい列が足されない**。そのため列の追加は
+--    ADD COLUMN IF NOT EXISTS で別に書く必要がある。
+--    （テーブルを今回初めて作る場合、ここは何もしない＝エラーにならない）
+-- ============================================================
+
+-- selling_items（主な販売予定品目）: 2026-09-17 追加
+ALTER TABLE listing_applications
+  ADD COLUMN IF NOT EXISTS selling_items TEXT;
+
 CREATE INDEX IF NOT EXISTS listing_applications_created_at_idx
   ON listing_applications (created_at DESC);
 CREATE INDEX IF NOT EXISTS listing_applications_status_idx
