@@ -115,3 +115,39 @@
   color: var(--kamo-gray);
 }
 .apply-count-line.is-short { color: var(--kamo-red); font-weight: 700; }
+
+/* ===== バナー（hero）を薄いブルーに =====
+   t iku 指定。共有元の supporter-register.css は紺背景＋白文字なので、
+   **このページだけ**上書きする（/supporters には影響しない）。
+   色は /partners で使っている薄いブルーと同じ値を使い、サイト内で色を増やさない。 */
+.listing-apply .hero {
+  background: linear-gradient(135deg, #EAF4FB 0%, #F4FAFE 55%, #FFFFFF 100%);
+  color: #235B7E;
+  border-bottom: 1px solid #CFE4F2;
+}
+/* 紺背景前提の金色の光彩は薄い背景では汚れて見えるので消す */
+.listing-apply .hero::before { display: none; }
+
+/* バッジは薄いブルーに合わせ、点滅も止める（申込ページは煽らない） */
+.listing-apply .hero-badge {
+  background: #FFFFFF;
+  color: #235B7E;
+  border: 1.5px solid #CFE4F2;
+  box-shadow: none;
+  animation: none;
+  font-size: 15px;
+}
+/* 見出しは薄い背景で読める濃紺に。強調部分は青のアクセント色 */
+.listing-apply .hero h1 { color: var(--kamo-navy); }
+.listing-apply .hero h1 .gold { color: #2F7CAE; }
+
+/* 説明文は2行で収まる幅にする（540pxだと1行目が折り返して3行になる） */
+.listing-apply .hero p {
+  color: #3A5A70;
+  font-size: 17px;
+  max-width: 720px;
+}
+@media (max-width: 768px) {
+  .listing-apply .hero p { font-size: 15px; }
+  .listing-apply .hero-badge { font-size: 13.5px; }
+}
