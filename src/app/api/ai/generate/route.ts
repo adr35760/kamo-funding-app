@@ -539,6 +539,45 @@ function buildFallbackExtended(input: HearingInput, page?: CrowdfundingPage): Pr
  */
 const REWARD_TARGET_COUNT = 13;
 
+/**
+ * スポンサー枠に松/竹/梅を割り当てる。
+ *
+ * 判定の順:
+ *   1. sponsor_name にすでに松竹梅が入っていればそれを使う
+ *   2. タイトル・説明文に「松」「竹」「梅」が出ていればそれを採る
+ *      （LLMは「松プランスポンサー」のようにタイトルへ書くことが多い）
+ *   3. どちらも無ければ**金額の高い順に 松 → 竹 → 梅**を振る
+ *
+ * 3件でない場合も壊さない（2件なら松・竹、4件以上なら余りは梅のままにする）。
+ */
+function fillSponsorNames(
+  rewards: Array<{ category: RewardCategory; price?: number; title?: string; description?: string; sponsor_name?: string }>
+): void {
+  const sponsors = rewards.filter(r => r.category === 'sponsor');
+  if (sponsors.length === 0) return;
+
+  const RANKS = ['松', '竹', '梅'] as const;
+  const pickFromText = (r: { title?: string; description?: string }) => {
+    const text = `${r.title ?? ''} ${r.description ?? ''}`;
+    return RANKS.find(rank => text.includes(rank));
+  };
+
+  for (const r of sponsors) {
+    const current = String(r.sponsor_name ?? '').trim();
+    if (RANKS.some(rank => current === rank)) continue;
+    const found = pickFromText(r);
+    r.sponsor_name = found ?? '';
+  }
+
+  // 埋まらなかったものを、金額の高い順に未使用の段階で埋める
+  const used = new Set(sponsors.map(r => r.sponsor_name).filter(Boolean));
+  const blanks = sponsors.filter(r => !r.sponsor_name).sort((a, b) => (b.price || 0) - (a.price || 0));
+  const free = RANKS.filter(rank => !used.has(rank));
+  blanks.forEach((r, i) => {
+    r.sponsor_name = free[i] ?? '梅';
+  });
+}
+
 /** カテゴリ別の目標件数（t iku指示 2026-09-18） */
 const REWARD_TARGET_BY_CATEGORY: Record<RewardCategory, number> = {
   product: 3,
@@ -597,6 +636,11 @@ function ensureAllRewardCategories(page: CrowdfundingPage, input: HearingInput):
       console.info(`ai/generate: rewards ${rewards.length}/${REWARD_TARGET_COUNT} (件数不足のまま生成を通します)`);
     }
   }
+
+  // 🔴 スポンサー枠の段階名（松/竹/梅）をサーバ側で必ず埋める。
+  //   LLMは段階名をタイトルに書いて sponsor_name を空で返すことがある（本番実測 2026-09-18）。
+  //   画面とPDFは sponsor_name を見て段階を出すので、空のままだと段階が消える。
+  fillSponsorNames(rewards);
 
   // 表示順は REWARD_CATEGORIES の順（商品 → サービス → 体験 → スポンサー）。同カテゴリ内は金額の昇順
   const order = new Map<RewardCategory, number>(REWARD_CATEGORIES.map((c, i) => [c, i]));
