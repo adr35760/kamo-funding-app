@@ -50,11 +50,11 @@ export async function middleware(request: NextRequest) {
   if (pathname === '/api/referrals' || pathname.startsWith('/api/referrals/')) {
     return requireAdmin(request);
   }
-  if (
-    (pathname === '/api/partners/register' || pathname.startsWith('/api/partners/register/')) &&
-    request.method === 'GET'
-  ) {
-    return requireAdmin(request);
+  if (pathname === '/api/partners/register' || pathname.startsWith('/api/partners/register/')) {
+    // GET（紹介コードから氏名が引ける）だけを管理者限定にする。
+    // POST はパートナー登録の受け口なので公開のまま通す。
+    if (request.method === 'GET') return requireAdmin(request);
+    return NextResponse.next();
   }
 
   if (pathname.startsWith('/api/ai/')) {
