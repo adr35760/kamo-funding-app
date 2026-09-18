@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { isEventFinished } from '@/lib/event-visibility';
 
@@ -40,3 +40,70 @@ export async function GET() {
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+/**
+ * POST /api/admin/events — 管理画面からのイベント作成
+ *
+ * 🔴 なぜ追加したか（2026-09-18）:
+ *   管理画面はこれまでブラウザから Supabase の REST API を直接叩いており、
+ *   そのために `NEXT_PUBLIC_SUPABASE_ANON_KEY` を**画面のJSに埋め込んで**いた。
+ *   NEXT_PUBLIC_ の値は配信ファイルに残るため、キーが第三者の手に渡り得る。
+ *   `events` の RLS は「誰でもSELECT可」なので、漏れたキーで
+ *   イベント一覧を直接読まれる状態だった。
+ *   作成をサーバー経由に移し、鍵をブラウザへ出さないようにする。
+ *
+ * 認証: middleware の Basic 認証（/api/admin/*）。
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+
+    const title = typeof body.title === 'string' ? body.title.trim() : '';
+    const type = typeof body.type === 'string' ? body.type : '';
+    const eventDate = typeof body.event_date === 'string' ? body.event_date : '';
+    if (!title || !type || !eventDate) {
+      return NextResponse.json(
+        { ok: false, error: 'タイトル・種別・開催日時は必須です' },
+        { status: 400 }
+      );
+    }
+
+    const parsedDate = new Date(eventDate);
+    if (Number.isNaN(parsedDate.getTime())) {
+      return NextResponse.json({ ok: false, error: '開催日時の形式が不正です' }, { status: 400 });
+    }
+
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('events')
+      .insert({
+        title,
+        type,
+        pillar: body.pillar != null ? Number(body.pillar) : null,
+        event_date: parsedDate.toISOString(),
+        location: str(body.location),
+        capacity: body.capacity ? Number(body.capacity) : null,
+        streaming_url: str(body.streaming_url),
+        streaming_platform: str(body.streaming_platform),
+        status: 'upcoming',
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      console.error('admin/events POST error:', error);
+      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, id: data.id });
+  } catch (err) {
+    console.error('admin/events POST exception:', err);
+    return NextResponse.json({ ok: false, error: 'サーバーエラーが発生しました' }, { status: 500 });
+  }
+}
+
+function str(v: unknown): string | null {
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  return s ? s : null;
+}

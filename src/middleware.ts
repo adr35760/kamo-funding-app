@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { AI_TOOL_COOKIE, verifyAiToolToken } from '@/lib/ai-tool-auth';
 
 /**
  * 管理画面のBasic認証
@@ -21,7 +22,58 @@ function unauthorized(message = 'Authentication required') {
   });
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  /**
+   * 🔴 /api/ai/* の保護（2026-09-18 追加）
+   *
+   * `/ai-tool` の画面はパスワードを出していたが、**APIは素通し**だった。
+   * つまり画面を通らずに `/api/ai/generate` を直接叩けたので、
+   *   - OpenAI の課金を第三者に使われる
+   *   - `/api/ai/submit` で ai_generations に任意の行を入れられる
+   * という状態だった。認証Cookieを持たないリクエストは 401 で止める。
+   */
+  /**
+   * 🔴 公開されたままの内部APIを閉じる（2026-09-18 追加）
+   *
+   *   - `/api/referrals`      … partner_id を渡すと紹介先の会社名・担当者名・
+   *                             メールアドレスが**認証なしで**一覧で返っていた。
+   *                             POST/PATCH で任意の紹介実績を作成・改変もできた。
+   *   - `/api/partners/register` の GET … 紹介コードを渡すとパートナーの氏名が返る。
+   *
+   *   どちらも**サイトのどのページからも呼ばれていない**（実装時の名残）。
+   *   個人情報の出口を残す理由がないので、管理者のみに限定する。
+   *   将来パートナー向けのマイページを作るときは、パートナー本人の
+   *   ログインを用意してから開ける。
+   */
+  if (pathname === '/api/referrals' || pathname.startsWith('/api/referrals/')) {
+    return requireAdmin(request);
+  }
+  if (
+    (pathname === '/api/partners/register' || pathname.startsWith('/api/partners/register/')) &&
+    request.method === 'GET'
+  ) {
+    return requireAdmin(request);
+  }
+
+  if (pathname.startsWith('/api/ai/')) {
+    const ok = await verifyAiToolToken(request.cookies.get(AI_TOOL_COOKIE)?.value);
+    if (!ok) {
+      return new NextResponse(
+        JSON.stringify({
+          success: false,
+          error: 'このツールは限定公開です。ページを開き直してパスワードを入力してください。',
+        }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        }
+      );
+    }
+    return NextResponse.next();
+  }
+
   // 環境変数の値に空白・改行・引用符が混入していても認証できるよう正規化する
   // （Vercelの入力欄でコピペすると末尾に改行や空白が入りがち）
   const expectedUser = normalizeSecret(process.env.ADMIN_USER) || 'admin';
@@ -87,7 +139,44 @@ function safeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
+/**
+ * Basic認証の判定だけを行い、通ればそのまま処理を続ける。
+ * `/admin` と同じ資格情報を使う。
+ */
+function requireAdmin(request: NextRequest): NextResponse {
+  const expectedUser = normalizeSecret(process.env.ADMIN_USER) || 'admin';
+  const expectedPassword = normalizeSecret(process.env.ADMIN_PASSWORD);
+  if (!expectedPassword) return unauthorized();
+
+  const header = request.headers.get('authorization');
+  if (!header || !header.toLowerCase().startsWith('basic ')) return unauthorized();
+
+  try {
+    const decoded = atob(header.slice(6).trim());
+    const sep = decoded.indexOf(':');
+    if (sep === -1) return unauthorized();
+    const user = decoded.slice(0, sep).trim();
+    const password = decoded.slice(sep + 1);
+    if (!safeEqual(user, expectedUser) || !safeEqual(password, expectedPassword)) {
+      return unauthorized();
+    }
+  } catch {
+    return unauthorized();
+  }
+  return NextResponse.next();
+}
+
 export const config = {
   // /api/cron/* は含めない（CRON_SECRETで認証しているため）
-  matcher: ['/admin/:path*', '/admin', '/api/admin/:path*'],
+  matcher: [
+    '/admin/:path*',
+    '/admin',
+    '/api/admin/:path*',
+    // /ai-tool の生成・保存API。認証Cookieで保護する
+    // （/api/ai-tool/auth 自身は含めない — そこがパスワードを受け取る入口）
+    '/api/ai/:path*',
+    // 使われていない内部API（個人情報の出口）。管理者のみに限定する
+    '/api/referrals',
+    '/api/partners/register',
+  ],
 };

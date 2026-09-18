@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
 import LegalFooter from '@/components/LegalFooter';
 import GeneratedPageDoc, { generatedDocStyles } from '@/components/GeneratedPageDoc';
@@ -82,8 +82,10 @@ interface GeneratedPage {
 
 export default function AIToolPage() {
   const [authenticated, setAuthenticated] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [pwError, setPwError] = useState('');
+  const [authBusy, setAuthBusy] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<GeneratedPage | null>(null);
@@ -349,14 +351,65 @@ export default function AIToolPage() {
   };
 
   // パスワード認証画面
+  /**
+   * すでに認証済みCookieを持っているかをサーバーに確認する。
+   * 再読み込みのたびにパスワードを打たせないため（Cookieは12時間有効）。
+   */
+  useEffect(() => {
+    let alive = true;
+    fetch('/api/ai-tool/auth')
+      .then(r => r.json())
+      .then(d => { if (alive && d?.authenticated) setAuthenticated(true); })
+      .catch(() => {})
+      .finally(() => { if (alive) setAuthChecked(true); });
+    return () => { alive = false; };
+  }, []);
+
   if (!authenticated) {
-    const handleAuth = () => {
-      const correctPassword = process.env.NEXT_PUBLIC_AI_TOOL_PASSWORD || 'kamo2026';
-      if (passwordInput === correctPassword) {
-        setAuthenticated(true);
-        setPwError('');
-      } else {
-        setPwError('パスワードが正しくありません');
+    // Cookie確認が終わるまでは入力欄を出さない（認証済みなのに
+    // パスワード画面が一瞬見えるのを防ぐ）
+    if (!authChecked) {
+      return (
+        <>
+          <SiteHeader current="/ai-tool" />
+          <div style={{
+            fontFamily: "'Noto Sans JP', sans-serif",
+            minHeight: '60vh',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#666', fontSize: 14,
+          }}>
+            読み込み中…
+          </div>
+          <LegalFooter />
+        </>
+      );
+    }
+    /**
+     * 🔴 照合はサーバーで行う（2026-09-18 変更）。
+     *   以前はここでパスワードを直接比較していたが、`NEXT_PUBLIC_` の値は
+     *   配信されるJSファイルに埋め込まれるため、誰でも読めてしまっていた。
+     *   いまは値をサーバーへ送って判定させ、成功時に httpOnly Cookie を受け取る。
+     */
+    const handleAuth = async () => {
+      if (authBusy) return;
+      setAuthBusy(true);
+      try {
+        const res = await fetch('/api/ai-tool/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: passwordInput }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.success) {
+          setAuthenticated(true);
+          setPwError('');
+        } else {
+          setPwError(data.error || 'パスワードが正しくありません');
+        }
+      } catch {
+        setPwError('通信エラーが発生しました。もう一度お試しください。');
+      } finally {
+        setAuthBusy(false);
       }
     };
 
@@ -398,7 +451,7 @@ export default function AIToolPage() {
             type="password"
             value={passwordInput}
             onChange={e => { setPasswordInput(e.target.value); setPwError(''); }}
-            onKeyDown={e => e.key === 'Enter' && handleAuth()}
+            onKeyDown={e => { if (e.key === 'Enter') void handleAuth(); }}
             placeholder="パスワード"
             style={{
               width: '100%', padding: '12px 16px', borderRadius: 8,
@@ -412,14 +465,15 @@ export default function AIToolPage() {
             <p style={{ color: '#E60012', fontSize: 13, marginBottom: 12 }}>{pwError}</p>
           )}
           <button
-            onClick={handleAuth}
+            onClick={() => void handleAuth()}
+            disabled={authBusy}
             style={{
               width: '100%', padding: '12px', borderRadius: 8,
-              border: 'none', background: '#E60012', color: '#fff',
-              fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              border: 'none', background: authBusy ? '#BDBDBD' : '#E60012', color: '#fff',
+              fontSize: 15, fontWeight: 700, cursor: authBusy ? 'default' : 'pointer',
             }}
           >
-            認証する →
+            {authBusy ? '確認中…' : '認証する →'}
           </button>
           <p style={{ color: '#999', fontSize: 11, marginTop: 16 }}>
             KAMO FUNDING — 共犯者を集め、夢を叶える場所

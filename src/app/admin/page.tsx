@@ -307,22 +307,20 @@ export default function AdminPage() {
     });
   };
 
+  /**
+   * イベント作成。
+   *
+   * 🔴 2026-09-18 変更: 以前はブラウザから Supabase の REST API を直接呼んでおり、
+   *   そのために接続URLと anon キーを画面のJSに埋め込む必要があった
+   *   （NEXT_PUBLIC_ の値は配信ファイルに残るので第三者も読める）。
+   *   いまは Basic 認証で守られた `/api/admin/events` 経由で作成するため、
+   *   ブラウザに鍵を置かない。
+   */
   const handleCreateEvent = async () => {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseKey) {
-      alert('Supabase接続が設定されていません');
-      return;
-    }
     try {
-      const res = await fetch(`${supabaseUrl}/rest/v1/events`, {
+      const res = await fetch('/api/admin/events', {
         method: 'POST',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newEvent.title,
           type: newEvent.type,
