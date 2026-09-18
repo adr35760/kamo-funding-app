@@ -15,8 +15,8 @@ export const SYSTEM_PROMPT = `あなたはKAMOファンディングのクラウ�
 3. リターンは「支援者が得をする」設計而非「おまけ」
 4. KAMOファンディングの掲載フォーマットに従う
 5. storyは lead→background→vision→use_of_funds→schedule→appeal の構造で生成
-6. リターンは「商品 / 体験 / サービス / スポンサー」の4カテゴリで構成し、各カテゴリを必ず1件以上生成する
-7. スポンサー層にはブロンズ/シルバー/ゴールド/ダイヤモンドの名称を使用
+6. リターンは「商品 / サービス / 体験 / スポンサー」の4カテゴリで構成し、各カテゴリを必ず1件以上生成する。スポンサーは松・竹・梅の3段階
+7. スポンサー層は松/竹/梅の3段階の名称を使用（t iku指示 2026-09-18。旧: ブロンズ〜ダイヤモンド）
 8. project.extended の7項目（名称案3案・概要・なぜ・創出・発表会企画・活動歴・費用内訳）を必ず生成する
 9. 文字数指定は厳守する
 10. extended.title_proposals と project.title は**各23文字ちょうど**で、**必ず「〜したい！」で終える**。記号や空白で字数を稼がず、日本語として自然な名称にする
@@ -26,7 +26,11 @@ export const SYSTEM_PROMPT = `あなたはKAMOファンディングのクラウ�
  * リターンのカテゴリ（t iku指示: 商品・体験・サービス・スポンサーの4構成）
  * 内部キーは英語、画面表示は下の REWARD_CATEGORY_LABELS を使う。
  */
-export const REWARD_CATEGORIES = ['product', 'experience', 'service', 'sponsor'] as const;
+/**
+ * 🔴 この配列の順序が**画面・PDFの表示順**になる。
+ *   t iku指示 2026-09-18 の並び（商品→サービス→体験→スポンサー）に合わせている。
+ */
+export const REWARD_CATEGORIES = ['product', 'service', 'experience', 'sponsor'] as const;
 export type RewardCategory = (typeof REWARD_CATEGORIES)[number];
 
 export const REWARD_CATEGORY_LABELS: Record<RewardCategory, string> = {
@@ -107,6 +111,14 @@ export interface HearingInput {
    * 生成側の「活動歴」の元ネタとして使う。空ならAIが推定で埋める。
    */
   activityHistory?: string;
+  /**
+   * 提供できる商品・サービス／できること（箇条書き・任意。t iku指示 2026-09-18）。
+   *
+   * 🔴 リターン生成の**一次資料**。ここに書かれたものを優先して
+   *   商品3・サービス4・体験3・スポンサー松竹梅3の13件に割り当てる。
+   *   空欄のときだけAIが事業内容から推定する。
+   */
+  offerings?: string;
 }
 
 /**
@@ -187,7 +199,8 @@ export interface Reward {
   stock_limit: number | null;
   is_designated: boolean;
   designated_name: string;
-  sponsor_name?: string; // ブロンズ/シルバー/ゴールド/ダイヤモンド (sponsor tier only)
+  /** スポンサー枠の段階名。松 / 竹 / 梅（t iku指示 2026-09-18。旧: ブロンズ〜ダイヤモンド） */
+  sponsor_name?: string;
 }
 
 export interface CrowdfundingPage {
@@ -266,7 +279,9 @@ ${input.creatorProfile}` : ''}${input.supporterMessage?.trim() ? `
 - 達成したい想い・支援者へのメッセージ（起案者の申告。**story.appeal はこの内容を必ず起点にして書く**こと。ここに書かれていない想いを捏造しない）:
 ${input.supporterMessage.trim()}` : ''}${buildLinkLines(input)}${input.activityHistory ? `
 - これまでの活動履歴（起案者の申告。extended.activity_history はこの内容を時系列に整形して使うこと。捏造しない）:
-${input.activityHistory}` : ''}
+${input.activityHistory}` : ''}${input.offerings?.trim() ? `
+- 提供できる商品・サービス／できること（起案者の申告・箇条書き。🔴**リターンはこの内容を必ず起点にして作る**こと。ここに無い商品・サービスを捏造して並べない。書かれた項目が13件に足りない場合は、書かれたものを組み合わせる・数量や規模を変える・関連する範囲で広げる形で埋め、まったく別の事業内容を持ち込まないこと）:
+${input.offerings.trim()}` : ''}
 
 【出力要件】
 以下のJSONスキーマに従って出力してください:
@@ -337,7 +352,7 @@ ${input.activityHistory}` : ''}
       "is_designated": false,
       "designated_name": ""
     }
-    // ... 下記の配分で**合計15件**（商品6・体験4・サービス3・スポンサー2）
+    // ... 下記の配分で**合計13件**（商品3・サービス4・体験3・スポンサー3=松竹梅）
   ]
 }
 
@@ -359,16 +374,19 @@ ${input.activityHistory}` : ''}
    🔴 **amount の合計は必ず ${input.goalAmount}（goal_amount）と完全一致**させること。クラファン手数料・リターン原価・事務費も費目に含めて構わない
 
 【リターンの構成（必須）】
-🔴 **リターンは合計15件**生成してください。カテゴリ別の件数は次のとおりです（合計15件）:
-- "product"（商品）: **6件**。物としてお届けするリターン。¥1,000〜¥30,000程度
-- "experience"（体験）: **4件**。現地・オンラインでの体験型リターン。¥10,000〜¥100,000程度
-- "service"（サービス）: **3件**。役務・相談・利用権などのリターン。¥5,000〜¥50,000程度
-- "sponsor"（スポンサー）: **2件**。企業・団体向けの協賛枠（ロゴ掲載・広告掲載など）。**¥100,000以上**でスポンサー名称（ブロンズ/シルバー/ゴールド/ダイヤモンド）を sponsor_name に入れる
+🔴 **リターンは合計13件**生成してください。カテゴリ別の件数は次のとおりです（合計13件・t iku指示 2026-09-18）:
+- "product"（商品）: **3件**。物としてお届けするリターン。¥1,000〜¥30,000程度
+- "service"（サービス）: **4件**。役務・相談・利用権などのリターン。¥5,000〜¥50,000程度
+- "experience"（体験）: **3件**。現地・オンラインでの体験型リターン。¥10,000〜¥100,000程度
+- "sponsor"（スポンサー）: **3件**。企業・団体向けの協賛枠（ロゴ掲載・広告掲載など）。**¥100,000以上**。
+  🔴 3件は**松・竹・梅の3段階**にし、sponsor_name に **「松」「竹」「梅」**をそのまま入れてください
+  （ブロンズ/シルバー/ゴールド等の英語名は使わない）。金額は 梅 < 竹 < 松 の順で、
+  段階が上がるほど特典（ロゴの大きさ・掲載場所・掲載期間・招待人数など）が明確に厚くなるようにしてください。
 
-🔴 **15件の内容はすべて別物**にしてください。金額を少し変えただけの同じ内容を並べないこと。
-🔴 **"tier" を偏らせない**こと。15件が全部 premium のような分布は選択肢にならないので、
+🔴 **13件の内容はすべて別物**にしてください。金額を少し変えただけの同じ内容を並べないこと。
+🔴 **"tier" を偏らせない**こと。13件が全部 premium のような分布は選択肢にならないので、
    entry / standard / premium / vip / sponsor が**それぞれ最低1件以上**含まれるようにしてください。
-   目安の配分は entry 4件・standard 4件・premium 4件・vip 1件・sponsor 2件です。
+   目安の配分は entry 3件・standard 3件・premium 3件・vip 1件・sponsor 3件です。
 - entry: ¥1,000-3,000 / standard: ¥5,000-8,000 / premium: ¥10,000-30,000 / vip: ¥50,000-100,000 / sponsor: ¥100,000以上
 
 JSONのみ出力してください。 markdownのコードブロックは不要です。`;
@@ -398,7 +416,7 @@ export function calculateRewardTiers(goalAmount: number, estimatedSupporters: nu
  * 400文字級の本文7項目だけを書かせる**2回目の呼び出し**用プロンプト。
  *
  * 🔴 なぜ分離したか（2026-09-14 実測に基づく構造変更）:
- *   1回のリクエストでページ全体（リターン15件・23文字の名称案3案・費用内訳の
+ *   1回のリクエストでページ全体（リターン13件・23文字の名称案3案・費用内訳の
  *   合計一致・法務情報…）と一緒に長文7項目を書かせると、**本番で170〜277字**
  *   しか返らない。プロンプトを3通り強化しても、入力材料を厚くしても伸びなかった。
  *   一方、同じモデルに**見出し1つだけを渡して400字以上を要求すると658字**返る。
@@ -523,7 +541,9 @@ ${input.creatorProfile.trim()}` : ''}${input.supporterMessage?.trim() ? `
 - 達成したい想い・支援者へのメッセージ（起案者の申告。**「訴求メッセージ」はこれを必ず起点にする**。ここに無い想いを捏造しない）:
 ${input.supporterMessage.trim()}` : ''}${input.activityHistory?.trim() ? `
 - これまでの活動履歴（起案者の申告）:
-${input.activityHistory.trim()}` : ''}
+${input.activityHistory.trim()}` : ''}${input.offerings?.trim() ? `
+- 提供できる商品・サービス／できること（起案者の申告）:
+${input.offerings.trim()}` : ''}
 
 【資金の使途（確定済み。金額に触れるときはこの費目と金額をそのまま使い、矛盾させないこと）】
 ${cost}

@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     // Gensparkプロキシの場合は利用可能なモデルを使用、直接OpenAIの場合はgpt-4o
     const model = apiBaseUrl.includes('genspark') ? 'gpt-5.1' : 'gpt-4o';
 
-    // 1回目: ページの**構造**を作らせる（リターン15件・名称案・費用内訳・法務情報）。
+    // 1回目: ページの**構造**を作らせる（リターン13件・名称案・費用内訳・法務情報）。
     // 400文字級の本文はここでは要求しない（2〜3文の要約で足りる）。
     //
     // 🔴 なぜ2回に分けるか（2026-09-14 の実測）:
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     //   返らなかった。プロンプト3通り・入力材料の増量・maxTokens 16,000 いずれも効果なし。
     //   レスポンス全体が7,139字＝トークン上限にも余裕があり、切られてもいない。
     //   一方、同じモデルに**見出し1つだけ渡して400字以上を要求すると658字**返る。
-    //   字数指示が他の制約（15件・23文字ちょうど・合計一致）に埋もれて薄まっていた。
+    //   字数指示が他の制約（13件・23文字ちょうど・合計一致）に埋もれて薄まっていた。
     //   → 本文は「長文を書くこと」だけを要求する2回目の呼び出しに分離する。
     let parsed: CrowdfundingPage | null = null;
     let best: CrowdfundingPage | null = null;
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
       const result = await callLLM({
         apiBaseUrl, apiKey, model,
         userPrompt: prompt,
-        // 構造＋リターン15件ぶん。本文要求を外したので 12,000 で足りる。
+        // 構造＋リターン13件ぶん。本文要求を外したので 12,000 で足りる。
         maxTokens: 12000,
       });
       if (!result.ok) {
@@ -529,18 +529,27 @@ function buildFallbackExtended(input: HearingInput, page?: CrowdfundingPage): Pr
 }
 
 /**
- * 目標のリターン件数（t iku指示 2026-09-14: 合計15件）。
- * カテゴリ別の目安は 商品6 / 体験4 / サービス3 / スポンサー2。
+ * 目標のリターン件数（t iku指示 2026-09-18: 合計13件）。
+ * カテゴリ別の目安は 商品3 / サービス4 / 体験3 / スポンサー3（松竹梅）。
+ * （2026-09-14 は 15件＝商品6/体験4/サービス3/スポンサー2 だった）
  *
  * 🔴 **これは努力目標で、達成できなくても生成は通す**（PM合意 2026-09-14）。
- *   15件揃わないことを理由に生成全体を失敗させるのが最悪なので、
+ *   件数が揃わないことを理由に生成全体を失敗させるのが最悪なので、
  *   不足分はモック側から補い、それでも届かなければ届いた件数で出す。
  */
-const REWARD_TARGET_COUNT = 15;
+const REWARD_TARGET_COUNT = 13;
+
+/** カテゴリ別の目標件数（t iku指示 2026-09-18） */
+const REWARD_TARGET_BY_CATEGORY: Record<RewardCategory, number> = {
+  product: 3,
+  service: 4,
+  experience: 3,
+  sponsor: 3,
+};
 
 /**
  * リターンの category を正規化し、4カテゴリ（商品/体験/サービス/スポンサー）が
- * すべて1件以上存在することを保証する。さらに合計15件に届かない場合は
+ * すべて1件以上存在することを保証する。さらに目標件数（13件）に届かない場合は
  * モック側のリターンから不足分を補う。
  *
  * 欠けたカテゴリはモック生成の同カテゴリのリターンで補完する（空カテゴリを作らない）。
@@ -563,14 +572,12 @@ function ensureAllRewardCategories(page: CrowdfundingPage, input: HearingInput):
     }
   }
 
-  // 15件に届かない分をモック側から補う。
+  // 目標件数に届かない分をモック側から補う。
   // 既に入っている title と重複するものは足さない（同じリターンを2度並べない）。
   if (rewards.length < REWARD_TARGET_COUNT) {
     const taken = new Set(rewards.map((r) => String(r.title ?? '').trim()));
-    // カテゴリの配分（商品6・体験4・サービス3・スポンサー2）に近づく順で足す
-    const wanted: Record<RewardCategory, number> = {
-      product: 6, experience: 4, service: 3, sponsor: 2,
-    } as Record<RewardCategory, number>;
+    // カテゴリの配分（商品3・サービス4・体験3・スポンサー3）に近づく順で足す
+    const wanted = REWARD_TARGET_BY_CATEGORY;
     const countOf = (c: RewardCategory) => rewards.filter((r) => r.category === c).length;
     // 不足の大きいカテゴリから順に埋める
     const byNeed = [...fallbackRewards].sort((a, b) => {
@@ -591,7 +598,7 @@ function ensureAllRewardCategories(page: CrowdfundingPage, input: HearingInput):
     }
   }
 
-  // 表示順を 商品 → 体験 → サービス → スポンサー に揃え、同カテゴリ内は金額の昇順
+  // 表示順は REWARD_CATEGORIES の順（商品 → サービス → 体験 → スポンサー）。同カテゴリ内は金額の昇順
   const order = new Map<RewardCategory, number>(REWARD_CATEGORIES.map((c, i) => [c, i]));
   rewards.sort((a, b) => {
     const d = (order.get(a.category) ?? 99) - (order.get(b.category) ?? 99);
@@ -733,7 +740,7 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
       {
         category: 'sponsor',
         tier: 'sponsor',
-        title: `【ダイヤモンドスポンサー】企業・団体様向け`,
+        title: `【スポンサー 松】企業・団体様向け`,
         description: `本プロジェクトの最高位スポンサーコースです。\n\n${templates.sponsorRewardDesc}\n\n■ スポンサー特典\n・プロジェクトページへのロゴ掲載\n・SNSでの感謝投稿（リツイート・シェア歓迎）\n・${input.creatorName}による企業訪問・意見交換会（1回）\n・月1回のオンライン進捗報告（3ヶ月間）\n\n※特典内容につきましては、ご相談の上カスタマイズ可能です。`,
         image_url: '',
         price: tiers.sponsor,
@@ -742,10 +749,10 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
         stock_limit: 5,
         is_designated: false,
         designated_name: '',
-        sponsor_name: 'ダイヤモンド',
+        sponsor_name: '松',
       },
-      // ここから下は**15件構成のための補完用**（2026-09-14）。
-      // LLMが15件に届かなかったときに ensureRewardCount() が不足カテゴリから
+      // ここから下は**目標件数に届かなかったときの補完用**（2026-09-14 / 件数は 2026-09-18 に13件へ変更）。
+      // LLMが目標件数に届かなかったときに ensureAllRewardCategories() が不足カテゴリから
       // 順に採用する。既存6件と内容が重複しないよう、切り口を変えてある。
       {
         category: 'product',
@@ -854,8 +861,8 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
       {
         category: 'sponsor',
         tier: 'sponsor',
-        title: `【ゴールドスポンサー】企業・団体様向け`,
-        description: `企業・団体様向けの協賛コースです。\n\n${templates.sponsorRewardDesc}\n\n■ スポンサー特典\n・プロジェクトページへのロゴ掲載\n・SNSでの感謝投稿\n・活動報告レポートの送付（3ヶ月間）\n\n※ダイヤモンドスポンサーより内容を絞った構成です。`,
+        title: `【スポンサー 竹】企業・団体様向け`,
+        description: `企業・団体様向けの協賛コースです。\n\n${templates.sponsorRewardDesc}\n\n■ スポンサー特典\n・プロジェクトページへのロゴ掲載\n・SNSでの感謝投稿\n・活動報告レポートの送付（3ヶ月間）\n\n※「松」より内容を絞った構成です。`,
         image_url: '',
         price: Math.max(100000, Math.round(tiers.sponsor * 0.6 / 100) * 100),
         shipping_included: true,
@@ -863,7 +870,23 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
         stock_limit: 10,
         is_designated: false,
         designated_name: '',
-        sponsor_name: 'ゴールド',
+        sponsor_name: '竹',
+      },
+      {
+        // スポンサーは松・竹・梅の3段階（t iku指示 2026-09-18）。
+        // LLMが3件揃えられなかったときの補完用。
+        category: 'sponsor',
+        tier: 'sponsor',
+        title: `【スポンサー 梅】企業・団体様向け`,
+        description: `企業・団体様向けの協賛コース（入口の段階）です。\n\n${templates.sponsorRewardDesc}\n\n■ スポンサー特典\n・プロジェクトページへのお名前掲載\n・SNSでの感謝投稿\n\n※まずは応援の気持ちを形にしたい企業・団体様向けの構成です。`,
+        image_url: '',
+        price: 100000,
+        shipping_included: true,
+        estimated_delivery: deliveryStr,
+        stock_limit: 20,
+        is_designated: false,
+        designated_name: '',
+        sponsor_name: '梅',
       },
     ],
   };
@@ -1031,7 +1054,7 @@ function getIndustryTemplate(industry: string) {
 /**
  * 関数の実行時間上限（秒）。
  *
- * 2026-09-14 の増量（400文字級7項目＋リターン15件、maxTokens 16,000）で
+ * 2026-09-14 の増量（400文字級7項目＋リターン13件、maxTokens 16,000）で
  * 生成1回が実測 64〜82 秒かかるため明示する。既定値では足りない。
  *
  * 🔴 300 を指定できる根拠（推測ではなく実測）:

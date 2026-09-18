@@ -108,6 +108,11 @@ export default function AIToolPage() {
     activityHistory: '',
     /** 起案者プロフィール（300文字以内・任意）。生成の creator.bio の起点になる */
     creatorProfile: '',
+    /**
+     * 提供できる商品・サービス／できること（箇条書き・任意。t iku指示 2026-09-18）。
+     * リターン生成の一次資料になる。
+     */
+    offerings: '',
     supporterMessage: '',
     /**
      * SNS・サイトのURL（すべて任意）。
@@ -626,6 +631,19 @@ export default function AIToolPage() {
               </div>
             </Field>
 
+            {/* 🔴 プロフィールの下（t iku指示 2026-09-18）。
+                ここに書かれたものがリターン13件の一次資料になる。 */}
+            <Field label="あなたが提供できる商品・サービスはなんですか？またできることを箇条書きに記載ください。">
+              <textarea value={form.offerings}
+                onChange={e => updateForm('offerings', e.target.value)}
+                style={{ ...inputStyle, minHeight: 130 }}
+                placeholder={'箇条書きでご記入ください。\n例:\n・自家製クラフトビール（330ml / 6本セット）\n・醸造所の見学ツアー\n・ビールの飲み比べ体験会\n・飲食店向けの樽生の卸\n・オリジナルラベルの受託醸造\n・開業相談・メニュー開発のアドバイス'} />
+              <p style={{ fontSize: 11, color: '#999', margin: '4px 0 0' }}>
+                <strong>ここに書いた内容をもとにリターンを生成します</strong>（商品3・サービス4・体験3・スポンサー松竹梅3の合計13件）。
+                思いつくものを多めに挙げていただくほど、リターンの精度が上がります。空欄の場合は事業内容からAIが推定します。
+              </p>
+            </Field>
+
             {/* 支援者へのメッセージ（任意・400文字）。
                 story.appeal の起点になるので、空欄ならAIが推定して書く。 */}
             <Field label="達成したい想い！支援者さんへのメッセージ（400文字以内）">
@@ -794,6 +812,7 @@ export default function AIToolPage() {
             <ConfirmRow label="クラファンで実現したいこと" value={form.crowdfundingGoal} />
             <ConfirmRow label="活動履歴" value={form.activityHistory} />
             <ConfirmRow label="あなたのプロフィール" value={form.creatorProfile} />
+            <ConfirmRow label="提供できる商品・サービス／できること" value={form.offerings} />
             <ConfirmRow label="達成したい想い！支援者さんへのメッセージ" value={form.supporterMessage} />
             {/* 空欄は ConfirmRow が null を返すので行が出ない */}
             <ConfirmRow label="XのURL" value={form.snsX} />
