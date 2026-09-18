@@ -145,6 +145,16 @@ export default function AdminPage() {
     // イベント一覧取得
     // 管理画面は過去日程も表示する必要があるため専用APIを使う（公開APIは終了回を除外）
     const eventsRes = await fetch('/api/admin/events');
+    /**
+     * 🔴 セッション切れの扱い（2026-09-18 Googleログイン化）。
+     *   8時間で切れるので、開いたまま翌日触ると401が返る。
+     *   そのとき**一覧が空になって「データが消えた」と誤読される**のが最悪なので、
+     *   ログイン画面へ送り直す。Basic認証のままの環境では401は来ない。
+     */
+    if (eventsRes.status === 401) {
+      window.location.href = '/admin/login';
+      return;
+    }
     if (eventsRes.ok) {
       const eventsData = await eventsRes.json();
       setEvents(eventsData.events || []);
@@ -453,6 +463,14 @@ export default function AdminPage() {
           padding: '8px 16px', background: '#333', color: '#fff', borderRadius: 6, fontSize: 13,
         }}>
           🎯 サポーター登録
+        </a>
+        {/* 🔴 共用PCで開いたままにしないための出口（2026-09-18）。
+            Googleログイン以外の環境では何も起きないが、置いておいて害はない。 */}
+        <a href="/api/admin-auth/logout" style={{
+          padding: '8px 16px', background: '#fff', color: '#666',
+          border: '1px solid #DDD', borderRadius: 6, fontSize: 13, marginLeft: 'auto',
+        }}>
+          ログアウト
         </a>
       </div>
 

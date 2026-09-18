@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AI_TOOL_COOKIE, verifyAiToolToken } from '@/lib/ai-tool-auth';
+import {
+  ADMIN_SESSION_COOKIE,
+  isGoogleLoginConfigured,
+  verifyAdminSession,
+} from '@/lib/admin-auth';
 
 /**
- * 管理画面のBasic認証
+ * 管理画面・限定公開ツールの認証
  *
- * 保護対象: /admin 配下、/api/admin/* 配下
+ * 保護対象: /admin 配下、/api/admin/* 配下、/api/ai/*、未使用の内部API
  * 除外   : /api/cron/*（CRON_SECRETで別途認証済み）— matcherに含めていない
+ *          /admin/login と /api/admin-auth/*（ログインの入口なので通す）
  *
- * 認証情報は環境変数で管理する（ソースには書かない）:
- *   ADMIN_USER     … 未設定なら 'admin'
- *   ADMIN_PASSWORD … 必須。未設定の場合は「安全側に倒して全アクセスを拒否」する
+ * 🔴 管理画面の認証方式（2026-09-18 Googleログイン化）:
+ *   Googleの設定が揃っていれば **Googleログイン**（許可メールアドレス方式）。
+ *   揃っていない間は **従来のBasic認証**で動く。
+ *   設定前に切り替えると事務局が入れなくなるため、自動で切り替わる作りにしている。
+ *   移行が完全に終わったら ADMIN_PASSWORD を消してBasic認証を落とせる。
  */
 
 function unauthorized(message = 'Authentication required') {
@@ -24,6 +32,14 @@ function unauthorized(message = 'Authentication required') {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  /**
+   * 🔴 ログインの入口は認証を通さない（ここを守ると誰もログインできない）。
+   *   このページ・APIは個人情報を一切扱わない。
+   */
+  if (pathname === '/admin/login' || pathname.startsWith('/api/admin-auth/')) {
+    return NextResponse.next();
+  }
 
   /**
    * 🔴 /api/ai/* の保護（2026-09-18 追加）
@@ -74,15 +90,43 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  /**
+   * 🔴 ここから下は /admin と /api/admin/* の認証。
+   *
+   * Googleログインが設定済みなら、そちらを正とする。
+   * セッションCookieが無い／期限切れ／許可一覧から外された場合:
+   *   - 画面（/admin）→ ログイン画面へ送る
+   *   - API（/api/admin/*）→ 401（画面側が拒否を判別できるようにする）
+   */
+  if (isGoogleLoginConfigured()) {
+    const session = await verifyAdminSession(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);
+    if (session) return NextResponse.next();
+
+    if (pathname.startsWith('/api/')) {
+      return new NextResponse(
+        JSON.stringify({ error: 'ログインが必要です', login: '/admin/login' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        }
+      );
+    }
+    const loginUrl = new URL('/admin/login', request.nextUrl.origin);
+    const res = NextResponse.redirect(loginUrl);
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
+  }
+
+  // ---- 以下は移行期間のBasic認証（Googleの設定が揃うまで） ----
   // 環境変数の値に空白・改行・引用符が混入していても認証できるよう正規化する
   // （Vercelの入力欄でコピペすると末尾に改行や空白が入りがち）
   const expectedUser = normalizeSecret(process.env.ADMIN_USER) || 'admin';
   const expectedPassword = normalizeSecret(process.env.ADMIN_PASSWORD);
 
-  // フェイルクローズ: パスワード未設定なら誰も入れない（個人情報を露出させない）
+  // フェイルクローズ: どちらの方式も設定が無ければ誰も入れない（個人情報を露出させない）
   if (!expectedPassword) {
     return new NextResponse(
-      '管理画面は現在利用できません（ADMIN_PASSWORD が未設定です）。管理者にお問い合わせください。',
+      '管理画面は現在利用できません（認証が未設定です）。管理者にお問い合わせください。',
       { status: 503, headers: { 'Cache-Control': 'no-store' } }
     );
   }
@@ -169,8 +213,12 @@ function requireAdmin(request: NextRequest): NextResponse {
 export const config = {
   // /api/cron/* は含めない（CRON_SECRETで認証しているため）
   matcher: [
-    '/admin/:path*',
+    // 🔴 /admin 配下は**すべて**通す（将来ページが増えても守り漏れが出ない）。
+    //   ログインの入口 /admin/login だけは middleware の先頭で素通しにしている。
+    //   matcher で列挙して除外する形にすると、新しく作ったページが
+    //   保護されないまま公開される事故が起きるので、この形にしている。
     '/admin',
+    '/admin/:path*',
     '/api/admin/:path*',
     // /ai-tool の生成・保存API。認証Cookieで保護する
     // （/api/ai-tool/auth 自身は含めない — そこがパスワードを受け取る入口）
