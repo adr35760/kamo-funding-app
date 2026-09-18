@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
     const projectSummary = str(body.projectSummary);
 
     /**
-     * 🔴 必須項目（2026-09-17 t iku 指定で拡大）:
-     *   会社名 / 担当者（氏名・電話・メール・郵便番号・住所）/ 規約同意 /
+     * 🔴 必須項目（2026-09-17 t iku 指定で拡大 / 2026-09-18 に会社の郵便番号・住所を追加）:
+     *   会社名・郵便番号・住所 / 担当者（氏名・電話・メール・郵便番号・住所）/ 規約同意 /
      *   プロジェクト全部（名称・概要300字以上・販売予定品目・種類・目標金額・募集希望日）/
      *   振込先 全部。
      *
@@ -37,6 +37,11 @@ export async function POST(request: NextRequest) {
       if (!value) missing.push(label);
     };
     need('会社名', companyName);
+    // 🔴 会社の郵便番号・住所は必須（t iku指示 2026-09-18）。
+    //   契約・振込の相手が会社なので、所在地は申込時に揃える。
+    //   「役職・氏名」は任意のまま（個人の方は会社名の欄にお名前を書く作り）。
+    need('郵便番号（申込者）', str(body.companyPostalCode));
+    need('住所（申込者）', str(body.companyAddress));
     need('プロジェクト担当者 氏名', contactName);
     need('プロジェクト担当者 電話番号', str(body.contactPhone));
     need('プロジェクト担当者 メールアドレス', contactEmail);
@@ -87,8 +92,8 @@ export async function POST(request: NextRequest) {
     const insertData = {
       company_name: companyName,
       representative: str(body.representative) || null,
-      company_postal_code: str(body.companyPostalCode) || null,
-      company_address: str(body.companyAddress) || null,
+      company_postal_code: str(body.companyPostalCode),
+      company_address: str(body.companyAddress),
       contact_name: contactName,
       // 部署名は 2026-09-17 に t iku 指定でフォームから削除（列は残すが受け取らない）
       contact_phone: str(body.contactPhone) || null,

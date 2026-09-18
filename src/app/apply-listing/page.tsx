@@ -147,14 +147,21 @@ export default function ListingApplyPage() {
                       <label>役職・氏名</label>
                       <input type="text" name="representative" placeholder="代表取締役 鴨頭 太郎" />
                     </div>
+                    {/* 🔴 会社の郵便番号・住所は必須（t iku指示 2026-09-18）。
+                        契約と支援金の振込の相手が会社なので、所在地は申込時に揃える。
+                        「役職・氏名」は任意のまま（個人の方は会社名の欄にお名前を書く作りのため）。 */}
                     <div className="form-row is-postal">
                       <div className="form-group">
-                        <label>郵便番号</label>
-                        <input type="text" name="companyPostalCode" placeholder="123-4567" />
+                        <label>
+                          郵便番号 <span className="required">必須</span>
+                        </label>
+                        <input type="text" name="companyPostalCode" required placeholder="123-4567" />
                       </div>
                       <div className="form-group">
-                        <label>住所</label>
-                        <input type="text" name="companyAddress" placeholder="東京都〇〇区〇〇 1-2-3" />
+                        <label>
+                          住所 <span className="required">必須</span>
+                        </label>
+                        <input type="text" name="companyAddress" required placeholder="東京都〇〇区〇〇 1-2-3" />
                       </div>
                     </div>
                   </div>
