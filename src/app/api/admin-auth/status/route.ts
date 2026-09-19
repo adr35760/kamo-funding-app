@@ -1,10 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import {
-  allowedAdminEmails,
-  isAllowedAdminEmail,
-  isGoogleLoginConfigured,
-  normalize,
-} from '@/lib/admin-auth';
+import { NextResponse } from 'next/server';
+import { allowedAdminEmails, isGoogleLoginConfigured, normalize } from '@/lib/admin-auth';
 
 /**
  * GET /api/admin-auth/status — 設定の自己診断
@@ -18,16 +13,15 @@ import {
  *   返すのは「設定されているか（true/false）」と、許可メールアドレスの**件数**、
  *   そして貼り間違いに気づける形式チェックの結果だけ。
  *   シークレットは長さすら出さない（設定の有無と先頭の形だけ）。
+ *
+ * 🔴 `?check=<アドレス>` は**一度作ったが削除した**（2026-09-19）。
+ *   「そのアドレスが許可されているか」を無認証で答える作りにしたところ、
+ *   PM自身が**1文字ずつ総当たりして登録済みアドレスを復元できてしまった**。
+ *   運営メンバーのアドレスを外部から特定できる穴になる。
+ *   **入力を受け取って一致を答える機能は、ここに置かない。**
+ *   不一致の調査は伏せ字一覧（文字数とドメイン）までに留める。
  */
-export async function GET(request: NextRequest) {
-  /**
-   * 🔴 `?check=<メールアドレス>` で「そのアドレスが通るか」を直接試せる（2026-09-19 追加）。
-   *   一覧の伏せ字表示だけでは、**目に見えない文字の混入**を見つけられなかった。
-   *   自分のアドレスを入れて allowed:false が返れば、設定側の問題だと即断できる。
-   *   返すのは true/false だけで、一覧の中身は漏らさない。
-   */
-  const check = request.nextUrl.searchParams.get('check');
-
+export async function GET() {
   const clientId = normalize(process.env.GOOGLE_CLIENT_ID);
   const clientSecret = normalize(process.env.GOOGLE_CLIENT_SECRET);
   const emails = allowedAdminEmails();
@@ -74,74 +68,12 @@ export async function GET(request: NextRequest) {
               : `${emails.length}件のアドレスを認識しています`,
         },
       },
-      ...(check
-        ? {
-            checkResult: {
-              input: check,
-              allowed: isAllowedAdminEmail(check),
-              hint: isAllowedAdminEmail(check)
-                ? 'このアドレスでログインできます'
-                : 'このアドレスは許可一覧に入っていません。ADMIN_ALLOWED_EMAILS を確認し、Redeploy してください',
-              /**
-               * 🔴 「伏せ字は同じに見えるのに一致しない」を解くための差分表示。
-               *   見た目が同じでも別物になる原因（見えない文字・よく似た別の字・
-               *   文字数違い）を**位置だけ**で示す。アドレスの中身は出さない。
-               */
-              diff: diagnoseMismatch(check, allowedAdminEmails()),
-            },
-          }
-        : {}),
       redirectUri: 'https://kamo-funding-app.vercel.app/api/admin-auth/callback',
       note:
         'googleLoginReady が false の間は、従来のパスワード方式で管理画面が使えます。3つすべて設定して Redeploy すると切り替わります。',
     },
     { headers: { 'Cache-Control': 'no-store' } }
   );
-}
-
-/**
- * 入力したアドレスと、許可一覧の中で**最も近いもの**を比べ、
- * どこが違うのかを文字を晒さずに説明する。
- */
-function diagnoseMismatch(input: string, list: string[]): string {
-  const target = input.trim().toLowerCase();
-  if (list.length === 0) return '許可一覧が空です';
-
-  // 前方一致の長さが最大のものを「近いもの」とみなす
-  let best = list[0];
-  let bestScore = -1;
-  for (const e of list) {
-    let i = 0;
-    while (i < e.length && i < target.length && e[i] === target[i]) i++;
-    if (i > bestScore) {
-      bestScore = i;
-      best = e;
-    }
-  }
-
-  if (best === target) return '一致しています';
-
-  if (bestScore === best.length && bestScore === target.length) {
-    return '一致しています';
-  }
-
-  const parts: string[] = [];
-  parts.push(`一番近い登録値との違い: 先頭から${bestScore}文字目までは同じです`);
-
-  if (best.length !== target.length) {
-    parts.push(
-      `登録値の長さは${best.length}文字、入力は${target.length}文字です（差 ${Math.abs(best.length - target.length)}文字）`
-    );
-    if (best.length > target.length) {
-      parts.push('登録値に余分な文字が入っている可能性があります（目に見えない文字の混入など）');
-    } else {
-      parts.push('登録値の文字が足りません（コピペの取りこぼしなど）');
-    }
-  } else {
-    parts.push(`${bestScore + 1}文字目が違います（よく似た別の文字が入っている可能性があります）`);
-  }
-
-  return parts.join(' / ');
 }
 
 /** `adr35760@gmail.com` → `ad******@gmail.com` */
