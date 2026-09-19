@@ -37,15 +37,50 @@ export function isGoogleLoginConfigured(): boolean {
 /**
  * 管理画面に入れるメールアドレスの一覧。
  * `ADMIN_ALLOWED_EMAILS` にカンマ区切りで設定する。
- * 大文字小文字は区別しない（Googleのアカウントは区別しない）。
+ *
+ * 🔴 混入しがちなゴミを徹底的に取り除く（2026-09-19 実装）。
+ *   設定する人は環境変数の入力欄に**コピペ**するので、
+ *   本人には見えない文字が入って「登録したのに入れない」が起きる。
+ *   実際に t iku の環境で発生し、原因の特定に時間を取られた。
+ *   下の変換はすべて**手で試して拒否されることを確認した**パターン:
+ *
+ *     全角カンマ「，」  → 半角カンマ
+ *     全角アット「＠」  → 半角アット
+ *     ゼロ幅スペース    → 削除（コピペで最も混入しやすく、目で見えない）
+ *     `mailto:` 接頭辞  → 削除（メールアプリやチャットからコピーすると付く）
+ *     各要素を囲む引用符 → 削除
+ *     セミコロン区切り  → 区切りとして扱う（Outlook流の書き方）
+ *     全角スペース      → 区切りとして扱う
+ *
+ *   大文字小文字は区別しない（Googleアカウントは区別しない）。
  */
 export function allowedAdminEmails(): string[] {
   const raw = normalize(process.env.ADMIN_ALLOWED_EMAILS);
   if (!raw) return [];
-  return raw
-    .split(/[,\s]+/)
-    .map(e => e.trim().toLowerCase())
-    .filter(e => e.includes('@'));
+
+  const cleaned = raw
+    // 目に見えない文字（ゼロ幅スペース・BOM・方向制御）を消す
+    .replace(/[\u200b-\u200f\u2060\ufeff]/g, '')
+    // 全角の記号を半角に直す
+    .replace(/，/g, ',')
+    .replace(/＠/g, '@')
+    .replace(/[；]/g, ';');
+
+  return cleaned
+    // カンマ / セミコロン / 空白（全角含む）/ 改行のいずれでも区切る
+    .split(/[,;\s\u3000]+/)
+    .map(e =>
+      e
+        .trim()
+        // 要素ごとに付いた引用符・山かっこを外す（"a@b.com" や <a@b.com>）
+        .replace(/^["'<]+|["'>]+$/g, '')
+        // メールアプリからコピーすると付く mailto:
+        .replace(/^mailto:/i, '')
+        .trim()
+        .toLowerCase()
+    )
+    // 「文字＠文字．文字」の形になっているものだけ採用する
+    .filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
 }
 
 export function isAllowedAdminEmail(email: string): boolean {

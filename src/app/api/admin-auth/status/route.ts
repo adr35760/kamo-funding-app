@@ -1,5 +1,10 @@
-import { NextResponse } from 'next/server';
-import { allowedAdminEmails, isGoogleLoginConfigured, normalize } from '@/lib/admin-auth';
+import { NextRequest, NextResponse } from 'next/server';
+import {
+  allowedAdminEmails,
+  isAllowedAdminEmail,
+  isGoogleLoginConfigured,
+  normalize,
+} from '@/lib/admin-auth';
 
 /**
  * GET /api/admin-auth/status — 設定の自己診断
@@ -14,7 +19,15 @@ import { allowedAdminEmails, isGoogleLoginConfigured, normalize } from '@/lib/ad
  *   そして貼り間違いに気づける形式チェックの結果だけ。
  *   シークレットは長さすら出さない（設定の有無と先頭の形だけ）。
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  /**
+   * 🔴 `?check=<メールアドレス>` で「そのアドレスが通るか」を直接試せる（2026-09-19 追加）。
+   *   一覧の伏せ字表示だけでは、**目に見えない文字の混入**を見つけられなかった。
+   *   自分のアドレスを入れて allowed:false が返れば、設定側の問題だと即断できる。
+   *   返すのは true/false だけで、一覧の中身は漏らさない。
+   */
+  const check = request.nextUrl.searchParams.get('check');
+
   const clientId = normalize(process.env.GOOGLE_CLIENT_ID);
   const clientSecret = normalize(process.env.GOOGLE_CLIENT_SECRET);
   const emails = allowedAdminEmails();
@@ -61,6 +74,17 @@ export async function GET() {
               : `${emails.length}件のアドレスを認識しています`,
         },
       },
+      ...(check
+        ? {
+            checkResult: {
+              input: check,
+              allowed: isAllowedAdminEmail(check),
+              hint: isAllowedAdminEmail(check)
+                ? 'このアドレスでログインできます'
+                : 'このアドレスは許可一覧に入っていません。ADMIN_ALLOWED_EMAILS を確認し、Redeploy してください',
+            },
+          }
+        : {}),
       redirectUri: 'https://kamo-funding-app.vercel.app/api/admin-auth/callback',
       note:
         'googleLoginReady が false の間は、従来のパスワード方式で管理画面が使えます。3つすべて設定して Redeploy すると切り替わります。',
