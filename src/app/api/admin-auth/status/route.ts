@@ -43,6 +43,17 @@ export async function GET() {
         ADMIN_ALLOWED_EMAILS: {
           set: Boolean(rawEmails),
           count: emails.length,
+          /**
+           * 🔴 打ち間違いを見つけるための伏せ字表示（2026-09-19 追加）。
+           *   「3件登録されているのに自分が入れない」とき、**どこが違うのか
+           *   分からないと直せない**。かといって一覧をそのまま出すと
+           *   運営メンバーの個人情報になるので、
+           *   **先頭2文字＋伏せ字＋@以降**だけを見せる。
+           *   例: adr35760@gmail.com → `ad******@gmail.com`
+           *   これで「文字数が違う」「ドメインが違う」「そもそも入っていない」
+           *   が自分で判別できる。
+           */
+          masked: emails.map(maskEmail),
           hint: !rawEmails
             ? '未設定です'
             : emails.length === 0
@@ -56,6 +67,16 @@ export async function GET() {
     },
     { headers: { 'Cache-Control': 'no-store' } }
   );
+}
+
+/** `adr35760@gmail.com` → `ad******@gmail.com` */
+function maskEmail(email: string): string {
+  const at = email.indexOf('@');
+  if (at <= 0) return '***';
+  const local = email.slice(0, at);
+  const domain = email.slice(at);
+  const head = local.slice(0, 2);
+  return `${head}${'*'.repeat(Math.max(local.length - 2, 1))}${domain}`;
 }
 
 export const dynamic = 'force-dynamic';
