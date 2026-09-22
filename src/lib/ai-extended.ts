@@ -47,11 +47,18 @@ export const TITLE_PROPOSAL_SUFFIX = 'したい！';
  *   旧設定（360〜460字）だと段落を入れる余裕がなく、
  *   「30字の文を13本つないだ400字の塊」にしかならなかった。
  */
-export const LONG_TEXT_TARGET = 550;
+/**
+ * 🔴 2026-09-22 再調整（t iku提示の2本目の見本）。550字 → **380字**。
+ *   1本目の見本に寄せて450〜750字にしたところ、今度は**情緒的な描写で
+ *   字数を埋める**傾向が出た。2本目の見本は概要363字・実現したいこと218字・
+ *   未来152字と、**むしろ短く濃い**。「長く書かせる」方向の調整が
+ *   そもそも間違いだった、というのが2回の見本から得た結論。
+ */
+export const LONG_TEXT_TARGET = 380;
 /** 上記の許容下限。これを下回ったら補正・再生成の対象にする */
-export const LONG_TEXT_MIN = 450;
+export const LONG_TEXT_MIN = 260;
 /** 上記の許容上限（段落の空行ぶんを含む） */
-export const LONG_TEXT_MAX = 750;
+export const LONG_TEXT_MAX = 520;
 
 export interface AnnouncementEvent {
   /** 開催形式（例: 会場＋オンライン配信のハイブリッド） */

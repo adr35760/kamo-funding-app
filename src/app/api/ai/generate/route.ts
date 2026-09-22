@@ -210,7 +210,7 @@ async function withLongTexts(
       // 🔴 closing（最後に）は締めの章なので下限を下げる（2026-09-22）。
       //   他と同じ450字下限にすると「もっと長く」と伸ばし直しが走り、
       //   上限に当たって**結びのお願いが切り落とされる**。
-      const minFor = k === 'closing' ? 320 : LONG_TEXT_MIN;
+      const minFor = k === 'closing' ? 180 : LONG_TEXT_MIN;
       const draft = adjustLongText(String(first.texts.text ?? ''));
       if (!draft || isTruncatedText(draft) || charLength(draft) >= minFor) {
         return { key: k, result: first };
