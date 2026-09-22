@@ -26,6 +26,7 @@ import {
   normalizeLongStory,
   LONG_STORY_KEYS,
   LONG_TEXT_MIN,
+  ensureClosingAsk,
   LONG_TEXT_MAX,
   type ProjectExtended,
 } from '@/lib/ai-extended';
@@ -205,8 +206,12 @@ async function withLongTexts(
       //   このモデルは文数の指示は守るが1回の回答の総量をだいたい一定に保つため、
       //   骨組みを増やしても1文が短くなって合計は伸びない（本番実測）。
       //   「ゼロから書く」ではなく「この文章を伸ばす」に変えると基準が元の文章になる。
+      // 🔴 closing（最後に）は締めの章なので下限を下げる（2026-09-22）。
+      //   他と同じ450字下限にすると「もっと長く」と伸ばし直しが走り、
+      //   上限に当たって**結びのお願いが切り落とされる**。
+      const minFor = k === 'closing' ? 320 : LONG_TEXT_MIN;
       const draft = adjustLongText(String(first.texts.text ?? ''));
-      if (!draft || isTruncatedText(draft) || charLength(draft) >= LONG_TEXT_MIN) {
+      if (!draft || isTruncatedText(draft) || charLength(draft) >= minFor) {
         return { key: k, result: first };
       }
 
@@ -215,7 +220,7 @@ async function withLongTexts(
         userPrompt: buildLongTextExpandPrompt({
           label: longTextLabel(k),
           current: draft,
-          min: LONG_TEXT_MIN,
+          min: minFor,
           max: LONG_TEXT_MAX,
         }),
       });
@@ -246,8 +251,10 @@ async function withLongTexts(
     if (!cleaned || isTruncatedText(cleaned)) continue;
     // 要約より短くなるなら置き換えない
     if (charLength(cleaned) <= charLength(summaries[k])) continue;
+    // 🔴 withLongTexts は withNormalizedExtended の**後**に走るので、ここでも
+    //   締めの一文を保証する（そうしないと2回目の本文が無保証のまま採用される）。
     if (k in nextStory) nextStory[k] = cleaned;
-    else nextExt[k] = cleaned;
+    else nextExt[k] = k === 'closing' ? ensureClosingAsk(cleaned) : cleaned;
     adopted.push(`${k}=${charLength(cleaned)}`);
   }
   console.info(`ai/generate: long texts adopted ${adopted.length}/${LONG_TEXT_KEYS.length} (${adopted.join(' ')})`);

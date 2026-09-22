@@ -248,6 +248,29 @@ export function adjustLongText(raw: string): string {
 }
 
 /**
+ * 「最後に」の章が**ご支援のお願いで終わっている**ことを保証する。
+ *
+ * 🔴 2026-09-22 追加。実測で、モデルは締めの章でも700字超を書いてしまい、
+ *   上限で切られた結果「関わり方は、一つではありません。」のように
+ *   **肝心のお願いが書かれないまま終わる**ケースが繰り返し出た。
+ *   プロンプトでの指示（章を短く・必ずお願いで締める）を3通り試しても安定しない。
+ *   → 文章の内容には手を入れず、**お願いの一文が無いときだけ足す**。
+ *   定型の結語なので、これを補っても事実の捏造にはならない。
+ */
+const CLOSING_ASK = '皆様のご支援・ご参加を、どうぞよろしくお願いいたします。';
+
+export function ensureClosingAsk(raw: string): string {
+  const s = String(raw ?? '').trim();
+  if (!s) return s;
+  // 末尾3文のどこかに「お願い」の意思表示があればそのまま
+  const tail = s.split(/\n/).slice(-3).join('');
+  if (/(お願いいたします|お願いします|お願い申し上げます|力を貸してください|ご支援ください)/.test(tail)) {
+    return s;
+  }
+  return `${s}\n\n${CLOSING_ASK}`;
+}
+
+/**
  * 本文の改行を整える。
  *
  * 🔴 2026-09-22 追加。段落分けを導入したことで、次の2つを必ず通す必要が出た:
@@ -497,7 +520,8 @@ export function normalizeExtended(
   const whyStarted = pickLongText(raw?.why_started, fb.why_started);
   const whatCreates = pickLongText(raw?.what_creates, fb.what_creates);
   // 「最後に」。フォールバックが無い場合は空のままにする（空の見出しは出さない）。
-  const closing = raw?.closing ? pickLongText(raw.closing, fb.closing ?? '') : (fb.closing ?? '');
+  const closingRaw = raw?.closing ? pickLongText(raw.closing, fb.closing ?? '') : (fb.closing ?? '');
+  const closing = ensureClosingAsk(closingRaw);
 
   // 5. 発表会の企画
   const ev = raw?.announcement_event;
