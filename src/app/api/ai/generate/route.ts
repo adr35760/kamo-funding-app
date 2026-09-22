@@ -495,6 +495,8 @@ function buildFallbackExtended(input: HearingInput, page?: CrowdfundingPage): Pr
     overview,
     why_started: why,
     what_creates: what,
+    // 「最後に」（2026-09-22 追加）。LLMが落としたとき・モック時の受け皿。
+    closing: `ここまで読んでいただき、ありがとうございます。\n\n${input.crowdfundingGoal || 'この挑戦'}は、一人では形になりません。\n\n応援してくださる方がいる。紹介してくださる方がいる。一緒に考えてくださる方がいる。その存在だけで、進める距離は大きく変わります。\n\n${org}は、${input.targetAudience || '関わってくださるみなさま'}に届く形をつくりたいと考えています。\n\n支援してくださる方も、挑戦する私たちも、広めてくださる方も、全員が仲間です。\n\nどうか、皆様のお力を貸してください。`,
     announcement_event: {
       format: '会場開催＋オンライン配信のハイブリッド形式（アーカイブ配信あり）',
       timing: `${eventTiming}（プロジェクト達成後）`,
@@ -529,26 +531,31 @@ function buildFallbackExtended(input: HearingInput, page?: CrowdfundingPage): Pr
 }
 
 /**
- * 目標のリターン件数（t iku指示 2026-09-18: 合計13件）。
- * カテゴリ別の目安は 商品3 / サービス4 / 体験3 / スポンサー3（松竹梅）。
- * （2026-09-14 は 15件＝商品6/体験4/サービス3/スポンサー2 だった）
+ * リターン件数の**下限**（t iku指示 2026-09-22: 10〜13件。旧: 13件固定）。
+ *
+ * 🔴 13件固定をやめた理由: 件数を埋めるためにモック側の汎用リターン
+ *   （「特製ステッカー」等）が事業内容と無関係に足され、選択肢として
+ *   機能しない水増しになっていた。**下限だけ持たせ、上限は縛らない。**
  *
  * 🔴 **これは努力目標で、達成できなくても生成は通す**（PM合意 2026-09-14）。
  *   件数が揃わないことを理由に生成全体を失敗させるのが最悪なので、
  *   不足分はモック側から補い、それでも届かなければ届いた件数で出す。
  */
-const REWARD_TARGET_COUNT = 13;
+const REWARD_TARGET_COUNT = 10;
 
 /**
- * スポンサー枠に松/竹/梅を割り当てる。
+ * スポンサー枠の段階名を割り当てる。
+ *
+ * 🔴 2026-09-22 変更（t iku提示の見本に合わせる）: 松/竹/梅 →
+ *   **応援 / パートナー / メイン**（金額は 応援 < パートナー < メイン）。
  *
  * 判定の順:
- *   1. sponsor_name にすでに松竹梅が入っていればそれを使う
- *   2. タイトル・説明文に「松」「竹」「梅」が出ていればそれを採る
- *      （LLMは「松プランスポンサー」のようにタイトルへ書くことが多い）
- *   3. どちらも無ければ**金額の高い順に 松 → 竹 → 梅**を振る
+ *   1. sponsor_name にすでに段階名が入っていればそれを使う
+ *   2. タイトル・説明文に段階名が出ていればそれを採る
+ *      （LLMは「メインスポンサー」のようにタイトルへ書くことが多い）
+ *   3. どちらも無ければ**金額の高い順に メイン → パートナー → 応援**を振る
  *
- * 3件でない場合も壊さない（2件なら松・竹、4件以上なら余りは梅のままにする）。
+ * 3件でない場合も壊さない（2件ならメイン・パートナー、4件以上なら余りは応援のままにする）。
  */
 function fillSponsorNames(
   rewards: Array<{ category: RewardCategory; price?: number; title?: string; description?: string; sponsor_name?: string }>
@@ -556,15 +563,25 @@ function fillSponsorNames(
   const sponsors = rewards.filter(r => r.category === 'sponsor');
   if (sponsors.length === 0) return;
 
-  const RANKS = ['松', '竹', '梅'] as const;
+  // 🔴 高い順に並べている（3.の「金額の高い順に振る」がこの順序に依存する）。
+  const RANKS = ['メイン', 'パートナー', '応援'] as const;
+  // 旧称（松竹梅）で返ってきた場合の読み替え。過去のプロンプトを覚えているモデル対策。
+  const LEGACY: Record<string, (typeof RANKS)[number]> = {
+    松: 'メイン', 竹: 'パートナー', 梅: '応援',
+  };
   const pickFromText = (r: { title?: string; description?: string }) => {
     const text = `${r.title ?? ''} ${r.description ?? ''}`;
-    return RANKS.find(rank => text.includes(rank));
+    // 「パートナー」は「応援」より長いので先に見る（部分一致の取り違えを避ける）
+    const found = RANKS.find(rank => text.includes(rank));
+    if (found) return found;
+    const legacy = Object.keys(LEGACY).find(k => text.includes(k));
+    return legacy ? LEGACY[legacy] : undefined;
   };
 
   for (const r of sponsors) {
     const current = String(r.sponsor_name ?? '').trim();
     if (RANKS.some(rank => current === rank)) continue;
+    if (LEGACY[current]) { r.sponsor_name = LEGACY[current]; continue; }
     const found = pickFromText(r);
     r.sponsor_name = found ?? '';
   }
@@ -574,15 +591,19 @@ function fillSponsorNames(
   const blanks = sponsors.filter(r => !r.sponsor_name).sort((a, b) => (b.price || 0) - (a.price || 0));
   const free = RANKS.filter(rank => !used.has(rank));
   blanks.forEach((r, i) => {
-    r.sponsor_name = free[i] ?? '梅';
+    r.sponsor_name = free[i] ?? '応援';
   });
 }
 
-/** カテゴリ別の目標件数（t iku指示 2026-09-18） */
+/**
+ * カテゴリ別の目標件数（t iku指示 2026-09-22）。
+ * 🔴 スポンサーだけは**3件で固定**（応援・パートナー・メインの3段階が揃わないと
+ *   段階の意味が消えるため）。一般カテゴリは不足を埋める際の優先順の目安に使うだけ。
+ */
 const REWARD_TARGET_BY_CATEGORY: Record<RewardCategory, number> = {
-  product: 3,
-  service: 4,
-  experience: 3,
+  product: 2,
+  service: 3,
+  experience: 2,
   sponsor: 3,
 };
 
@@ -784,8 +805,8 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
       {
         category: 'sponsor',
         tier: 'sponsor',
-        title: `【スポンサー 松】企業・団体様向け`,
-        description: `本プロジェクトの最高位スポンサーコースです。\n\n${templates.sponsorRewardDesc}\n\n■ スポンサー特典\n・プロジェクトページへのロゴ掲載\n・SNSでの感謝投稿（リツイート・シェア歓迎）\n・${input.creatorName}による企業訪問・意見交換会（1回）\n・月1回のオンライン進捗報告（3ヶ月間）\n\n※特典内容につきましては、ご相談の上カスタマイズ可能です。`,
+        title: `メインスポンサー`,
+        description: `・プロジェクトページへのロゴ掲載（最上位・最大サイズ）\n・発表会でのメインスポンサーとしてご紹介\n・発表会内での5分PRタイム\n・交流会ご招待3名様\n・${input.creatorName}による戦略相談90分\n・${templates.sponsorRewardDesc}\n\n本プロジェクトを最も強くご支援いただける企業・団体様向けです。特典はご相談のうえカスタマイズ可能です。`,
         image_url: '',
         price: tiers.sponsor,
         shipping_included: true,
@@ -793,7 +814,7 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
         stock_limit: 5,
         is_designated: false,
         designated_name: '',
-        sponsor_name: '松',
+        sponsor_name: 'メイン',
       },
       // ここから下は**目標件数に届かなかったときの補完用**（2026-09-14 / 件数は 2026-09-18 に13件へ変更）。
       // LLMが目標件数に届かなかったときに ensureAllRewardCategories() が不足カテゴリから
@@ -905,32 +926,32 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
       {
         category: 'sponsor',
         tier: 'sponsor',
-        title: `【スポンサー 竹】企業・団体様向け`,
-        description: `企業・団体様向けの協賛コースです。\n\n${templates.sponsorRewardDesc}\n\n■ スポンサー特典\n・プロジェクトページへのロゴ掲載\n・SNSでの感謝投稿\n・活動報告レポートの送付（3ヶ月間）\n\n※「松」より内容を絞った構成です。`,
+        title: `パートナースポンサー`,
+        description: `・プロジェクトページへのロゴ掲載\n・発表会での企業ご紹介\n・発表会内での3分PRタイム\n・交流会ご招待2名様\n・個別相談60分\n\n事業のPRと合わせてご支援いただける企業・団体様向けです。`,
         image_url: '',
-        price: Math.max(100000, Math.round(tiers.sponsor * 0.6 / 100) * 100),
+        price: Math.max(100000, Math.round(tiers.sponsor * 0.6 / 100) * 100), // パートナー: 10万円から
         shipping_included: true,
         estimated_delivery: deliveryStr,
         stock_limit: 10,
         is_designated: false,
         designated_name: '',
-        sponsor_name: '竹',
+        sponsor_name: 'パートナー',
       },
       {
-        // スポンサーは松・竹・梅の3段階（t iku指示 2026-09-18）。
+        // スポンサーは 応援 / パートナー / メイン の3段階（t iku指示 2026-09-22。旧: 松竹梅）。
         // LLMが3件揃えられなかったときの補完用。
         category: 'sponsor',
         tier: 'sponsor',
-        title: `【スポンサー 梅】企業・団体様向け`,
-        description: `企業・団体様向けの協賛コース（入口の段階）です。\n\n${templates.sponsorRewardDesc}\n\n■ スポンサー特典\n・プロジェクトページへのお名前掲載\n・SNSでの感謝投稿\n\n※まずは応援の気持ちを形にしたい企業・団体様向けの構成です。`,
+        title: `応援スポンサー`,
+        description: `・プロジェクトページへの企業名掲載\n・発表会での企業名ご紹介\n・交流会ご招待1名様\n\nまずは応援の気持ちを形にしたい企業・団体様向けの、入口の段階です。`,
         image_url: '',
-        price: 100000,
+        price: 50000, // 応援スポンサー: 5万円から（t iku指示 2026-09-22。旧: 10万円）
         shipping_included: true,
         estimated_delivery: deliveryStr,
         stock_limit: 20,
         is_designated: false,
         designated_name: '',
-        sponsor_name: '梅',
+        sponsor_name: '応援',
       },
     ],
   };

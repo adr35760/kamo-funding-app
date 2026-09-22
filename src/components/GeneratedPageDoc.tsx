@@ -351,6 +351,14 @@ export default function GeneratedPageDoc({ page }: { page: GeneratedPageData }) 
         </div>
       )}
 
+      {/* 8. 最後に（締めの呼びかけ）— 2026-09-22 追加。過去データには無いので、あるときだけ出す */}
+      {ext?.closing && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionHeading>🙌 最後に</SectionHeading>
+          <LongText text={ext.closing} />
+        </div>
+      )}
+
       {/* Legal Info（印刷時は展開される — 印刷用CSS側で details > div を表示） */}
       <div style={{ marginBottom: 20 }}>
         <details>
@@ -407,7 +415,8 @@ function StorySection({ title, content }: { title: string; content?: string }) {
   return (
     <div style={{ marginBottom: 12 }}>
       <strong style={{ fontSize: 14, color: '#333' }}>{title}</strong>
-      <p style={{ fontSize: 14, color: '#555', lineHeight: 1.6, margin: '4px 0 0' }}>{content}</p>
+      {/* 🔴 whiteSpace: pre-wrap — schedule の日程行やリターンの箇条書きは改行が意味を持つ（2026-09-22） */}
+      <p style={{ fontSize: 14, color: '#555', lineHeight: 1.6, margin: '4px 0 0', whiteSpace: 'pre-wrap' }}>{content}</p>
     </div>
   );
 }
