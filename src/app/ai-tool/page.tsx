@@ -247,14 +247,9 @@ export default function AIToolPage() {
       サブタイトル: page.project.subtitle,
       目標金額: page.project.goal_amount,
       プロジェクト種別: page.project.project_type,
-      ストーリー: {
-        リード: page.project.story.lead,
-        '背景・現状': page.project.story.background,
-        ビジョン: page.project.story.vision,
-        資金使途: page.project.story.use_of_funds,
-        スケジュール: page.project.story.schedule,
-        訴求メッセージ: page.project.story.appeal,
-      },
+      // 🔴 2026-09-22: 「ストーリー」のまとまりを廃止し、t iku指定の掲載順に一本化。
+      //   資金用途・スケジュールは extendedToJapaneseJSON() 側に渡して順序に組み込む。
+      //   lead / background / vision / appeal は掲載順に無いため出力しない。
       起案者: {
         氏名: page.project.creator.name,
         紹介: page.project.creator.bio,
@@ -275,7 +270,10 @@ export default function AIToolPage() {
       //   そのままKAMOの申請欄に貼れることが目的なので、キー名を勝手に変えない。
       '特定商取引法に基づく表示': legalInfoToJapaneseJSON(page.project.legal_info),
       ...(page.project.extended
-        ? extendedToJapaneseJSON(page.project.extended, page.project.goal_amount)
+        ? extendedToJapaneseJSON(page.project.extended, page.project.goal_amount, {
+            use_of_funds: page.project.story?.use_of_funds,
+            schedule: page.project.story?.schedule,
+          })
         : {}),
     },
     リターン: REWARD_CATEGORIES.reduce((acc, cat) => {

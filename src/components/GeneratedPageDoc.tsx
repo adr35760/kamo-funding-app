@@ -131,7 +131,7 @@ export default function GeneratedPageDoc({ page }: { page: GeneratedPageData }) 
       {/* 1. プロジェクト名称の提案（3案） */}
       {ext && ext.title_proposals?.length > 0 && (
         <div style={{ marginBottom: 20 }}>
-          <SectionHeading>✏️ プロジェクト名称の提案（3案）</SectionHeading>
+          <SectionHeading>✏️ タイトル案（3案）</SectionHeading>
           <div style={{ display: 'grid', gap: 8 }}>
             {ext.title_proposals.map((t, i) => (
               <div key={i} style={{
@@ -177,23 +177,129 @@ export default function GeneratedPageDoc({ page }: { page: GeneratedPageData }) 
         </div>
       )}
 
-      {/* Story */}
-      <div style={{ marginBottom: 20 }}>
-        <h3 style={{ color: '#E60012', borderBottom: '2px solid #E60012', paddingBottom: 8, fontSize: 16 }}>
-          📖 ストーリー
-        </h3>
-        <StorySection title="リード" content={page.project.story?.lead} />
-        <StorySection title="背景・現状" content={page.project.story?.background} />
-        <StorySection title="ビジョン" content={page.project.story?.vision} />
-        <StorySection title="資金使途" content={page.project.story?.use_of_funds} />
-        <StorySection title="スケジュール" content={page.project.story?.schedule} />
-        <StorySection title="訴求メッセージ" content={page.project.story?.appeal} />
-      </div>
+      {/* 5. 開催イベント概要 ＋ 6. イベント・講演会のスケジュール */}
+      {ext?.announcement_event && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionHeading>🎤 開催イベント概要</SectionHeading>
+          <div style={{ border: '1px solid #e0e0e0', borderRadius: 8, padding: 16 }}>
+            <div style={{ fontSize: 14, marginBottom: 4 }}>
+              <strong style={{ color: '#333' }}>開催形式：</strong>{ext.announcement_event.format}
+            </div>
+            <div style={{ fontSize: 14, marginBottom: 12 }}>
+              <strong style={{ color: '#333' }}>開催時期：</strong>{ext.announcement_event.timing}
+            </div>
+            {ext.announcement_event.program?.length > 0 && (
+              <div style={{ marginBottom: 12 }}>
+                <strong style={{ fontSize: 14, color: '#333' }}>イベント・講演会のスケジュール</strong>
+                <ol style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: '#555', lineHeight: 1.7 }}>
+                  {ext.announcement_event.program.map((t, i) => <li key={i}>{t}</li>)}
+                </ol>
+              </div>
+            )}
+            {ext.announcement_event.supporter_perks?.length > 0 && (
+              <div>
+                <strong style={{ fontSize: 14, color: '#333' }}>支援者特典</strong>
+                <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: '#555', lineHeight: 1.7 }}>
+                  {ext.announcement_event.supporter_perks.map((t, i) => <li key={i}>{t}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
-      {/* Rewards — 商品 / 体験 / サービス / スポンサー の4カテゴリ */}
+      {/* 7. 資金用途（文章）— 内訳の表は下の「資金用途（内訳）」に別途出す */}
+      {page.project.story?.use_of_funds && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionHeading>💴 資金用途</SectionHeading>
+          <LongText text={page.project.story.use_of_funds} />
+        </div>
+      )}
+
+      {/* 8. スケジュール（開始から終了まで） */}
+      {page.project.story?.schedule && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionHeading>📅 スケジュール（開始から終了まで）</SectionHeading>
+          <LongText text={page.project.story.schedule} />
+        </div>
+      )}
+
+      {/* 9. 活動歴（時系列） */}
+      {ext && ext.activity_history?.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionHeading>🗓 活動歴</SectionHeading>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+            {ext.activity_history.map((h, i) => (
+              <li key={i} className="history-row" style={{
+                borderLeft: '2px solid #E60012',
+                padding: '0 0 12px 14px',
+                marginLeft: 4,
+              }}>
+                {h.date && (
+                  <div style={{ fontSize: 12, color: '#E60012', fontWeight: 'bold' }}>{h.date}</div>
+                )}
+                <div style={{ fontSize: 14, color: '#555', lineHeight: 1.6 }}>{h.event}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 10. 資金用途（内訳・合計＝目標金額） */}
+      {ext && ext.cost_breakdown?.length > 0 && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionHeading>💰 資金用途（内訳）</SectionHeading>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr style={{ background: '#f7f7f7' }}>
+                  <th style={costTh}>費目</th>
+                  <th style={{ ...costTh, textAlign: 'right' }}>金額</th>
+                  <th style={{ ...costTh, textAlign: 'right', whiteSpace: 'nowrap' }}>割合</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ext.cost_breakdown.map((c, i) => (
+                  <tr key={i} style={{ borderTop: '1px solid #eee' }}>
+                    <td style={costTd}>{c.item}</td>
+                    <td style={{ ...costTd, textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      ¥{Number(c.amount ?? 0).toLocaleString()}
+                    </td>
+                    <td style={{ ...costTd, textAlign: 'right', whiteSpace: 'nowrap', color: '#999' }}>
+                      {c.ratio}%
+                    </td>
+                  </tr>
+                ))}
+                <tr style={{ borderTop: '2px solid #E60012', background: '#FFF8F8' }}>
+                  <td style={{ ...costTd, fontWeight: 'bold' }}>合計</td>
+                  <td style={{ ...costTd, textAlign: 'right', fontWeight: 'bold', color: '#E60012', whiteSpace: 'nowrap' }}>
+                    ¥{costTotal(ext).toLocaleString()}
+                  </td>
+                  <td style={{ ...costTd, textAlign: 'right', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+                    {ratioTotal(ext)}%
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style={{ fontSize: 12, color: '#999', margin: '6px 0 0' }}>
+            ※ 合計は目標金額 ¥{Number(page.project.goal_amount ?? 0).toLocaleString()} と一致しています。
+          </p>
+        </div>
+      )}
+
+      {/* 11. 最後に支援者の皆様へ */}
+      {ext?.closing && (
+        <div style={{ marginBottom: 20 }}>
+          <SectionHeading>🙌 最後に支援者の皆様へ</SectionHeading>
+          <LongText text={ext.closing} />
+        </div>
+      )}
+
+      {/* 12. リターンについて — 商品 / サービス / 体験 / スポンサー */}
       <div style={{ marginBottom: 20 }}>
         <h3 style={{ color: '#E60012', borderBottom: '2px solid #E60012', paddingBottom: 8, fontSize: 16 }}>
-          🎁 リターン（商品・体験・サービス・スポンサー）
+          🎁 リターンについて
         </h3>
         {rewardsByCategory(page).map(group => {
           const st = REWARD_CATEGORY_STYLES[group.category];
@@ -256,109 +362,6 @@ export default function GeneratedPageDoc({ page }: { page: GeneratedPageData }) 
           );
         })}
       </div>
-
-      {/* 5. 支援者向け発表会の企画 */}
-      {ext?.announcement_event && (
-        <div style={{ marginBottom: 20 }}>
-          <SectionHeading>🎤 支援者向け発表会の企画</SectionHeading>
-          <div style={{ border: '1px solid #e0e0e0', borderRadius: 8, padding: 16 }}>
-            <div style={{ fontSize: 14, marginBottom: 4 }}>
-              <strong style={{ color: '#333' }}>開催形式：</strong>{ext.announcement_event.format}
-            </div>
-            <div style={{ fontSize: 14, marginBottom: 12 }}>
-              <strong style={{ color: '#333' }}>開催時期：</strong>{ext.announcement_event.timing}
-            </div>
-            {ext.announcement_event.program?.length > 0 && (
-              <div style={{ marginBottom: 12 }}>
-                <strong style={{ fontSize: 14, color: '#333' }}>プログラム</strong>
-                <ol style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: '#555', lineHeight: 1.7 }}>
-                  {ext.announcement_event.program.map((t, i) => <li key={i}>{t}</li>)}
-                </ol>
-              </div>
-            )}
-            {ext.announcement_event.supporter_perks?.length > 0 && (
-              <div>
-                <strong style={{ fontSize: 14, color: '#333' }}>支援者特典</strong>
-                <ul style={{ margin: '6px 0 0', paddingLeft: 20, fontSize: 14, color: '#555', lineHeight: 1.7 }}>
-                  {ext.announcement_event.supporter_perks.map((t, i) => <li key={i}>{t}</li>)}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 6. 活動歴（時系列） */}
-      {ext && ext.activity_history?.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <SectionHeading>🗓 活動歴</SectionHeading>
-          <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-            {ext.activity_history.map((h, i) => (
-              <li key={i} className="history-row" style={{
-                borderLeft: '2px solid #E60012',
-                padding: '0 0 12px 14px',
-                marginLeft: 4,
-              }}>
-                {h.date && (
-                  <div style={{ fontSize: 12, color: '#E60012', fontWeight: 'bold' }}>{h.date}</div>
-                )}
-                <div style={{ fontSize: 14, color: '#555', lineHeight: 1.6 }}>{h.event}</div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* 7. 費用内訳（合計＝目標金額） */}
-      {ext && ext.cost_breakdown?.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <SectionHeading>💰 費用内訳</SectionHeading>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-              <thead>
-                <tr style={{ background: '#f7f7f7' }}>
-                  <th style={costTh}>費目</th>
-                  <th style={{ ...costTh, textAlign: 'right' }}>金額</th>
-                  <th style={{ ...costTh, textAlign: 'right', whiteSpace: 'nowrap' }}>割合</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ext.cost_breakdown.map((c, i) => (
-                  <tr key={i} style={{ borderTop: '1px solid #eee' }}>
-                    <td style={costTd}>{c.item}</td>
-                    <td style={{ ...costTd, textAlign: 'right', whiteSpace: 'nowrap' }}>
-                      ¥{Number(c.amount ?? 0).toLocaleString()}
-                    </td>
-                    <td style={{ ...costTd, textAlign: 'right', whiteSpace: 'nowrap', color: '#999' }}>
-                      {c.ratio}%
-                    </td>
-                  </tr>
-                ))}
-                <tr style={{ borderTop: '2px solid #E60012', background: '#FFF8F8' }}>
-                  <td style={{ ...costTd, fontWeight: 'bold' }}>合計</td>
-                  <td style={{ ...costTd, textAlign: 'right', fontWeight: 'bold', color: '#E60012', whiteSpace: 'nowrap' }}>
-                    ¥{costTotal(ext).toLocaleString()}
-                  </td>
-                  <td style={{ ...costTd, textAlign: 'right', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
-                    {ratioTotal(ext)}%
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p style={{ fontSize: 12, color: '#999', margin: '6px 0 0' }}>
-            ※ 合計は目標金額 ¥{Number(page.project.goal_amount ?? 0).toLocaleString()} と一致しています。
-          </p>
-        </div>
-      )}
-
-      {/* 8. 最後に（締めの呼びかけ）— 2026-09-22 追加。過去データには無いので、あるときだけ出す */}
-      {ext?.closing && (
-        <div style={{ marginBottom: 20 }}>
-          <SectionHeading>🙌 最後に</SectionHeading>
-          <LongText text={ext.closing} />
-        </div>
-      )}
 
       {/* Legal Info（印刷時は展開される — 印刷用CSS側で details > div を表示） */}
       <div style={{ marginBottom: 20 }}>

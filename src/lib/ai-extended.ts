@@ -23,8 +23,12 @@
  *   タイトルに入り込む事故が本番で出た（例: 飲食コミュニティを広げ**計画を**一緒に実現したい！）。
  *   見本のタイトルは40文字あり、字数を揃える必要そのものが無いと判断した。
  *   → **上限だけを持たせ、下限の穴埋め（パディング）は廃止する。**
+ *
+ * 🔴 2026-09-22 再指定（t iku）: 45文字 → **20文字**。
+ *   「ちょうど20文字」ではなく**上限20文字**として扱う（ちょうどに揃えると
+ *   詰め物が入るという、この仕様変更のそもそもの原因が再発するため）。
  */
-export const TITLE_PROPOSAL_MAX_LENGTH = 45;
+export const TITLE_PROPOSAL_MAX_LENGTH = 20;
 /**
  * @deprecated 「ちょうど」仕様は廃止（2026-09-22）。上限は TITLE_PROPOSAL_MAX_LENGTH。
  *   過去データの互換参照のためだけに残している。
@@ -384,7 +388,14 @@ function pickLongText(raw: string | undefined, fallback: string): string {
  * 対象を増やす場合はこの配列に足すだけで、プロンプト以外の検証・正規化・
  * 再生成判定はすべて追随する（プロンプト側は ai-prompts.ts の LONG_TEXT_KEYS）。
  */
-export const LONG_STORY_KEYS = ['background', 'vision', 'appeal'] as const;
+/**
+ * 🔴 2026-09-22: 空配列になった。`background` / `vision` / `appeal` は
+ *   t iku指定の掲載順から外れ、生成対象ではなくなったため
+ *   （内容は overview / why_started / what_creates / closing に吸収）。
+ *   配列を残してあるのは、将来 story 側に長文項目が復活したときに
+ *   ここへ足すだけで検証・正規化が追随する構造を壊さないため。
+ */
+export const LONG_STORY_KEYS = [] as const as readonly string[];
 export type LongStoryKey = (typeof LONG_STORY_KEYS)[number];
 
 /**
@@ -598,9 +609,14 @@ export function parseActivityHistory(raw: string | undefined): ActivityHistoryIt
 }
 
 /** JSONコピー用の日本語キー（t ikuがそのまま読める形） */
-export function extendedToJapaneseJSON(ext: ProjectExtended, goalAmount: number) {
+export function extendedToJapaneseJSON(
+  ext: ProjectExtended,
+  goalAmount: number,
+  /** story 側の項目（資金使途の文章・スケジュール）。掲載順に混ぜるため受け取る */
+  story?: { use_of_funds?: string; schedule?: string }
+) {
   return {
-    'プロジェクト名称の提案': ext.title_proposals.map((t, i) => ({
+    'タイトル案（3案）': ext.title_proposals.map((t, i) => ({
       案: `案${i + 1}`,
       名称: t,
       文字数: charLength(t),
@@ -608,19 +624,20 @@ export function extendedToJapaneseJSON(ext: ProjectExtended, goalAmount: number)
     'プロジェクト概要': ext.overview,
     'なぜこの企画を始めたのか': ext.why_started,
     'この企画で何を創出するのか': ext.what_creates,
-    // 「最後に」は 2026-09-22 追加。過去データには無いので、あるときだけ出す。
-    ...(ext.closing ? { '最後に': ext.closing } : {}),
-    '支援者向け発表会の企画': {
+    '開催イベント概要': {
       開催形式: ext.announcement_event.format,
       開催時期: ext.announcement_event.timing,
-      プログラム: ext.announcement_event.program,
       支援者特典: ext.announcement_event.supporter_perks,
     },
+    'イベント・講演会のスケジュール': ext.announcement_event.program,
+    ...(story?.use_of_funds ? { '資金用途': story.use_of_funds } : {}),
+    ...(story?.schedule ? { 'スケジュール（開始から終了まで）': story.schedule } : {}),
     活動歴: ext.activity_history.map(h => ({ 年月: h.date, 出来事: h.event })),
-    費用内訳: {
+    '資金用途（内訳）': {
       明細: ext.cost_breakdown.map(c => ({ 費目: c.item, 金額: c.amount, 割合: `${c.ratio}%` })),
       合計: ext.cost_breakdown.reduce((a, b) => a + b.amount, 0),
       目標金額: goalAmount,
     },
+    ...(ext.closing ? { '最後に支援者の皆様へ': ext.closing } : {}),
   };
 }

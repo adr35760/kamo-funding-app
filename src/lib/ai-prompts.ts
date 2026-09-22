@@ -427,12 +427,12 @@ ${input.offerings.trim()}` : ''}
     "goal_amount": ${input.goalAmount},
     "project_type": "実行確約型",
     "story": {
-      "lead": "冒頭のリード文（読者を引き込む一文）",
-      "background": "事業の背景と現状の課題（2〜3文の要約でよい）",
-      "vision": "このプロジェクトが実現したい未来（2〜3文の要約でよい）",
-      "use_of_funds": "資金の使途（2〜3文の要約でよい）",
-      "schedule": "実施スケジュール（日程の列挙。字数を稼がない）",
-      "appeal": "支援者へのメッセージ・訴求（2〜3文の要約でよい）"
+      "lead": "",
+      "background": "",
+      "vision": "",
+      "use_of_funds": "資金の使い道。冒頭に「目標金額 ○○円」を置き、続けて費目を「・」の箇条書きで並べ、最後に1〜2文で補足する",
+      "schedule": "実施スケジュール。1行1件で「2026年10月｜企画・サービス改善」の形式。改行は \\n で区切る。文章にしない",
+      "appeal": ""
     },
     "creator": {
       "name": "${input.creatorName}",
@@ -481,9 +481,17 @@ ${input.offerings.trim()}` : ''}
 }
 
 【story（掲載本文）について】
-🔴 **story の本文はここでは要約で構いません**（background / vision / use_of_funds / appeal は各2〜3文）。
-   長い本文は**この後の別のリクエストで書かせる**ので、ここで長く書く必要はありません。
-   lead は読者を引き込む短いリード文、schedule は日程の列挙にしてください。
+🔴 **lead / background / vision / appeal は空文字にしてください。**
+   掲載順から外れた項目です（内容は overview / why_started / what_creates / closing に含めます）。
+
+🔴 **use_of_funds（資金用途）** は次の形にしてください（各行は \\n で区切る）。
+   1行目「目標金額 300,000円」／空行／費目を「・」で4〜6行／空行／締めの1〜2文。
+   例: 目標金額 300,000円 \\n\\n ・AI・サービス改善費 \\n ・システム開発費 \\n ・広報費 \\n\\n 集まった資金は〇〇に活用します。
+   **費目は下の cost_breakdown と矛盾させないこと。**
+
+🔴 **schedule（スケジュール）** は**1行1件**、「年月｜内容」の形式で4〜6行（各行は \\n で区切る）。
+   例: 2026年10月｜企画・サービス改善 \\n 2026年11月｜クラウドファンディング実施 \\n 2026年12月｜リターン提供
+   **募集開始からリターン提供完了まで**を並べます。文章にしないこと。
 
 【extended（追加7項目）の要件（必須）】
 1. title_proposals: プロジェクト名称の提案を**3案**。**各案は必ず23文字ちょうど**（日本語の文字数。半角空白・記号での字数稼ぎは禁止）で、**必ず「〜したい！」で終える**（例:「地元食材のデリバリーを地域のみんなと実現したい！」）。3案はそれぞれ切り口を変える（例: 価値訴求型／課題解決型／共感喚起型）
@@ -837,10 +845,16 @@ JSONのみ出力してください。markdownのコードブロックは不要�
  *   - use_of_funds … 費目と金額の説明。**費用内訳の表が別にある**ので、
  *                    同じ数字を400字で言い直すと重複して読みにくい（t iku 指定外）
  */
+/**
+ * 🔴 2026-09-22 改訂（t iku指示の掲載順）。
+ *   `background` / `vision` / `appeal` を**生成対象から外した**。
+ *   指定された掲載順にこの3項目が含まれておらず、提示された見本2本にも
+ *   相当する章が無かったため（`lead` も同様に廃止）。
+ *   内容は overview / why_started / what_creates / closing に吸収される。
+ *   副次効果として**LLM呼び出しが7回→4回**に減り、生成が速くなる。
+ */
 export const LONG_TEXT_KEYS = [
-  'background', 'vision', 'appeal',
   'overview', 'why_started', 'what_creates',
-  // 🔴 2026-09-22 追加。見本にある「最後に」の締めの章（extended.closing）。
   'closing',
 ] as const;
 export type LongTextKey = (typeof LONG_TEXT_KEYS)[number];
