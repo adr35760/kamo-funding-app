@@ -222,16 +222,46 @@ export interface CrowdfundingPage {
        */
       links?: CreatorLinks;
     };
+    /**
+     * 特定商取引法に基づく表示。
+     *
+     * 🔴 2026-09-22 変更（t iku指示）: KAMOの**審査提出フォーマット**に合わせ、
+     *   項目名・並び・定型文を固定した。生成側（LLM）に書かせる余地は無い
+     *   — **全項目がサーバ側の定型文か、ヒアリング入力の転記**である。
+     *   審査に出す文言なので、モデルの言い換えが入ると差し戻しになるため。
+     *
+     * 🔴 `★★★…★★★` は**起案者が申込時に埋める欄**を示すプレースホルダ。
+     *   事業者の所在地・代表者フリガナ・連絡先は AIツールのヒアリングで
+     *   受け取っていない（連絡先は ContactInput として経路を分離しており、
+     *   掲載JSONに載せない設計）。空欄にすると「記載漏れ」に見えるため、
+     *   **埋めるべき欄であることが分かる形**で出す。
+     */
     legal_info: {
+      /** 販売事業者名 */
       business_name: string;
+      /** 販売事業者所在地（郵便番号＋住所） */
       address: string;
+      /** 代表者または運営統括責任者 */
       representative: string;
+      /** 代表者または運営統括責任者（フリガナ） */
+      representative_kana: string;
+      /** 連絡先／ホームページ */
+      contact_website: string;
+      /** 連絡先／電子メール */
       contact_email: string;
+      /** 連絡先／TEL */
+      contact_tel: string;
+      /** 販売価格帯 */
       price_range: string;
+      /** 商品等の引き渡し時期（日数）・発送方法 */
       delivery: string;
+      /** 代金の支払時期および方法 */
       payment: string;
+      /** 商品代金以外に必要な費用／送料、消費税等 */
       shipping: string;
+      /** 返品の取扱条件／返品期限、返品時の送料負担または解約や退会条件 */
       returns: string;
+      /** 不良品の取扱条件 */
       defects: string;
     };
     /**
@@ -241,6 +271,109 @@ export interface CrowdfundingPage {
     extended?: ProjectExtended;
   };
   rewards: Reward[];
+}
+
+/**
+ * 特定商取引法に基づく表示を**サーバ側で組み立てる**。
+ *
+ * 🔴 2026-09-22 新設（t iku指示）。それまでは LLM に書かせていたため、
+ *   「破損・発送ミスのみ14日以内」のように**要約された独自文言**が出ていた。
+ *   これは KAMO の審査に提出する文面なので、**一字一句フォーマット通り**である
+ *   必要がある。→ プロンプトから外し、ここで固定する。
+ *
+ * 埋め方の方針:
+ *   - 事業者名・代表者名 … ヒアリング入力から転記
+ *   - HP … 入力があれば転記、無ければプレースホルダ
+ *   - 所在地・フリガナ・メール・TEL … **AIツールでは受け取っていない**ので
+ *     プレースホルダ（★印）。連絡先は ContactInput として経路を分離しており、
+ *     掲載JSONに個人の連絡先を載せない設計を崩さないため、ここでも転記しない。
+ *   - それ以外 … すべて定型文（フォーマットの原文どおり）
+ */
+export function buildLegalInfo(input: {
+  projectEntityName?: string;
+  organization?: string;
+  creatorName: string;
+  siteUrl?: string;
+}): CrowdfundingPage['project']['legal_info'] {
+  /** 起案者が申込時に埋める欄であることを示す印 */
+  const ph = (label: string) => `★★★★★${label}★★★★★`;
+  const entity = (input.projectEntityName || input.organization || '').trim();
+  const site = (input.siteUrl || '').trim();
+
+  return {
+    business_name: entity || ph('審査提出企業名'),
+    address: ph('審査提出企業郵便番号＋住所'),
+    representative: input.creatorName.trim() || ph('審査提出企業代表者名'),
+    representative_kana: ph('審査提出企業代表者名カタカナ'),
+    contact_website: site || ph('審査提出企業HPのURL'),
+    contact_email: ph('審査提出連絡先メールアドレス'),
+    contact_tel: ph('審査提出連絡先TEL'),
+    price_range: '※各プロジェクトページの「リワード代金」をご覧ください。価格は税込です。',
+    delivery: '商品の引渡し時期またはサービスの提供時期は、各プロジェクトページの記載をご確認ください。',
+    payment: [
+      '《決済手段》',
+      'クレジットカード',
+      ph('（利用可能な場合）コンビニ決済'),
+      '',
+      '《支払時期》',
+      '本プロジェクトは実行確約型です。',
+      '商品購入時に決済が行われます。',
+    ].join('\n'),
+    shipping: '送料無料 (商品代金に含む)',
+    returns: [
+      '《返品の取扱い条件》',
+      '輸送による商品の破損および発送ミスがあった場合のみ返品可。',
+      '商品到着後14日以内に起案者までご連絡いただいた後、',
+      '起案者から連絡のある返送先へご返送下さい。',
+      '',
+      '上記返品条件に該当しないお客様都合のキャンセルはお受けしておりません。',
+    ].join('\n'),
+    defects: [
+      '商品受取時に必ず商品の確認をお願いいたします。',
+      '商品には万全を期しておりますが、万が一下記のような場合にはお問い合わせフォームにてお問い合わせ下さい。',
+      '・申し込まれた商品と異なる商品が届いた場合',
+      '・商品が汚れている、または破損している場合',
+      '上記理由による不良品は、',
+      '商品到着後14日以内に起案者までご連絡いただいた後、',
+      '起案者から対応方法をお客様宛にご連絡致します。',
+    ].join('\n'),
+  };
+}
+
+/**
+ * 掲載JSON・画面での表示ラベル。**フォーマットの見出しと1文字も変えない。**
+ * 並び順もこの定義の順（審査提出フォーマットの順）に従う。
+ */
+export const LEGAL_INFO_LABELS: Array<[keyof CrowdfundingPage['project']['legal_info'], string]> = [
+  ['business_name', '販売事業者名'],
+  ['address', '販売事業者所在地'],
+  ['representative', '代表者または運営統括責任者'],
+  ['representative_kana', '代表者または運営統括責任者（フリガナ）'],
+  ['contact_website', '連絡先／ホームページ'],
+  ['contact_email', '連絡先／電子メール'],
+  ['contact_tel', '連絡先／TEL'],
+  ['price_range', '販売価格帯'],
+  ['delivery', '商品等の引き渡し時期（日数）・発送方法'],
+  ['payment', '代金の支払時期および方法'],
+  ['shipping', '商品代金以外に必要な費用 ／送料、消費税等'],
+  ['returns', '返品の取扱条件／返品期限、返品時の送料負担または解約や退会条件'],
+  ['defects', '不良品の取扱条件'],
+];
+
+/**
+ * 特商法を掲載JSON用の日本語キーに変換する。
+ * 🔴 `LEGAL_INFO_LABELS` の順に出すので、**そのままKAMOの申請欄に貼れる**。
+ *   過去に保存したデータ（新しい3キーが無いもの）でも落ちないよう、値が無い項目は飛ばす。
+ */
+export function legalInfoToJapaneseJSON(
+  legal: Partial<CrowdfundingPage['project']['legal_info']> | undefined
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [key, label] of LEGAL_INFO_LABELS) {
+    const v = String(legal?.[key] ?? '').trim();
+    if (v) out[label] = v;
+  }
+  return out;
 }
 
 /**
@@ -307,18 +440,8 @@ ${input.offerings.trim()}` : ''}
       "bio": "起案者の簡単な紹介",
       "organization": "${input.projectEntityName ?? ''}"
     },
-    "legal_info": {
-      "business_name": "${input.projectEntityName ?? ''}",
-      "address": "",
-      "representative": "${input.creatorName}",
-      "contact_email": "",
-      "price_range": "各プロジェクトページ参照",
-      "delivery": "各プロジェクトページ記載",
-      "payment": "クレジットカード/購入時決済",
-      "shipping": "無料(商品代金に含む)",
-      "returns": "破損・発送ミスのみ14日以内",
-      "defects": "14日以内にお問い合わせ"
-    },
+    // 🔴 legal_info（特定商取引法に基づく表示）は**出力しないでください**。
+    //   審査提出フォーマットが決まっており、システム側で固定の文面を入れます。
     "extended": {
       "title_proposals": ["23文字ちょうど・したい！で終わる名称案1", "23文字ちょうど・したい！で終わる名称案2", "23文字ちょうど・したい！で終わる名称案3"],
       "overview": "プロジェクト概要（2〜3文の要約でよい）",

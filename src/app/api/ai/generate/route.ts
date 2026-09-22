@@ -4,6 +4,7 @@ import {
   buildPageGenerationPrompt,
   buildLongTextPrompt,
   buildLongTextExpandPrompt,
+  buildLegalInfo,
   longTextLabel,
   LONG_TEXT_KEYS,
   calculateRewardTiers,
@@ -467,7 +468,12 @@ function withNormalizedExtended(page: CrowdfundingPage, input: HearingInput): Cr
     fallbackStory
   ) as unknown as CrowdfundingPage['project']['story'];
 
-  return { ...page, project: { ...page.project, title, creator, story, extended } };
+  // 🔴 特商法は**LLMの出力を必ず捨てて**サーバ側の定型で上書きする（2026-09-22）。
+  //   審査提出フォーマットの原文どおりである必要があり、モデルの言い換え
+  //   （「破損・発送ミスのみ14日以内」等の要約）が混ざると差し戻しになる。
+  const legalInfo = buildLegalInfo(input);
+
+  return { ...page, project: { ...page.project, title, creator, story, extended, legal_info: legalInfo } };
 }
 
 /**
@@ -730,18 +736,9 @@ function buildMockPageBase(input: HearingInput): CrowdfundingPage {
         organization: input.projectEntityName || input.organization || '',
         ...(buildCreatorLinks(input) ? { links: buildCreatorLinks(input) } : {}),
       },
-      legal_info: {
-        business_name: entityNameOf(input),
-        address: '',
-        representative: input.creatorName,
-        contact_email: '',
-        price_range: '各プロジェクトページ参照',
-        delivery: `各リターンのご提供予定時期をご参照ください（概ね${deliveryStr}頃）`,
-        payment: 'クレジットカード/購入時決済',
-        shipping: '無料(商品代金に含む)',
-        returns: '破損・発送ミスのみ14日以内にお問い合わせください',
-        defects: '14日以内にお問い合わせください',
-      },
+      // 🔴 特商法は**サーバ側で固定**する（2026-09-22）。審査提出フォーマットの
+      //   原文どおりでなければ差し戻されるため、LLM にもここにも書かせない。
+      legal_info: buildLegalInfo(input),
     },
     rewards: [
       {

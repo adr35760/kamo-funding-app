@@ -9,6 +9,7 @@ import {
   REWARD_CATEGORIES,
   REWARD_CATEGORY_LABELS,
   normalizeRewardCategory,
+  legalInfoToJapaneseJSON,
 } from '@/lib/ai-prompts';
 
 /** プロフィールの上限文字数（t iku指示 2026-09-13: 300文字以内） */
@@ -270,7 +271,9 @@ export default function AIToolPage() {
             }
           : {}),
       },
-      '特定商取引法に基づく表示': page.project.legal_info,
+      // 🔴 審査提出フォーマットの見出し・並び順で出す（2026-09-22）。
+      //   そのままKAMOの申請欄に貼れることが目的なので、キー名を勝手に変えない。
+      '特定商取引法に基づく表示': legalInfoToJapaneseJSON(page.project.legal_info),
       ...(page.project.extended
         ? extendedToJapaneseJSON(page.project.extended, page.project.goal_amount)
         : {}),

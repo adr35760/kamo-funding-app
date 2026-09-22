@@ -5,6 +5,7 @@ import {
   REWARD_CATEGORY_LABELS,
   REWARD_CATEGORY_STYLES,
   normalizeRewardCategory,
+  legalInfoToJapaneseJSON,
   type RewardCategory,
 } from '@/lib/ai-prompts';
 import type { ProjectExtended } from '@/lib/ai-extended';
@@ -365,10 +366,13 @@ export default function GeneratedPageDoc({ page }: { page: GeneratedPageData }) 
           <summary style={{ cursor: 'pointer', color: '#666', fontSize: 14 }}>
             特定商取引法に基づく表示
           </summary>
+          {/* 🔴 審査提出フォーマットの見出し・並び順で出す（2026-09-22）。
+              定型文は複数行なので whiteSpace: pre-wrap が必須。 */}
           <div style={{ background: '#f9f9f9', borderRadius: 8, padding: 16, marginTop: 8, fontSize: 13 }}>
-            {Object.entries(page.project.legal_info ?? {}).map(([key, val]) => (
-              val && <div key={key} style={{ marginBottom: 4 }}>
-                <strong>{key}:</strong> {val}
+            {Object.entries(legalInfoToJapaneseJSON(page.project.legal_info)).map(([label, val]) => (
+              <div key={label} style={{ marginBottom: 10 }}>
+                <strong>{label}</strong>
+                <div style={{ whiteSpace: 'pre-wrap', color: '#555', marginTop: 2 }}>{val}</div>
               </div>
             ))}
           </div>
