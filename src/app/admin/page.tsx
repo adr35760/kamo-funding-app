@@ -1338,6 +1338,25 @@ function EmailStatusCell({ reg, onResent }: { reg: Registration; onResent: () =>
           title={reg.confirmation_email_error || ''}>
           ⚠ 未着（送信失敗）
         </span>
+        {/* 🔴 失敗の理由を画面に出す（2026-09-24）。
+            これまで title 属性（マウスを乗せたときだけ出るツールチップ）にしか
+            入れていなかったため、運営は「なぜ失敗したか」を知る手段が無く、
+            原因調査のたびにログを見るしかなかった。原因が分かれば
+            「再送して直るのか（一時的な障害）」「宛先が誤っていて直らないのか」を
+            その場で判断できる。 */}
+        {reg.confirmation_email_error && (
+          <span style={{
+            display: 'block', marginTop: 3, color: '#8A1F26', fontSize: 11,
+            lineHeight: 1.4, maxWidth: 260, wordBreak: 'break-word',
+          }}>
+            理由: {reg.confirmation_email_error}
+          </span>
+        )}
+        {reg.confirmation_email_at && (
+          <span style={{ display: 'block', marginTop: 2, color: '#888', fontSize: 10 }}>
+            {formatJst(reg.confirmation_email_at)}
+          </span>
+        )}
         <button
           onClick={resend}
           disabled={sending}
