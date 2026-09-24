@@ -24,11 +24,20 @@
  *   見本のタイトルは40文字あり、字数を揃える必要そのものが無いと判断した。
  *   → **上限だけを持たせ、下限の穴埋め（パディング）は廃止する。**
  *
- * 🔴 2026-09-22 再指定（t iku）: 45文字 → **20文字**。
- *   「ちょうど20文字」ではなく**上限20文字**として扱う（ちょうどに揃えると
+ * 🔴 2026-09-22 再指定（t iku）: 45文字 → 20文字。
+ * 🔴 2026-09-24 再指定（t iku）: 20文字 → **25文字**。
+ *   いずれも「ちょうど」ではなく**上限**として扱う（ちょうどに揃えると
  *   詰め物が入るという、この仕様変更のそもそもの原因が再発するため）。
  */
-export const TITLE_PROPOSAL_MAX_LENGTH = 20;
+export const TITLE_PROPOSAL_MAX_LENGTH = 25;
+
+/**
+ * サブタイトルの**上限**文字数（t iku指示 2026-09-24）。
+ *
+ * 🔴 タイトルと違い、サブタイトルに「したい！」の締めは付けない。
+ *   語の区切りで切るだけで、短いものは短いまま通す（穴埋めはしない）。
+ */
+export const SUBTITLE_MAX_LENGTH = 30;
 /**
  * @deprecated 「ちょうど」仕様は廃止（2026-09-22）。上限は TITLE_PROPOSAL_MAX_LENGTH。
  *   過去データの互換参照のためだけに残している。
@@ -131,14 +140,14 @@ function sliceChars(s: string, n: number): string {
 }
 
 /**
- * 名称案を「上限45文字以内・必ず『したい！』で終わる」形に整える。
+ * 名称案を「上限文字数以内・必ず『したい！』で終わる」形に整える。
  *
  * 🔴 2026-09-22 変更（t iku提示の見本に合わせる）:
  *   旧仕様は「23文字**ちょうど**」で、足りない分を定型フレーズで
  *   **穴埋め**していた。その結果「飲食コミュニティを広げ**計画を**一緒に実現したい！」
  *   のように、意味のない語がタイトルに混入した（本番実測）。
  *   → **穴埋めを全廃**し、やることを次の2つだけにする:
- *     1. 長すぎる場合に語の区切りで切る（上限45文字）
+ *     1. 長すぎる場合に語の区切りで切る（上限 TITLE_PROPOSAL_MAX_LENGTH 文字）
  *     2. 締めが「したい！」でなければ付け直す（二重化しないよう一度剥がす）
  *   短いタイトルは短いまま通す。字数を満たすための捏造をしないほうが原稿として良い。
  */
@@ -166,6 +175,24 @@ function fitTitle(body: string, reserve = 1): string {
   const max = TITLE_PROPOSAL_MAX_LENGTH - reserve;
   if (charLength(body) <= max) return body;
   return trimBodyTail(cutBody(body, max));
+}
+
+/**
+ * サブタイトルを上限文字数（{@link SUBTITLE_MAX_LENGTH}）に収める。
+ *
+ * 🔴 タイトルと違い**締めを付けない**。LLMは30字を平気で超えるので、
+ *   超えた場合だけ語の区切りで切る。短いものはそのまま通す（穴埋めしない）。
+ *   末尾に句点は残さない（サブタイトルは見出しなので「。」で終わらない）。
+ */
+export function adjustSubtitle(raw: string): string {
+  const cleaned = String(raw ?? '')
+    .replace(/\s+/g, '')
+    .replace(/[「」『』【】]/g, '')
+    .replace(/[。．]+$/, '')
+    .trim();
+  if (!cleaned) return '';
+  if (charLength(cleaned) <= SUBTITLE_MAX_LENGTH) return cleaned;
+  return trimBodyTail(cutBody(cleaned, SUBTITLE_MAX_LENGTH)).replace(/[。．]+$/, '');
 }
 
 /**

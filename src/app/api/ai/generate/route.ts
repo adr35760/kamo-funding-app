@@ -28,6 +28,7 @@ import {
   LONG_STORY_KEYS,
   LONG_TEXT_MIN,
   ensureClosingAsk,
+  adjustSubtitle,
   LONG_TEXT_MAX,
   type ProjectExtended,
 } from '@/lib/ai-extended';
@@ -445,13 +446,18 @@ function withNormalizedExtended(page: CrowdfundingPage, input: HearingInput): Cr
   const declared = parseActivityHistory(input.activityHistory);
   if (declared.length > 0) extended.activity_history = declared;
 
-  // C（2026-09-13）: 主タイトルも名称案と同じ規則（23文字ちょうど・「したい！」締め）に揃える。
-  // 名称案だけ23文字で主タイトルが別ルールだと掲載時に不整合になるため両方に効かせる。
+  // C（2026-09-13）: 主タイトルも名称案と同じ規則（上限文字数・「したい！」締め）に揃える。
+  // 名称案と主タイトルで規則が違うと掲載時に不整合になるため両方に効かせる。
   // 🔴 片方に絞る判断が出たらこの1行を外すだけで主タイトルは元の自由形式に戻る。
   const title = adjustTitleProposal(page.project.title, {
     title: page.project.title,
     industry: input.industry,
   });
+
+  // 🔴 サブタイトルは上限30文字で切る（t iku指示 2026-09-24）。
+  //   LLMは字数指示を平気で外すので、プロンプトだけに頼らずここで必ず数え直す
+  //   （タイトルと同じ設計。締めは付けない）。
+  const subtitle = adjustSubtitle(page.project.subtitle);
 
   // SNSリンクは**ヒアリング入力を正**とする（LLMに作らせず、入力のあるキーだけ載せる）。
   // 空欄のキーは buildCreatorLinks() が落とすので、掲載JSON・PDFに空行が出ない。
@@ -473,7 +479,7 @@ function withNormalizedExtended(page: CrowdfundingPage, input: HearingInput): Cr
   //   （「破損・発送ミスのみ14日以内」等の要約）が混ざると差し戻しになる。
   const legalInfo = buildLegalInfo(input);
 
-  return { ...page, project: { ...page.project, title, creator, story, extended, legal_info: legalInfo } };
+  return { ...page, project: { ...page.project, title, subtitle, creator, story, extended, legal_info: legalInfo } };
 }
 
 /**
