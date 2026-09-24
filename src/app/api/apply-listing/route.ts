@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendListingApplicationNotifyEmail } from '@/lib/email';
+import { parseEmail } from '@/lib/email-address';
 
 /**
  * POST /api/apply-listing
@@ -66,12 +67,12 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    if (!contactEmail.includes('@')) {
-      return NextResponse.json(
-        { success: false, error: '有効なメールアドレスを入力してください' },
-        { status: 400 }
-      );
+    // 🔴 全角・空白混じりのアドレスを受付時点で弾く（2026-09-24 本番障害の対策）。
+    const parsedEmail = parseEmail(contactEmail);
+    if (!parsedEmail.ok) {
+      return NextResponse.json({ success: false, error: parsedEmail.error }, { status: 400 });
     }
+    const cleanContactEmail = parsedEmail.email;
     // 概要は300文字以上（t iku 指定）。文字数はコードポイントで数える
     if (Array.from(projectSummary).length < SUMMARY_MIN) {
       return NextResponse.json(
@@ -97,7 +98,7 @@ export async function POST(request: NextRequest) {
       contact_name: contactName,
       // 部署名は 2026-09-17 に t iku 指定でフォームから削除（列は残すが受け取らない）
       contact_phone: str(body.contactPhone) || null,
-      contact_email: contactEmail,
+      contact_email: cleanContactEmail,
       contact_postal_code: str(body.contactPostalCode) || null,
       contact_address: str(body.contactAddress) || null,
       project_name: str(body.projectName) || null,
@@ -156,7 +157,7 @@ export async function POST(request: NextRequest) {
       companyAddress: insertData.company_address ?? undefined,
       contactName,
       contactPhone: insertData.contact_phone ?? undefined,
-      contactEmail,
+      contactEmail: cleanContactEmail,
       contactPostalCode: insertData.contact_postal_code ?? undefined,
       contactAddress: insertData.contact_address ?? undefined,
       projectName: insertData.project_name ?? undefined,

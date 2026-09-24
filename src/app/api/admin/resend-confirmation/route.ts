@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendApplyConfirmationEmail } from '@/lib/email';
 import { formatEventDateJa } from '@/lib/event-format';
 import { logEmailResult } from '@/lib/email-log';
+import { parseEmail } from '@/lib/email-address';
 
 /**
  * POST /api/admin/resend-confirmation
@@ -20,7 +21,7 @@ import { logEmailResult } from '@/lib/email-log';
  *  - 送信結果は email_logs に追記するので、再送の履歴も残る。
  */
 export async function POST(request: Request) {
-  let body: { registration_id?: string; force?: boolean };
+  let body: { registration_id?: string; force?: boolean; email?: string };
   try {
     body = await request.json();
   } catch {
@@ -29,6 +30,11 @@ export async function POST(request: Request) {
 
   const registrationId = body.registration_id;
   const force = body.force === true;
+  // 🔴 宛先の訂正つき再送（2026-09-24）。
+  //   「宛先の形式が不正」で失敗した申込は、登録されているアドレス自体が
+  //   壊れているので、そのまま再送しても100%また失敗する。
+  //   運営が正しいアドレスに直して送れるようにする（registrations も更新する）。
+  const overrideEmailRaw = typeof body.email === 'string' ? body.email : '';
 
   if (!registrationId || typeof registrationId !== 'string') {
     return NextResponse.json({ ok: false, error: 'registration_id が必要です' }, { status: 400 });
@@ -88,9 +94,27 @@ export async function POST(request: Request) {
       eventDateIso = (ev.event_date as string) ?? null;
     }
 
+    // 宛先の決定。訂正が指定されていればそれを使い、登録side も更新する。
+    let targetEmail = String(reg.email ?? '');
+    if (overrideEmailRaw) {
+      const parsed = parseEmail(overrideEmailRaw);
+      if (!parsed.ok) {
+        return NextResponse.json({ ok: false, error: parsed.error }, { status: 400 });
+      }
+      targetEmail = parsed.email;
+      // 次回以降（リマインド等）も正しい宛先に届くよう、登録内容そのものを直す
+      const { error: updErr } = await supabase
+        .from('registrations')
+        .update({ email: targetEmail })
+        .eq('id', reg.id as string);
+      if (updErr) {
+        console.error('registrations.email の更新に失敗:', updErr.message);
+      }
+    }
+
     const result = await sendApplyConfirmationEmail(
       reg.name as string,
-      reg.email as string,
+      targetEmail,
       eventTitle,
       eventDateJa,
       eventPillar,
@@ -112,7 +136,7 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ ok: true, resent: true });
+    return NextResponse.json({ ok: true, resent: true, email: targetEmail });
   } catch (err) {
     return NextResponse.json(
       { ok: false, error: err instanceof Error ? err.message : '再送に失敗しました' },

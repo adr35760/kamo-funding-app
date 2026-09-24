@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendPartnerSessionConfirmationEmail, sendPartnerSessionAdminNotification } from '@/lib/email';
 import { formatSlotJa } from '@/lib/event-format';
+import { parseEmail } from '@/lib/email-address';
 
 /**
  * POST /api/apply-partner-session
@@ -22,9 +23,13 @@ export async function POST(request: NextRequest) {
     if (!name?.trim()) {
       return NextResponse.json({ success: false, error: 'お名前は必須です' }, { status: 400 });
     }
-    if (!email?.includes('@')) {
-      return NextResponse.json({ success: false, error: '有効なメールアドレスを入力してください' }, { status: 400 });
+    // 🔴 全角・空白混じりのアドレスを受付時点で弾く（2026-09-24 本番障害の対策）。
+    //   通してしまうと登録は成立するのに確認メールだけ送信失敗になる。
+    const parsedEmail = parseEmail(email);
+    if (!parsedEmail.ok) {
+      return NextResponse.json({ success: false, error: parsedEmail.error }, { status: 400 });
     }
+    const cleanEmail = parsedEmail.email;
 
     // 希望日時（第1・第2）をまとめて1カラムに保持
     // datetime-local の値（例 "2026-09-10T20:00"）は日本語表記に整形して保存・メール表示。
@@ -38,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     const baseData = {
       name: name.trim(),
-      email: email.trim(),
+      email: cleanEmail,
       company: body.company?.trim() || null,
       profession: body.profession?.trim() || null,
       program_interest: body.program_interest || null,
@@ -85,13 +90,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 確認メール送信（希望日時を本文に記載）— 従来どおり申込者宛
-    sendPartnerSessionConfirmationEmail(name.trim(), email.trim(), preferredSlots || undefined).catch(() => {});
+    sendPartnerSessionConfirmationEmail(name.trim(), cleanEmail, preferredSlots || undefined).catch(() => {});
 
     // 運営宛の申込通知（対応漏れ防止）。
     // ★通知の失敗は申込処理を絶対に止めない：await せず、失敗はログのみ。
     sendPartnerSessionAdminNotification({
       name: name.trim(),
-      email: email.trim(),
+      email: cleanEmail,
       company: body.company?.trim() || null,
       profession: body.profession?.trim() || null,
       programInterest: body.program_interest || null,

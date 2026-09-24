@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendApplyConfirmationEmail } from '@/lib/email';
+import { parseEmail } from '@/lib/email-address';
 import { formatEventDateJa } from '@/lib/event-format';
 import { isEventFinished } from '@/lib/event-visibility';
 import { normalizeUtmValue } from '@/lib/utm';
@@ -52,12 +53,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!email || typeof email !== 'string' || !email.includes('@')) {
-      return NextResponse.json(
-        { success: false, error: '有効なメールアドレスを入力してください' },
-        { status: 400 }
-      );
+    // 🔴 `includes('@')` だけのチェックだと全角・空白混じりのアドレスが通り、
+    //   申込は成立するのに完了メールだけ Resend に弾かれる（2026-09-24 本番障害）。
+    //   ここで正規化し、直せないものは受付時点で拒否する。
+    const parsedEmail = parseEmail(email);
+    if (!parsedEmail.ok) {
+      return NextResponse.json({ success: false, error: parsedEmail.error }, { status: 400 });
     }
+    const cleanEmail = parsedEmail.email;
 
     if (!event_id || typeof event_id !== 'string') {
       return NextResponse.json(
@@ -141,7 +144,7 @@ export async function POST(request: NextRequest) {
     const baseRow = {
       event_id,
       name: name.trim(),
-      email: email.trim(),
+      email: cleanEmail,
       company: company?.trim() || null,
       // 既存の「参加経路」（本人申告のselect）。UTMとは別物なので併存させる
       referrer_source: source || null,
@@ -206,7 +209,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 確認メール送信（エラーを返さないが、結果をログに出す）
-    const emailResult = await sendApplyConfirmationEmail(name.trim(), email.trim(), eventTitle, eventDateJa, eventPillar, eventDateIso);
+    const emailResult = await sendApplyConfirmationEmail(name.trim(), cleanEmail, eventTitle, eventDateJa, eventPillar, eventDateIso);
     if (!emailResult.success) {
       console.error('Email send failed:', emailResult.error);
     }

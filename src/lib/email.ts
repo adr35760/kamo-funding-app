@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { normalizeEmail, isValidEmail } from '@/lib/email-address';
 import { referralTermsHtml } from '@/lib/referral-terms';
 import {
   AI_SEMINAR,
@@ -167,27 +168,79 @@ async function sendEmail(
   html: string
 ): Promise<EmailResult> {
   if (!RESEND_API_KEY) {
-    return { success: false, error: 'RESEND_API_KEY not configured' };
+    return { success: false, error: 'メール送信の設定（APIキー）が未登録です。運営側の設定エラーです' };
+  }
+
+  // 🔴 送信直前にも宛先を正規化する（2026-09-24 本番障害の再発防止）。
+  //   受付側のチェックを通っていない経路（過去データの再送・管理画面からの
+  //   手動送信・事務局宛の固定アドレス）でも、全角や空白で落ちないようにする。
+  const recipients = (Array.isArray(to) ? to : [to])
+    .map(normalizeEmail)
+    .filter(isValidEmail);
+
+  if (recipients.length === 0) {
+    return {
+      success: false,
+      error: `宛先メールアドレスの形式が正しくありません（${Array.isArray(to) ? to.join(', ') : to}）。半角英数字で example@gmail.com の形になっているかご確認ください`,
+    };
   }
 
   try {
     const { error } = await resend.emails.send({
       from: FROM_EMAIL,
-      to,
+      to: recipients,
       subject,
       html,
     });
 
     if (error) {
       console.error('Email send error:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: toJapaneseEmailError(error.message) };
     }
 
     return { success: true };
   } catch (err) {
     console.error('Email send error:', err);
-    return { success: false, error: 'Failed to send email' };
+    return { success: false, error: 'メールサーバーに接続できませんでした（通信エラー）。時間をおいて再送してください' };
   }
+}
+
+/**
+ * 送信プロバイダ（Resend）の英語エラーを、運営がそのまま読める日本語にする。
+ *
+ * 🔴 管理画面の「未着（送信失敗）」に出る文言そのもの（t iku指示 2026-09-24）。
+ *   英語のまま出していたため、運営が原因を判断できず問い合わせが発生した。
+ *   **「何が起きたか」ではなく「どうすればよいか」まで書く**こと。
+ *   未知のメッセージは翻訳せずそのまま返す（握りつぶすと調査不能になる）。
+ */
+export function toJapaneseEmailError(raw: string | undefined): string {
+  const msg = String(raw ?? '').trim();
+  if (!msg) return '送信に失敗しました（理由不明）';
+
+  const table: Array<[RegExp, string]> = [
+    [/Invalid .?to.? field/i,
+      '宛先メールアドレスの形式が正しくありません。申込者の入力ミス（全角文字・スペース・記号の混入など）が考えられます。正しいアドレスを確認のうえ送り直してください'],
+    [/Invalid .?from.? field/i,
+      '送信元メールアドレスの設定が正しくありません。運営側の設定エラーです（申込者側の問題ではありません）'],
+    [/domain is not verified|not verified/i,
+      '送信元ドメインの認証が完了していません。運営側の設定エラーです'],
+    [/rate limit|too many requests/i,
+      '短時間に送りすぎたため制限されました。しばらく待ってから再送してください'],
+    [/API key is invalid|unauthorized|invalid_api_key/i,
+      'メール送信サービスの認証キーが無効です。運営側の設定エラーです'],
+    [/RESEND_API_KEY not configured/i,
+      'メール送信の設定（APIキー）が未登録です。運営側の設定エラーです'],
+    [/testing emails|can only send testing/i,
+      'メール送信サービスがテストモードのため、指定の宛先に送れません。運営側の設定エラーです'],
+    [/timeout|ETIMEDOUT|ECONNRESET|network/i,
+      '通信エラーで送信できませんでした。時間をおいて再送してください'],
+  ];
+
+  for (const [re, ja] of table) {
+    if (re.test(msg)) return ja;
+  }
+  // 未知のエラーは原文を残す（調査できなくなるのを避ける）
+  return `送信に失敗しました: ${msg}`;
 }
 
 /**

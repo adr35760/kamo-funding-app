@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendPartnerConfirmationEmail, sendSupporterConfirmationEmail } from '@/lib/email';
+import { parseEmail } from '@/lib/email-address';
 
 /**
  * POST /api/partners/register
@@ -27,9 +28,13 @@ export async function POST(request: NextRequest) {
     if (!name?.trim()) {
       return NextResponse.json({ success: false, error: 'お名前は必須です' }, { status: 400 });
     }
-    if (!email?.includes('@')) {
-      return NextResponse.json({ success: false, error: '有効なメールアドレスを入力してください' }, { status: 400 });
+    // 🔴 全角・空白混じりのアドレスを受付時点で弾く（2026-09-24 本番障害の対策）。
+    //   通してしまうと登録は成立するのに確認メールだけ送信失敗になる。
+    const parsedEmail = parseEmail(email);
+    if (!parsedEmail.ok) {
+      return NextResponse.json({ success: false, error: parsedEmail.error }, { status: 400 });
     }
+    const cleanEmail = parsedEmail.email;
     if (!['referral', 'advisor', 'supporter'].includes(partner_type)) {
       return NextResponse.json({ success: false, error: 'パートナータイプが不正です' }, { status: 400 });
     }
@@ -39,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     const insertData: Record<string, unknown> = {
       name: name.trim(),
-      email: email.trim(),
+      email: cleanEmail,
       phone: body.phone?.trim() || null,
       organization: body.organization?.trim() || null,
       partner_type,
@@ -91,9 +96,9 @@ export async function POST(request: NextRequest) {
 
     // 確認メール送信（パートナータイプに応じて）
     if (partner_type === 'supporter') {
-      sendSupporterConfirmationEmail(name.trim(), email.trim(), result.referral_code).catch(() => {});
+      sendSupporterConfirmationEmail(name.trim(), cleanEmail, result.referral_code).catch(() => {});
     } else {
-      sendPartnerConfirmationEmail(name.trim(), email.trim(), result.referral_code).catch(() => {});
+      sendPartnerConfirmationEmail(name.trim(), cleanEmail, result.referral_code).catch(() => {});
     }
 
     return NextResponse.json({

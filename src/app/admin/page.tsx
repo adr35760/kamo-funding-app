@@ -1294,17 +1294,31 @@ function EmailStatusCell({ reg, onResent }: { reg: Registration; onResent: () =>
   const [sending, setSending] = useState(false);
   const [msg, setMsg] = useState('');
   const status = reg.confirmation_email_status || 'unknown';
+  // 失敗理由が「宛先の形式」なら、同じ宛先への再送は無意味（必ずまた失敗する）
+  const err = reg.confirmation_email_error || '';
+  const isBadAddress = /宛先メールアドレスの形式|Invalid `to` field|Invalid to field/i.test(err);
+  const [fixedEmail, setFixedEmail] = useState(reg.email || '');
 
-  const resend = async () => {
+  /**
+   * 再送。`overrideEmail` を渡すと宛先を訂正して送る。
+   *
+   * 🔴 「宛先の形式が不正」で失敗した申込は、登録アドレス自体が壊れているため
+   *   そのまま再送しても必ずまた失敗する。訂正して送れる導線が要る（2026-09-24）。
+   */
+  const resend = async (overrideEmail?: string) => {
+    const dest = overrideEmail || reg.email;
     // 二重送信を避けるため、押す前に必ず確認する
-    if (!confirm(`${reg.name} さん（${reg.email}）へ申込完了メールを再送します。よろしいですか？`)) return;
+    if (!confirm(`${reg.name} さん（${dest}）へ申込完了メールを送信します。よろしいですか？`)) return;
     setSending(true);
     setMsg('');
     try {
       const res = await fetch('/api/admin/resend-confirmation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ registration_id: reg.id }),
+        body: JSON.stringify({
+          registration_id: reg.id,
+          ...(overrideEmail ? { email: overrideEmail } : {}),
+        }),
       });
       const d = await res.json().catch(() => ({}));
       if (res.ok && d.ok) {
@@ -1357,17 +1371,49 @@ function EmailStatusCell({ reg, onResent }: { reg: Registration; onResent: () =>
             {formatJst(reg.confirmation_email_at)}
           </span>
         )}
-        <button
-          onClick={resend}
-          disabled={sending}
-          style={{
-            marginTop: 4, padding: '4px 10px', fontSize: 11, fontWeight: 700,
-            borderRadius: 4, border: 'none', cursor: sending ? 'not-allowed' : 'pointer',
-            background: sending ? '#ccc' : '#E60012', color: '#fff',
-          }}
-        >
-          {sending ? '送信中...' : '再送する'}
-        </button>
+        {/* 🔴 宛先の形式が原因の失敗は、同じアドレスに再送しても必ずまた失敗する。
+            その場合だけ「宛先を直して送る」入力欄を出す（2026-09-24）。 */}
+        {isBadAddress ? (
+          <span style={{ display: 'block', marginTop: 4 }}>
+            <input
+              type="email"
+              value={fixedEmail}
+              onChange={e => setFixedEmail(e.target.value)}
+              placeholder="正しいメールアドレス"
+              style={{
+                width: 200, padding: '4px 6px', fontSize: 11,
+                border: '1px solid #B8000E', borderRadius: 4,
+              }}
+            />
+            <button
+              onClick={() => resend(fixedEmail.trim())}
+              disabled={sending || !fixedEmail.trim()}
+              style={{
+                marginLeft: 4, padding: '4px 10px', fontSize: 11, fontWeight: 700,
+                borderRadius: 4, border: 'none',
+                cursor: sending || !fixedEmail.trim() ? 'not-allowed' : 'pointer',
+                background: sending || !fixedEmail.trim() ? '#ccc' : '#E60012', color: '#fff',
+              }}
+            >
+              {sending ? '送信中...' : '訂正して送る'}
+            </button>
+            <span style={{ display: 'block', marginTop: 2, color: '#888', fontSize: 10 }}>
+              申込者の入力ミスです。正しいアドレスに直すと登録内容も更新されます。
+            </span>
+          </span>
+        ) : (
+          <button
+            onClick={() => resend()}
+            disabled={sending}
+            style={{
+              marginTop: 4, padding: '4px 10px', fontSize: 11, fontWeight: 700,
+              borderRadius: 4, border: 'none', cursor: sending ? 'not-allowed' : 'pointer',
+              background: sending ? '#ccc' : '#E60012', color: '#fff',
+            }}
+          >
+            {sending ? '送信中...' : '再送する'}
+          </button>
+        )}
         {msg && <span style={{ display: 'block', marginTop: 3, color: '#666', fontSize: 11 }}>{msg}</span>}
       </span>
     );
@@ -1379,7 +1425,7 @@ function EmailStatusCell({ reg, onResent }: { reg: Registration; onResent: () =>
     <span style={{ display: 'inline-block', fontSize: 12 }}>
       <span style={{ color: '#999', display: 'block' }} title="この機能の導入前の申込です">記録なし</span>
       <button
-        onClick={resend}
+        onClick={() => resend()}
         disabled={sending}
         style={{
           marginTop: 4, padding: '4px 10px', fontSize: 11,
