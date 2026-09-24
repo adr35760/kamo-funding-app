@@ -55,7 +55,23 @@ export function isValidEmail(value: string): boolean {
   if (value.length > 254) return false;
   // ASCII 以外が残っていたら不正（全角は normalizeEmail で直っているはず）
   if (/[^\x20-\x7E]/.test(value)) return false;
-  return /^[^\s@,]+@[^\s@,]+\.[A-Za-z]{2,}$/.test(value);
+  if (!/^[^\s@,]+@[^\s@,]+\.[A-Za-z]{2,}$/.test(value)) return false;
+
+  const [local, domain] = value.split('@');
+
+  // 🔴 ドットの位置の規則（2026-09-24 追加）。
+  //   本番で弾かれた実例が `lisuppo.park.@gmail.com` ＝ **@の直前にドット**。
+  //   形だけ見ると「@がありドメインにドットもある」ので前段の正規表現は通ってしまい、
+  //   Resend に渡して初めて Invalid `to` field で落ちていた。
+  //   先頭・末尾のドットと連続ドットは、ローカル部・ドメイン部とも不正。
+  for (const part of [local, domain]) {
+    if (part.startsWith('.') || part.endsWith('.')) return false;
+    if (part.includes('..')) return false;
+  }
+  // ドメインにハイフンの位置違反（先頭・末尾）があるものも弾く
+  if (domain.split('.').some(lbl => !lbl || lbl.startsWith('-') || lbl.endsWith('-'))) return false;
+
+  return true;
 }
 
 /**

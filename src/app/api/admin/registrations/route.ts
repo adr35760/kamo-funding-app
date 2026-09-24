@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { toJapaneseEmailError } from '@/lib/email';
 
 /**
  * GET /api/admin/registrations — 申込者一覧
@@ -62,7 +63,10 @@ export async function GET() {
       return {
         ...r,
         confirmation_email_status: hit ? hit.status : 'unknown',
-        confirmation_email_error: hit ? hit.error : null,
+        // 🔴 表示時にも日本語へ変換する（2026-09-24）。
+        //   日本語化は送信時にかけているが、**それ以前に記録された行は英語のまま
+        //   DBに残っている**。過去データを書き換えるのは避けたいので、読み出し時に変換する。
+        confirmation_email_error: hit?.error ? toJapaneseEmailError(hit.error) : null,
         confirmation_email_at: hit ? hit.at : null,
       };
     });

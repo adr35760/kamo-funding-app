@@ -664,7 +664,10 @@ export default function AdminPage() {
               ) : (
                 // 列が多いので横スクロールで受ける（狭い画面でページ全体が横に広がるのを防ぐ）
                 <div style={{ overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
-                <table style={{ width: '100%', minWidth: 980, borderCollapse: 'collapse', fontSize: 13 }}>
+                {/* 🔴 minWidth を広げる（2026-09-24）。980pxだと全列が収まらず、
+                    ブラウザが各列を無理に縮めて日本語が1文字ずつ縦に折れていた。
+                    収まらないぶんは親の overflowX:auto（横スクロール）で受ける。 */}
+                <table style={{ width: '100%', minWidth: 1500, borderCollapse: 'collapse', fontSize: 13, tableLayout: 'auto' }}>
                   <thead>
                     <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
                       <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', width: 36 }}>
@@ -675,16 +678,21 @@ export default function AdminPage() {
                           title="全選択"
                         />
                       </th>
-                      <Th>名前</Th>
-                      <Th>メールアドレス</Th>
-                      <Th>完了メール送信</Th>
-                      <Th>申込イベント</Th>
+                      {/* 🔴 短い見出しが1文字ずつ縦に折れるのを防ぐ（2026-09-24） */}
+                      <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', whiteSpace: 'nowrap' }}>名前</th>
+                      <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', whiteSpace: 'nowrap' }}>メールアドレス</th>
+                      {/* 🔴 幅を固定する（2026-09-24）。失敗理由の長文でこの列が広がり、
+                          右側の「申込イベント」「挑戦内容」が縦1文字ずつに潰れていた。 */}
+                      <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', width: 300, minWidth: 300 }}>
+                        完了メール送信
+                      </th>
+                      <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', whiteSpace: 'nowrap' }}>申込イベント</th>
                       <Th>会社</Th>
                       <Th>参加経路</Th>
-                      <Th>流入元</Th>
+                      <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', whiteSpace: 'nowrap' }}>流入元</th>
                       <Th>挑戦内容</Th>
-                      <Th>ステータス</Th>
-                      <Th>申込日時</Th>
+                      <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', whiteSpace: 'nowrap' }}>ステータス</th>
+                      <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', whiteSpace: 'nowrap' }}>申込日時</th>
                       <Th>操作</Th>
                     </tr>
                   </thead>
@@ -704,12 +712,16 @@ export default function AdminPage() {
                             onChange={() => toggleRegSelection(reg.id)}
                           />
                         </Td>
-                        <Td>{reg.name}</Td>
-                        <Td>{reg.email}</Td>
-                        <Td style={{ whiteSpace: 'nowrap' }}>
+                        <Td style={{ whiteSpace: 'nowrap', verticalAlign: 'top' }}>{reg.name}</Td>
+                        <Td style={{ whiteSpace: 'nowrap', verticalAlign: 'top' }}>{reg.email}</Td>
+                        {/* 🔴 nowrap を外す（2026-09-24）。中の失敗理由を折り返させるため。
+                            幅は列側（width:300）で固定しているので広がらない。 */}
+                        <Td style={{ width: 300, minWidth: 300, verticalAlign: 'top' }}>
                           <EmailStatusCell reg={reg} onResent={fetchData} />
                         </Td>
-                        <Td>
+                        {/* 🔴 最小幅を与える（2026-09-24）。隣が広がったとき、この列が
+                            「第5回 KAMO ファ ン デ ィ」と1文字ずつ縦に潰れていた。 */}
+                        <Td style={{ minWidth: 170, verticalAlign: 'top' }}>
                           {(() => {
                             const ev = events.find(e => e.id === reg.event_id);
                             if (!ev) return <span style={{ color: '#999' }}>-</span>;
@@ -723,17 +735,17 @@ export default function AdminPage() {
                             );
                           })()}
                         </Td>
-                        <Td>{reg.company || '-'}</Td>
-                        <Td>{reg.referrer_source || '-'}</Td>
+                        <Td style={{ minWidth: 110, verticalAlign: 'top' }}>{reg.company || '-'}</Td>
+                        <Td style={{ minWidth: 90, verticalAlign: 'top' }}>{reg.referrer_source || '-'}</Td>
                         <Td style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
                           <UtmCell reg={reg} />
                         </Td>
-                        <Td style={{ maxWidth: 200, color: '#E60012', cursor: 'help' }}
+                        <Td style={{ minWidth: 180, maxWidth: 220, color: '#E60012', cursor: 'help', verticalAlign: 'top' }}
                           title={reg.challenge_description || ''}>
                           {reg.challenge_description ? reg.challenge_description.slice(0, 40) + '...' : '-'}
                         </Td>
-                        <Td>{reg.status}</Td>
-                        <Td>{new Date(reg.created_at).toLocaleString('ja-JP')}</Td>
+                        <Td style={{ whiteSpace: 'nowrap', verticalAlign: 'top' }}>{reg.status}</Td>
+                        <Td style={{ whiteSpace: 'nowrap', verticalAlign: 'top' }}>{new Date(reg.created_at).toLocaleString('ja-JP')}</Td>
                         <Td>
                           <button
                             onClick={() => handleDeleteRegistration(reg)}
@@ -1347,7 +1359,7 @@ function EmailStatusCell({ reg, onResent }: { reg: Registration; onResent: () =>
 
   if (status === 'failed') {
     return (
-      <span style={{ display: 'inline-block', fontSize: 12 }}>
+      <span style={{ display: 'block', fontSize: 12, width: 276, maxWidth: 276 }}>
         <span style={{ color: '#B8000E', fontWeight: 900, display: 'block' }}
           title={reg.confirmation_email_error || ''}>
           ⚠ 未着（送信失敗）
@@ -1360,10 +1372,14 @@ function EmailStatusCell({ reg, onResent }: { reg: Registration; onResent: () =>
             その場で判断できる。 */}
         {reg.confirmation_email_error && (
           <span style={{
-            display: 'block', marginTop: 3, color: '#8A1F26', fontSize: 11,
-            lineHeight: 1.4, maxWidth: 260, wordBreak: 'break-word',
+            display: 'block', marginTop: 4, padding: '6px 8px',
+            background: '#FFF1F2', border: '1px solid #F3C2C6', borderRadius: 4,
+            color: '#8A1F26', fontSize: 11, lineHeight: 1.5,
+            // 🔴 枠からはみ出さないための3点セット。
+            //   長い英語エラーは空白が少なく、overflowWrap が無いと1語として扱われて突き抜ける。
+            whiteSpace: 'normal', overflowWrap: 'anywhere', wordBreak: 'break-word',
           }}>
-            理由: {reg.confirmation_email_error}
+            {reg.confirmation_email_error}
           </span>
         )}
         {reg.confirmation_email_at && (
@@ -1375,13 +1391,15 @@ function EmailStatusCell({ reg, onResent }: { reg: Registration; onResent: () =>
             その場合だけ「宛先を直して送る」入力欄を出す（2026-09-24）。 */}
         {isBadAddress ? (
           <span style={{ display: 'block', marginTop: 4 }}>
+            {/* 入力欄とボタンは縦に積む。横並びだと列幅300pxに収まらず枠を突き抜ける。 */}
             <input
               type="email"
               value={fixedEmail}
               onChange={e => setFixedEmail(e.target.value)}
               placeholder="正しいメールアドレス"
               style={{
-                width: 200, padding: '4px 6px', fontSize: 11,
+                display: 'block', width: '100%', boxSizing: 'border-box',
+                padding: '5px 7px', fontSize: 12,
                 border: '1px solid #B8000E', borderRadius: 4,
               }}
             />
@@ -1389,7 +1407,8 @@ function EmailStatusCell({ reg, onResent }: { reg: Registration; onResent: () =>
               onClick={() => resend(fixedEmail.trim())}
               disabled={sending || !fixedEmail.trim()}
               style={{
-                marginLeft: 4, padding: '4px 10px', fontSize: 11, fontWeight: 700,
+                display: 'block', width: '100%', marginTop: 4,
+                padding: '6px 10px', fontSize: 12, fontWeight: 700,
                 borderRadius: 4, border: 'none',
                 cursor: sending || !fixedEmail.trim() ? 'not-allowed' : 'pointer',
                 background: sending || !fixedEmail.trim() ? '#ccc' : '#E60012', color: '#fff',
