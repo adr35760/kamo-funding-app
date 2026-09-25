@@ -145,6 +145,12 @@ export default function AIToolPage() {
   const [contact, setContact] = useState({
     email: '',
     phone: '',
+    /**
+     * 起案者住所（t iku指示 2026-09-25・必須）。
+     * 🔴 メール・電話と**同じ経路**に置く。個人の住所なので、
+     *   AIへの送信ペイロード・掲載用JSON・PDFには絶対に載せない。
+     */
+    address: '',
   });
 
   /**
@@ -198,9 +204,10 @@ export default function AIToolPage() {
     form.businessDescription &&
     form.creatorName &&
     form.goalAmount > 0 &&
-    // メールアドレス・電話番号は必須（事務局からの連絡手段）
+    // メールアドレス・電話番号・起案者住所は必須（事務局からの連絡・書類送付に使う）
     isValidEmail(contact.email) &&
-    contact.phone.trim().length > 0;
+    contact.phone.trim().length > 0 &&
+    contact.address.trim().length > 0;
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -780,6 +787,21 @@ export default function AIToolPage() {
                   style={inputStyle} placeholder="例: 株式会社〇〇 / 〇〇商店 / 山田 太郎" />
               </Field>
             </div>
+
+            {/* 🔴 起案者住所（t iku指示 2026-09-25・必須）。電話番号の下に置く。
+                住所は長いので1列ぶち抜きにする（2カラムだと折り返して読みにくい）。 */}
+            <div>
+              <Field label="起案者住所" required>
+                <input value={contact.address}
+                  onChange={e => updateContact('address', e.target.value)}
+                  style={inputStyle}
+                  placeholder="例: 〒900-0001 沖縄県那覇市〇〇1-2-3 〇〇マンション101"
+                  autoComplete="street-address" />
+                <p style={{ fontSize: 11, color: '#8A6D1F', margin: '4px 0 0' }}>
+                  KAMO事務局からのご連絡・書類送付用です。<strong>掲載用JSON・PDF・AI生成には使用しません</strong>。
+                </p>
+              </Field>
+            </div>
           </div>
 
           <button onClick={() => setStep(2)} disabled={!canProceedStep1}
@@ -823,6 +845,7 @@ export default function AIToolPage() {
             <ConfirmRow label="起案者名" value={form.creatorName} />
             <ConfirmRow label="メールアドレス" value={contact.email} />
             <ConfirmRow label="電話番号" value={contact.phone} />
+            <ConfirmRow label="起案者住所" value={contact.address} />
             <ConfirmRow label="プロジェクト実施名" value={form.projectEntityName} />
             {/* 口座は確認画面でもマスク表示（画面共有・スクショ事故を避ける） */}
             <ConfirmRow label="支援金振込口座" value={hasBankInput ? maskBank(bank) : ''} />

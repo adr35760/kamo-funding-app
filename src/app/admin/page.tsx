@@ -1132,6 +1132,27 @@ function AIGenerationsPanel() {
                 </div>
               )}
 
+              {/* 🔴 事務局提出用の連絡先（2026-09-25 に起案者住所を追加）。
+                  口座と同じく掲載物には出さない情報なので、同じ扱いで囲って表示する。 */}
+              {(detail.contact_email || detail.contact_phone || detail.contact_address) && (
+                <div style={{
+                  background: '#F3F7FF', border: '1px solid #C8D8F0', borderRadius: 8,
+                  padding: 16, marginBottom: 16, fontSize: 13,
+                }}>
+                  <div style={{ fontWeight: 'bold', marginBottom: 8 }}>事務局への連絡先</div>
+                  <div style={{ display: 'grid', gap: 4 }}>
+                    <div>メールアドレス: {detail.contact_email || '—'}</div>
+                    <div>電話番号: {detail.contact_phone || '—'}</div>
+                    <div style={{ whiteSpace: 'pre-wrap' }}>
+                      起案者住所: {detail.contact_address || '—'}
+                    </div>
+                  </div>
+                  <p style={{ color: '#3A5A8A', margin: '8px 0 0', fontSize: 12 }}>
+                    ※ この情報は掲載用JSON・PDFには含まれません（管理画面でのみ表示されます）。
+                  </p>
+                </div>
+              )}
+
               <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
                 <button onClick={copyDetailJSON} style={{
                   padding: '10px 18px', borderRadius: 6, border: 'none',
@@ -1285,6 +1306,11 @@ interface AIGenerationDetail extends AIGenerationRow {
   hearing_input: unknown;
   /** 詳細画面のみ全体を表示する */
   bank_account?: BankAccount | null;
+  /** 事務局提出用の連絡先。掲載用JSON・PDFには含まれない */
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  /** 起案者住所（2026-09-25 追加）。過去データには無いので null 許容 */
+  contact_address?: string | null;
 }
 
 /** UTC の ISO 文字列を日本時間の表記に変換する */
