@@ -1,0 +1,279 @@
+/**
+ * 業務管理システム（/work）のスタイル。
+ *
+ * 🔴 スマホ前提（想定はスマホ7割・PC3割）。
+ *   基本を375px幅で成立させ、広い画面では中央に寄せて最大幅で止める。
+ *   一覧から1タップで受領・完了できることが最優先要件なので、
+ *   ボタンは指で押せる高さ（44px以上）を確保する。
+ */
+
+.work-body {
+  margin: 0;
+  background: #f4f5f7;
+  color: #1a1a1a;
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+.work-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 12px 48px;
+}
+
+/* ---- ヘッダー ---- */
+.work-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #12284b;
+  color: #fff;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.work-header h1 {
+  font-size: 16px;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.work-header .work-who {
+  font-size: 12px;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+.work-header a,
+.work-header button {
+  color: #fff;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 0;
+  border-radius: 6px;
+  padding: 7px 10px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* ---- カード ---- */
+.work-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+.work-card h2 {
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+
+/* ---- タスク一覧（縦積み・1件1カード） ---- */
+.work-task {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 10px;
+  border-left: 5px solid #d9dde3;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+/* 期限切れ=赤、当日=黄（PRDの指定） */
+.work-task.is-overdue { border-left-color: #e02020; background: #fff6f6; }
+.work-task.is-today { border-left-color: #e6a700; background: #fffdf3; }
+
+.work-task-title {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 0 0 6px;
+  /* 長いタイトルでも折り返して読めるようにする（省略しない） */
+  overflow-wrap: anywhere;
+}
+.work-task-body {
+  font-size: 13px;
+  color: #444;
+  line-height: 1.6;
+  margin: 0 0 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.work-task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+.work-chip {
+  background: #eef1f5;
+  color: #445;
+  border-radius: 999px;
+  padding: 3px 9px;
+  white-space: nowrap;
+}
+.work-chip.due-overdue { background: #ffe3e3; color: #b81414; font-weight: 700; }
+.work-chip.due-today { background: #fff3cd; color: #8a6100; font-weight: 700; }
+.work-chip.pri-high { background: #ffe3e3; color: #b81414; font-weight: 700; }
+.work-chip.pri-low { background: #eaf6ea; color: #2b7a2b; }
+.work-chip.status { background: #e7edf7; color: #2a4a7a; }
+
+/* ---- 操作ボタン（一覧から直接押す） ---- */
+.work-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.work-btn {
+  /* 指で押せる高さを確保する */
+  min-height: 44px;
+  flex: 1 1 auto;
+  min-width: 120px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 10px 14px;
+}
+.work-btn:disabled { opacity: 0.55; cursor: wait; }
+.work-btn-accept { background: #2a4a7a; color: #fff; }
+.work-btn-done { background: #1f7a3d; color: #fff; }
+.work-btn-confirm { background: #8a4b00; color: #fff; }
+.work-btn-ghost { background: #eef1f5; color: #333; }
+
+.work-comment {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  border: 1px solid #d9dde3;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  margin-bottom: 8px;
+  font-family: inherit;
+}
+
+/* ---- 空・読み込み・エラー ---- */
+.work-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: #777;
+  font-size: 14px;
+  background: #fff;
+  border-radius: 10px;
+  margin-top: 12px;
+}
+.work-error {
+  background: #fdecea;
+  border: 1px solid #f5c6c6;
+  color: #b81414;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+.work-note {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.6;
+  margin: 8px 0 0;
+}
+
+/* ---- ログイン画面 ---- */
+.work-login-wrap {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 28px 14px 48px;
+}
+.work-name-btn {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  margin-top: 10px;
+  background: #fff;
+  border: 1px solid #d9dde3;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  cursor: pointer;
+  padding: 14px;
+  text-align: left;
+}
+.work-name-btn:hover { border-color: #2a4a7a; }
+.work-name-btn:disabled { opacity: 0.55; cursor: wait; }
+
+.work-devlink {
+  background: #fff8e1;
+  border: 1px solid #f0d58a;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 14px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.work-devlink a { color: #2a4a7a; font-weight: 700; }
+
+/* ---- 管理画面のフォーム ---- */
+.work-field { margin-bottom: 12px; }
+.work-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #445;
+  margin-bottom: 5px;
+}
+.work-field input,
+.work-field select,
+.work-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  border: 1px solid #d9dde3;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 15px; /* iOSで自動ズームしない下限 */
+  font-family: inherit;
+  background: #fff;
+}
+.work-field textarea { min-height: 88px; resize: vertical; }
+.work-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.work-row > * { flex: 1 1 140px; }
+
+.work-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.work-tab {
+  flex: 1 1 auto;
+  min-height: 42px;
+  border: 1px solid #d9dde3;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 10px;
+}
+.work-tab.is-active { background: #12284b; color: #fff; border-color: #12284b; }
+
+/* 管理画面の利用者テーブルは横スクロールで受ける */
+.work-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.work-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.work-table th,
+.work-table td {
+  padding: 9px 10px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  white-space: nowrap;
+}
+.work-table th { background: #f5f6f8; font-size: 12px; color: #556; }

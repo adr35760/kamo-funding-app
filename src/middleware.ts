@@ -5,6 +5,7 @@ import {
   isGoogleLoginConfigured,
   verifyAdminSession,
 } from '@/lib/admin-auth';
+import { WORK_SESSION_COOKIE, verifyWorkSession } from '@/lib/work-auth';
 
 /**
  * 管理画面・限定公開ツールの認証
@@ -39,6 +40,57 @@ export async function middleware(request: NextRequest) {
    */
   if (pathname === '/admin/login' || pathname.startsWith('/api/admin-auth/')) {
     return NextResponse.next();
+  }
+
+  /**
+   * 🔴 業務管理システム（/work）の認証（2026-09-27 追加・第1段）
+   *
+   * 既存の /admin（Basic認証 / Googleログイン）とは**別系統**。
+   * ログインはチャットワーク個人チャットに届くワンタイムリンクで、
+   * セッションは署名Cookie（work-auth.ts）。既存の認証には一切手を入れていない。
+   *
+   * ログインの入口だけは通す（ここを塞ぐと誰もログインできない）:
+   *   /work/login（名前を選ぶ画面）、/work/login/verify（リンクの着地点）
+   *   /api/work/login-request、/api/work/login-verify
+   *   /api/work/users?for=login（名前の選択肢。id と name だけ返す）
+   */
+  if (pathname === '/work/login' || pathname.startsWith('/work/login/')) {
+    return NextResponse.next();
+  }
+  if (pathname === '/api/work/login-request' || pathname === '/api/work/login-verify') {
+    return NextResponse.next();
+  }
+  if (pathname === '/api/work/users' && request.nextUrl.searchParams.get('for') === 'login') {
+    return NextResponse.next();
+  }
+
+  if (pathname === '/work' || pathname.startsWith('/work/') || pathname.startsWith('/api/work/')) {
+    const session = await verifyWorkSession(request.cookies.get(WORK_SESSION_COOKIE)?.value);
+    if (session) {
+      // /work/admin 配下と管理者専用APIは role でさらに絞る。
+      // （各APIでも requireWorkAdmin で二重に確認している）
+      if (pathname.startsWith('/work/admin') && session.role !== 'admin') {
+        const url = new URL('/work', request.nextUrl.origin);
+        const res = NextResponse.redirect(url);
+        res.headers.set('Cache-Control', 'no-store');
+        return res;
+      }
+      return NextResponse.next();
+    }
+    // 未ログイン: API は 401、画面はログインへ送る
+    if (pathname.startsWith('/api/')) {
+      return new NextResponse(
+        JSON.stringify({ success: false, error: 'ログインが必要です', login: '/work/login' }),
+        {
+          status: 401,
+          headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        }
+      );
+    }
+    const loginUrl = new URL('/work/login', request.nextUrl.origin);
+    const res = NextResponse.redirect(loginUrl);
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
   }
 
   /**
@@ -226,5 +278,10 @@ export const config = {
     // 使われていない内部API（個人情報の出口）。管理者のみに限定する
     '/api/referrals',
     '/api/partners/register',
+    // 🔴 業務管理システム。/work 配下と /api/work/* を**すべて**通す。
+    //   ログインの入口だけ middleware の先頭で素通しにしている（/admin と同じ考え方）。
+    '/work',
+    '/work/:path*',
+    '/api/work/:path*',
   ],
 };
