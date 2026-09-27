@@ -122,10 +122,24 @@ export async function POST(request: NextRequest) {
 
     return genericOk({ chatwork_configured: true });
   } catch (err) {
-    console.error('API /work/login-request error:', err);
+    /**
+     * 🔴 DBに触れないときは 503 を返す（2026-09-27）。
+     *   `getSupabaseAdmin()` は環境変数が無いとクエリ前に例外を投げる。
+     *   ここで「サーバーエラー」とだけ返すと、設定漏れなのか不具合なのか
+     *   運用側が切り分けられない。ログインは業務の入口なので、
+     *   **原因が分かる文言**にしておく（値そのものは出さない）。
+     */
+    const isConfigError =
+      err instanceof Error && /environment variables are not configured/i.test(err.message);
+    console.error('API /work/login-request error:', isConfigError ? 'supabase env not configured' : err);
     return NextResponse.json(
-      { success: false, error: 'サーバーエラーが発生しました' },
-      { status: 500, headers: { 'Cache-Control': 'no-store' } }
+      {
+        success: false,
+        error: isConfigError
+          ? 'ログインは現在利用できません（データベースの接続設定が未完了です）。管理者にお問い合わせください。'
+          : 'サーバーエラーが発生しました',
+      },
+      { status: isConfigError ? 503 : 500, headers: { 'Cache-Control': 'no-store' } }
     );
   }
 }

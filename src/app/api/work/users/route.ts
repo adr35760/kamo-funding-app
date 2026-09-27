@@ -17,26 +17,46 @@ import { requireWorkAdmin } from '@/lib/work-session';
 export async function GET(request: NextRequest) {
   const forLogin = request.nextUrl.searchParams.get('for') === 'login';
 
-  try {
-    const supabase = getSupabaseAdmin();
-
-    if (forLogin) {
+  /**
+   * 🔴 ログイン画面の選択肢は**何があっても500を返さない**（2026-09-27 修正）。
+   *
+   *   `getSupabaseAdmin()` は環境変数が無いと**クエリを投げる前に例外を投げる**ため、
+   *   下の `if (error)` の空配列フォールバックには到達せず、外側の catch で500になっていた。
+   *   ログイン画面が500で真っ白になると**誰も業務を始められない**ので、
+   *   取得できない理由（設定漏れ・SQL未実行・DB障害）を問わず空配列を返し、
+   *   画面には「利用者が登録されていません」と出す。原因はログに残す。
+   */
+  if (forLogin) {
+    const emptyList = () =>
+      NextResponse.json({ users: [] }, { headers: { 'Cache-Control': 'no-store' } });
+    try {
+      const supabase = getSupabaseAdmin();
       const { data, error } = await supabase
         .from('work_users')
         .select('id, name')
         .eq('is_active', true)
         .order('name');
       if (error) {
-        console.error('work/users login list error:', error.code);
-        return NextResponse.json({ users: [] }, { headers: { 'Cache-Control': 'no-store' } });
+        console.error('work/users login list error:', error.code, error.message);
+        return emptyList();
       }
-      return NextResponse.json({ users: data ?? [] }, { headers: { 'Cache-Control': 'no-store' } });
+      return NextResponse.json(
+        { users: data ?? [] },
+        { headers: { 'Cache-Control': 'no-store' } }
+      );
+    } catch (err) {
+      // 環境変数未設定など、クエリ以前の失敗もここで受ける
+      console.error('work/users login list failed before query:', err);
+      return emptyList();
     }
+  }
 
-    // ここから下は管理者のみ
+  // ここから下は管理者のみ（管理画面の利用者一覧）
+  try {
     const auth = await requireWorkAdmin(request);
     if ('response' in auth) return auth.response;
 
+    const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from('work_users')
       .select('id, name, role, chatwork_room_id, chatwork_account_id, email, is_active, created_at')
