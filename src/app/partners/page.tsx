@@ -1,16 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import SiteHeader from '@/components/SiteHeader';
 import '@/styles/kamo-icons.css';
 import '@/styles/partner-register.css';
 import LegalFooter from '@/components/LegalFooter';
+import { captureUtm, getUtmPayload } from '@/lib/utm';
 
 export default function PartnerRegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+
+  // 流入元（UTM）をURLから読み取り、登録送信まで保持する
+  // （スクロールや再描画で消えないよう sessionStorage に保存する）
+  useEffect(() => {
+    captureUtm();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,6 +26,8 @@ export default function PartnerRegisterPage() {
     const formData = new FormData(e.currentTarget);
     const data: Record<string, string> = {};
     formData.forEach((v, k) => { data[k] = v as string; });
+    // 流入元（UTM）を登録データに添付する。取れていなければ何も付かない（登録は必ず通す）
+    Object.assign(data, getUtmPayload());
     try {
       const res = await fetch('/api/register-partner', {
         method: 'POST',

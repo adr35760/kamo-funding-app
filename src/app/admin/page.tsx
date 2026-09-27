@@ -52,6 +52,10 @@ interface Partner {
   created_at: string;
   terms_agreed?: boolean | null;
   terms_agreed_at?: string | null;
+  // 流入元（UTM）。migration-utm-partners-2026-09-27.sql 未実行の間は undefined になる
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
 }
 
 interface Referral {
@@ -820,6 +824,13 @@ export default function AdminPage() {
                 </table>
               </div>
 
+              {/* 流入元の集計（申込一覧と同じ UtmSummary を再利用） */}
+              <UtmSummary
+                regs={partners}
+                unitLabel="登録"
+                noteSuffix="列が未追加の間（マイグレーション未実行）は全件「不明」になります。"
+              />
+
               {partners.length === 0 ? (
                 <div style={{
                   textAlign: 'center', padding: 40, color: '#999',
@@ -831,7 +842,7 @@ export default function AdminPage() {
               ) : (
                 // 列が多いので横スクロールで受ける（狭い画面でページ全体が横に広がるのを防ぐ）
                 <div style={{ overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
-                <table style={{ width: '100%', minWidth: 980, borderCollapse: 'collapse', fontSize: 13 }}>
+                <table style={{ width: '100%', minWidth: 1080, borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
                       <th style={{ padding: '10px 12px', fontSize: 12, color: '#666', width: 36 }}>
@@ -848,6 +859,7 @@ export default function AdminPage() {
                       <Th>組織</Th>
                       <Th>紹介コード</Th>
                       <Th>ステータス</Th>
+                      <Th>流入元</Th>
                       <Th>規約同意</Th>
                       <Th>登録日時</Th>
                       <Th>操作</Th>
@@ -871,6 +883,7 @@ export default function AdminPage() {
                           {partner.referral_code || '-'}
                         </Td>
                         <Td>{partner.status || '-'}</Td>
+                        <Td><UtmCell reg={partner} /></Td>
                         <Td>
                           {partner.terms_agreed ? (
                             <span style={{ color: '#27AE60', fontWeight: 700 }}>
@@ -1486,7 +1499,18 @@ function EmailStatusCell({ reg, onResent }: { reg: Registration; onResent: () =>
 }
 
 /** 一覧の「流入元」セル。source / medium / campaign を1列に収める */
-function UtmCell({ reg }: { reg: Registration }) {
+/**
+ * 流入元の1セル。申込（registrations）とパートナー（partners）の両方で使う。
+ * 🔴 どちらのテーブルも utm_source / utm_medium / utm_campaign の3列を持つので、
+ *   行の型ではなく「UTM3列を持つもの」を受け取る形にして共用する（作り直さない）。
+ */
+interface UtmBearing {
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
+}
+
+function UtmCell({ reg }: { reg: UtmBearing }) {
   const { utm_source: src, utm_medium: med, utm_campaign: camp } = reg;
   if (!src && !med && !camp) return <span style={{ color: '#999' }}>-</span>;
   return (
@@ -1505,7 +1529,13 @@ function UtmCell({ reg }: { reg: Registration }) {
  * 「Facebookの11/2の投稿が何人連れてきたか」を読むための表。
  * UTMが取れなかった申込は「不明」として最下段にまとめる。
  */
-function UtmSummary({ regs }: { regs: Registration[] }) {
+function UtmSummary({ regs, unitLabel = '申込', noteSuffix }: {
+  regs: UtmBearing[];
+  /** 「〜人数」「〜がありません」の語。パートナー一覧では「登録」にする */
+  unitLabel?: string;
+  /** 表の下の注記に足す文（テーブル固有の事情を書く） */
+  noteSuffix?: string;
+}) {
   if (regs.length === 0) return null;
 
   const map = new Map<string, { source: string; medium: string; campaign: string; count: number }>();
@@ -1532,15 +1562,15 @@ function UtmSummary({ regs }: { regs: Registration[] }) {
       padding: 16, marginBottom: 20,
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 }}>
-        <h3 style={{ fontSize: 15, margin: 0 }}>流入元ごとの申込人数</h3>
+        <h3 style={{ fontSize: 15, margin: 0 }}>流入元ごとの{unitLabel}人数</h3>
         <span style={{ fontSize: 12, color: '#666' }}>
-          計測できた申込 {tracked}件 ／ 不明 {unknown}件（全{regs.length}件）
+          計測できた{unitLabel} {tracked}件 ／ 不明 {unknown}件（全{regs.length}件）
         </span>
       </div>
 
       {rows.length === 0 ? (
         <p style={{ fontSize: 13, color: '#999', margin: '10px 0 0' }}>
-          まだ流入元付きの申込がありません（UTM付きURLからの申込で集計されます）。
+          まだ流入元付きの{unitLabel}がありません（UTM付きURLからの{unitLabel}で集計されます）。
         </p>
       ) : (
         <div style={{ overflowX: 'auto', marginTop: 10 }}>
@@ -1550,7 +1580,7 @@ function UtmSummary({ regs }: { regs: Registration[] }) {
                 <Th>流入元 (source)</Th>
                 <Th>種別 (medium)</Th>
                 <Th>投稿単位 (campaign)</Th>
-                <Th>申込人数</Th>
+                <Th>{unitLabel}人数</Th>
               </tr>
             </thead>
             <tbody>
@@ -1576,6 +1606,7 @@ function UtmSummary({ regs }: { regs: Registration[] }) {
       )}
       <p style={{ fontSize: 11, color: '#999', margin: '8px 0 0' }}>
         ※ 「参加経路」列（本人申告）とは別の集計です。SNSアプリ内ブラウザでURLの ? 以降が落ちた場合は「不明」になります。
+        {noteSuffix ? ` ${noteSuffix}` : ''}
       </p>
     </div>
   );

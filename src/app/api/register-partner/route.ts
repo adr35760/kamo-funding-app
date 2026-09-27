@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendPartnerConfirmationEmail } from '@/lib/email';
 import { parseEmail } from '@/lib/email-address';
+import { extractPartnerUtm, insertWithUtmFallback } from '@/lib/utm-server';
 
 /**
  * POST /api/register-partner
@@ -39,20 +40,22 @@ export async function POST(request: NextRequest) {
       referral_code: referralCode,
       status: 'active',
       network_description: body.network?.trim() || null,
-      message: body.source?.trim() || null,  // source → message (参加経路)
+      message: body.source?.trim() || null,  // source → message (参加経路・本人申告)
+      // 流入元（UTM）。上の本人申告の経路とは別物なので併存させる（片方に寄せない）。
+      // 列が未追加の環境では insertWithUtmFallback が UTM だけ落として登録を通す。
+      ...extractPartnerUtm(body),
     };
 
     let result;
     try {
       const supabase = getSupabaseAdmin();
-      const { data, error } = await supabase
-        .from('partners')
-        .insert(insertData)
-        .select('id, referral_code')
-        .single();
+      const { data, error } = await insertWithUtmFallback<{ id: string; referral_code: string }>(
+        insertData,
+        (d) => supabase.from('partners').insert(d).select('id, referral_code').single()
+      );
 
       if (error) {
-        if (error.code === '23505' && error.message.includes('email')) {
+        if (error.code === '23505' && (error.message || '').includes('email')) {
           return NextResponse.json(
             { success: false, error: 'このメールアドレスは既に登録済みです' },
             { status: 409 }
@@ -60,6 +63,8 @@ export async function POST(request: NextRequest) {
         }
         throw error;
       }
+      // data が null なら下の catch でモック応答に落ちる（登録フォームを500にしない）
+      if (!data) throw new Error('insert returned no row');
       result = data;
     } catch {
       result = { id: `mock-${Date.now()}`, referral_code: referralCode };

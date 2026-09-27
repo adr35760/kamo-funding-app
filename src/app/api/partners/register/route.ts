@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { sendPartnerConfirmationEmail, sendSupporterConfirmationEmail } from '@/lib/email';
 import { parseEmail } from '@/lib/email-address';
+import { extractPartnerUtm, insertWithUtmFallback } from '@/lib/utm-server';
 
 /**
  * POST /api/partners/register
@@ -53,6 +54,9 @@ export async function POST(request: NextRequest) {
       network_description: body.network_description?.trim() || null,
       supporter_motivation: body.supporter_motivation?.trim() || null,
       registered_event_id: body.registered_event_id || null,
+      // 流入元（UTM）。本人申告の経路とは別物なので併存させる。
+      // 列が未追加の環境では insertWithUtmFallback が UTM だけ落として登録を通す。
+      ...extractPartnerUtm(body),
     };
 
     if (partner_type === 'advisor') {
@@ -62,16 +66,15 @@ export async function POST(request: NextRequest) {
     let result;
     try {
       const supabase = getSupabaseAdmin();
-      const { data, error } = await supabase
-        .from('partners')
-        .insert(insertData)
-        .select('id, referral_code')
-        .single();
+      const { data, error } = await insertWithUtmFallback<{ id: string; referral_code: string }>(
+        insertData,
+        (d) => supabase.from('partners').insert(d).select('id, referral_code').single()
+      );
 
       if (error) {
         if (error.code === '23505') {
           // UNIQUE制約違反 — email重複または紹介コード重複
-          if (error.message.includes('email')) {
+          if ((error.message || '').includes('email')) {
             return NextResponse.json(
               { success: false, error: 'このメールアドレスは既に登録済みです' },
               { status: 409 }
@@ -85,6 +88,8 @@ export async function POST(request: NextRequest) {
         }
         throw error;
       }
+      // data が null なら下の catch でモック応答に落ちる（登録フォームを500にしない）
+      if (!data) throw new Error('insert returned no row');
       result = data;
     } catch {
       // Supabase未接続 — モック応答
