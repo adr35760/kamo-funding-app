@@ -43,10 +43,19 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseAdmin();
 
     // ---- 1. 定例業務の生成 ----
-    const { data: recurrences } = await supabase
+    const { data: recurrences, error: recError } = await supabase
       .from('work_task_recurrences')
       .select('*')
       .eq('is_active', true);
+
+    /**
+     * 🔴 定例の定義が読めない（第2段SQL未実行）なら生成をあきらめる。
+     *   ここは空扱いでも誤通知にはならないが、原因が分かるようログに残す。
+     */
+    if (recError) {
+      console.error('work/cron/daily: 定例定義を読めない:', recError.code, recError.message);
+      result.skipped.push(`recurrences(${recError.code})`);
+    }
 
     for (const r of recurrences ?? []) {
       if (!shouldGenerate(r, today)) continue;
@@ -69,10 +78,24 @@ export async function GET(request: NextRequest) {
     }
 
     // ---- 2〜4. 期限の通知 ----
-    const { data: openTasks } = await supabase
+    const { data: openTasks, error: taskError } = await supabase
       .from('work_tasks')
       .select('id, title, due_date, assignee_id, status')
       .in('status', ['unaccepted', 'in_progress']);
+
+    /**
+     * 🔴 タスクが読めなかったら期限の通知は出さない。
+     *   空扱いにすると「期限切れ0件」と同じ見え方になり、
+     *   本当は遅延があるのに通知されない（見逃しのほうが危険）ので、
+     *   黙って0件通知するのではなく**読めなかった事実を返す**。
+     */
+    if (taskError) {
+      console.error('work/cron/daily: タスクを読めないため期限通知を行わない:', taskError.code);
+      return NextResponse.json(
+        { ok: true, ...result, skipped: [...result.skipped, `tasks(${taskError.code})`] },
+        { headers: { 'Cache-Control': 'no-store' } }
+      );
+    }
 
     const { data: users } = await supabase.from('work_users').select('id, name');
     const nameOf = (id: string | null) =>

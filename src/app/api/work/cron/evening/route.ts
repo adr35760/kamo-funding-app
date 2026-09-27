@@ -35,6 +35,40 @@ export async function GET(request: NextRequest) {
       supabase.from('work_reports').select('user_id, submitted_at').eq('report_date', today),
     ]);
 
+    /**
+     * 🔴 提出状況が**読めなかったときは通知しない**（2026-09-27 追加）。
+     *
+     *   `work_reports` が存在しない（第2段SQL未実行）と reportsRes.error に
+     *   PGRST205 が入り、data は null になる。これを `?? []` で空扱いすると
+     *   「全員未提出」と判定され、**事実と違う「未提出3名」の督促がグループに飛ぶ**。
+     *   セットアップ手順ではトークン設定がSQL実行より先に来ることがあり得るので、
+     *   実際に起こる。督促は人に対する通知なので、誤報は信頼を落とす。
+     *   → 読めなかったら黙って終わる（通知しないほうが安全側）。
+     */
+    if (reportsRes.error) {
+      console.error(
+        'work/cron/evening: 提出状況が読めないため通知しない:',
+        reportsRes.error.code,
+        reportsRes.error.message
+      );
+      return NextResponse.json(
+        {
+          ok: true,
+          date: today,
+          skipped: '日報テーブルを読めないため通知しない（マイグレーション未実行の可能性）',
+          error_code: reportsRes.error.code,
+        },
+        { headers: { 'Cache-Control': 'no-store' } }
+      );
+    }
+    if (usersRes.error) {
+      console.error('work/cron/evening: 利用者が読めないため通知しない:', usersRes.error.code);
+      return NextResponse.json(
+        { ok: true, date: today, skipped: '利用者を読めないため通知しない', error_code: usersRes.error.code },
+        { headers: { 'Cache-Control': 'no-store' } }
+      );
+    }
+
     const members = (usersRes.data ?? []).filter(u => u.is_active && u.role === 'member');
     const submitted = new Set(
       (reportsRes.data ?? []).filter(r => r.submitted_at).map(r => r.user_id)
