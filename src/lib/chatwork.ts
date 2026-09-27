@@ -98,7 +98,13 @@ export interface ChatworkRoom {
 
 export type ChatworkRoomsResult =
   | { ok: true; rooms: ChatworkRoom[] }
-  | { ok: false; reason: 'not_configured' | 'api_error'; error?: string };
+  | {
+      ok: false;
+      reason: 'not_configured' | 'api_error';
+      error?: string;
+      /** 🔴 HTTPステータスを残す。401=トークン不正 / 403=権限不足 を画面が名指しするため */
+      status?: number;
+    };
 
 export async function listChatworkRooms(): Promise<ChatworkRoomsResult> {
   const token = normalize(process.env.CHATWORK_API_TOKEN);
@@ -112,7 +118,7 @@ export async function listChatworkRooms(): Promise<ChatworkRoomsResult> {
     });
     if (!res.ok) {
       const text = (await res.text().catch(() => '')).slice(0, 200);
-      return { ok: false, reason: 'api_error', error: `status=${res.status} ${text}` };
+      return { ok: false, reason: 'api_error', error: text, status: res.status };
     }
     const data = (await res.json().catch(() => null)) as ChatworkRoom[] | null;
     if (!Array.isArray(data)) return { ok: false, reason: 'api_error', error: 'unexpected response' };
@@ -138,4 +144,29 @@ export function buildGroupNotice(toName: string | null, lines: string[]): string
   const head = toName ? `[${toName}さん] ` : '';
   const [first, ...rest] = lines;
   return [`${head}${first ?? ''}`, ...rest].join('\n');
+}
+
+/**
+ * 貼り付けられた値から Chatwork の room_id（数字）を取り出す。
+ *
+ * 🔴 エラーで弾くより受け取って正規化する。実際に貼られる形:
+ *   "123456789" / " 123456789 " / "#!rid123456789"
+ *   "https://www.chatwork.com/#!rid123456789"
+ *   "https://www.chatwork.com/#!rid123456789-987654321"（メッセージ個別リンク）
+ * 数字が取れなければ null。
+ */
+export function parseChatworkRoomId(raw: unknown): string | null {
+  if (raw === null || raw === undefined) return null;
+  let s = String(raw).replace(/[\u3000]/g, ' ').trim();
+  if (!s) return null;
+  // 全角数字を半角に（t iku の入力傾向を考慮）
+  s = s.replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xfee0));
+  // rid の直後の数字を優先して拾う（"#!rid123-456" の 123 を取る）
+  const rid = s.match(/rid(\d+)/i);
+  if (rid) return rid[1];
+  // 数字だけの塊を拾う
+  const digits = s.match(/\d+/);
+  if (digits && /^[\s\d]+$/.test(s)) return digits[0];
+  if (digits && s.replace(/\D/g, '') === digits[0]) return digits[0];
+  return null;
 }

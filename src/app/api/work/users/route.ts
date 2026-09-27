@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { requireWorkAdmin, requireWorkAdminOrSiteAdmin } from '@/lib/work-session';
+import { parseChatworkRoomId } from '@/lib/chatwork';
 
 /**
  * GET /api/work/users — 利用者一覧
@@ -103,11 +104,22 @@ export async function PATCH(request: NextRequest) {
 
     const patch: Record<string, unknown> = {};
     if ('chatwork_room_id' in body) {
-      const room = normalizeOrNull(body.chatwork_room_id);
-      // Chatwork の room_id は数字のみ。誤入力（URLごと貼る等）を弾く
-      if (room !== null && !/^\d+$/.test(room)) {
+      /**
+       * 🔴 エラーで弾くより**受け取って正規化する**（2026-09-27）。
+       *   URLごと貼られる（`#!rid123` / `https://www.chatwork.com/#!rid123`）ことは
+       *   十分あり得る。弾くと運用が止まるだけで、誰の得にもならない。
+       *   数字が取れないときだけ、貼り方の例を示して返す。
+       */
+      const raw = body.chatwork_room_id;
+      const isEmpty = raw === null || raw === undefined || String(raw).trim() === '';
+      const room = isEmpty ? null : parseChatworkRoomId(raw);
+      if (!isEmpty && room === null) {
         return NextResponse.json(
-          { success: false, error: 'ルームIDは数字で入力してください（URL末尾 #!rid●●●● の数字部分）' },
+          {
+            success: false,
+            error:
+              'ルームIDを読み取れませんでした。個人チャットを開いたときのURL（https://www.chatwork.com/#!rid123456789）をそのまま貼るか、末尾の数字だけを入力してください。',
+          },
           { status: 400 }
         );
       }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { requireWorkAdminOrSiteAdmin } from '@/lib/work-session';
-import { isChatworkConfigured } from '@/lib/chatwork';
+import { isChatworkConfigured, parseChatworkRoomId } from '@/lib/chatwork';
 
 /**
  * GET   /api/work/settings — 設定と4名のroom_id登録状況
@@ -60,12 +60,16 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
     const raw = body?.group_room_id;
-    const value = raw === null || raw === undefined ? null : String(raw).trim() || null;
-
-    // room_id は数字のみ（Chatworkの仕様）。誤入力を弾く
-    if (value !== null && !/^\d+$/.test(value)) {
+    const isEmpty = raw === null || raw === undefined || String(raw).trim() === '';
+    // 🔴 URLごと貼られても受け取る（users PATCH と同じ方針）
+    const value = isEmpty ? null : parseChatworkRoomId(raw);
+    if (!isEmpty && value === null) {
       return NextResponse.json(
-        { success: false, error: 'ルームIDは数字で入力してください（URL末尾 #!rid●●●● の数字部分）' },
+        {
+          success: false,
+          error:
+            'ルームIDを読み取れませんでした。グループを開いたときのURL（https://www.chatwork.com/#!rid123456789）をそのまま貼るか、末尾の数字だけを入力してください。',
+        },
         { status: 400 }
       );
     }
@@ -77,7 +81,23 @@ export async function PATCH(request: NextRequest) {
 
     if (error) {
       console.error('work/settings PATCH error:', error.code, error.message);
-      return NextResponse.json({ success: false, error: '保存に失敗しました' }, { status: 500 });
+      /**
+       * 🔴 原因を名指しする（2026-09-27）。
+       *   第2段のマイグレーション未実行だと work_settings が無く PGRST205 になる。
+       *   「保存に失敗しました」だけだと、t iku さんは何をすればよいか分からない。
+       */
+      const missingTable = error.code === 'PGRST205' || error.code === '42P01';
+      return NextResponse.json(
+        {
+          success: false,
+          error: missingTable
+            ? '通知グループの保存先テーブルがまだありません。第2段のマイグレーションSQL（migration-work-sprint2-...）を実行してください。個人チャットの登録は先に進められます。'
+            : '保存に失敗しました',
+          reason: missingTable ? 'migration_required' : 'db_error',
+          code: error.code ?? null,
+        },
+        { status: missingTable ? 409 : 500 }
+      );
     }
     return NextResponse.json({ success: true, group_room_id: value }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (err) {
