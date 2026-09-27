@@ -88,7 +88,9 @@ export default function SupporterRegisterPage() {
         </div>
       </section>
 
-      <section className="form-section">
+      {/* id="apply": 短縮URL /apply/supporter の着地点（src/app/apply/[slug]/route.ts）。
+          付けないと #apply がページ先頭に着地して登録フォームまでスクロールされない。 */}
+      <section className="form-section" id="apply">
         <div className="container">
           <div className="form-card">
             <h2>サポーター<span className="gold">登録</span></h2>

@@ -8,6 +8,9 @@ import { NextRequest, NextResponse } from 'next/server';
  *   /apply/briefing        → /seminar-info#apply（掲載説明会）
  *   /apply/online-seminar  → /ai-seminar#apply（オンラインセミナー）
  *   /apply/real-event      → /real-seminar#apply（リアルセミナー＆交流会）
+ *   /apply/award           → /award#apply（アワード）
+ *   /apply/partner         → /partners#register（パートナー登録）
+ *   /apply/supporter       → /supporters#apply（サポーター登録）
  *
  * 重要な仕様:
  *  - 🔴 **クエリ文字列を丸ごと引き継ぐ**。UTM（?utm_source=...）が消えると計測の意味が無い。
@@ -22,6 +25,11 @@ const DESTINATIONS: Record<string, string> = {
   briefing: '/seminar-info#apply',
   'online-seminar': '/ai-seminar#apply',
   'real-event': '/real-seminar#apply',
+  // 🔴 2026-09-27 追加。未登録の間は FALLBACK（掲載説明会）へ落ちていたため、
+  //   例えば /apply/award がアワードではなく掲載説明会に転送される誤誘導が起きていた。
+  award: '/award#apply',
+  partner: '/partners#register',
+  supporter: '/supporters#apply',
 };
 
 /** 未知の slug の落とし先 */
