@@ -32,6 +32,19 @@ export async function GET(request: NextRequest) {
         .eq('report_date', today),
     ]);
 
+    /**
+     * 🔴 読めなかった集計を「0件」として出さない（2026-09-27 追加）。
+     *
+     *   ダッシュボードは t iku が**数字を見て判断する画面**なので、
+     *   `data ?? []` のまま集計すると、テーブル欠落やDB障害が
+     *   「遅延0件・未提出0名」という**断定**になって表示される。
+     *   件数が0なのか読めなかったのかを画面が区別できるよう、
+     *   読めなかった区分は null にして「—」を出させる。
+     *   （cron の誤督促と同じ型の問題。あちらは通知、ここは表示。）
+     */
+    const tasksReadable = !tasksRes.error;
+    const reportsReadable = !reportsRes.error;
+
     const tasks = tasksRes.data ?? [];
     const users = (usersRes.data ?? []).filter(u => u.is_active);
     const reports = reportsRes.data ?? [];
@@ -49,14 +62,17 @@ export async function GET(request: NextRequest) {
     const isOverdue = (t: { status: string; due_date: string | null }) =>
       isOpen(t.status) && !!t.due_date && t.due_date < today;
 
-    const summary = {
-      unaccepted: tasks.filter(t => t.status === 'unaccepted').length,
-      in_progress: tasks.filter(t => t.status === 'in_progress').length,
-      overdue: tasks.filter(isOverdue).length,
-      done_today: tasks.filter(doneToday).length,
-      // 完了しているが admin が確認していないもの（バッジ用）
-      unconfirmed: tasks.filter(t => t.status === 'done').length,
-    };
+    // 読めていないときは null（画面は「—」を出す）。0 と混同させない
+    const summary = tasksReadable
+      ? {
+          unaccepted: tasks.filter(t => t.status === 'unaccepted').length,
+          in_progress: tasks.filter(t => t.status === 'in_progress').length,
+          overdue: tasks.filter(isOverdue).length,
+          done_today: tasks.filter(doneToday).length,
+          // 完了しているが admin が確認していないもの（バッジ用）
+          unconfirmed: tasks.filter(t => t.status === 'done').length,
+        }
+      : null;
 
     const perUser = users.map(u => {
       const mine = tasks.filter(t => t.assignee_id === u.id);
@@ -68,7 +84,8 @@ export async function GET(request: NextRequest) {
         open: mine.filter(t => isOpen(t.status)).length,
         overdue: mine.filter(isOverdue).length,
         done_today: mine.filter(doneToday).length,
-        report_submitted: !!report?.submitted_at,
+        // 日報が読めていないなら「未提出」と断定しない
+        report_submitted: reportsReadable ? !!report?.submitted_at : null,
       };
     });
 
@@ -86,11 +103,17 @@ export async function GET(request: NextRequest) {
         user_name: users.find(u => u.id === r.user_id)?.name ?? '不明',
       }));
 
-    // 日報を出していないメンバー（21:00リマインドの対象と同じ判定）
-    const notSubmitted = users
-      .filter(u => u.role === 'member')
-      .filter(u => !reports.find(r => r.user_id === u.id && r.submitted_at))
-      .map(u => ({ id: u.id, name: u.name }));
+    /**
+     * 日報を出していないメンバー（21:00リマインドと同じ判定）。
+     * 🔴 読めていないときは空配列ではなく null を返す。
+     *   空配列だと「未提出者なし＝全員提出済み」に見えてしまう。
+     */
+    const notSubmitted = reportsReadable
+      ? users
+          .filter(u => u.role === 'member')
+          .filter(u => !reports.find(r => r.user_id === u.id && r.submitted_at))
+          .map(u => ({ id: u.id, name: u.name }))
+      : null;
 
     return NextResponse.json(
       {
@@ -98,8 +121,10 @@ export async function GET(request: NextRequest) {
         date: today,
         summary,
         per_user: perUser,
-        today_reports: todayReports,
+        today_reports: reportsReadable ? todayReports : null,
         report_not_submitted: notSubmitted,
+        // 画面が「0件」と「読めなかった」を区別するための旗
+        readable: { tasks: tasksReadable, reports: reportsReadable },
         // マイグレーション未実行などは画面に出して原因が分かるようにする
         errors: {
           tasks: tasksRes.error?.code ?? null,

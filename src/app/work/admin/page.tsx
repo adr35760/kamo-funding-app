@@ -29,13 +29,15 @@ interface Category {
 
 interface Dashboard {
   date: string;
+  // 🔴 null = 読めなかった（0件ではない）。画面は「—」を出す
   summary: {
     unaccepted: number;
     in_progress: number;
     overdue: number;
     done_today: number;
     unconfirmed: number;
-  };
+  } | null;
+  readable?: { tasks: boolean; reports: boolean };
   per_user: Array<{
     id: string;
     name: string;
@@ -43,7 +45,7 @@ interface Dashboard {
     open: number;
     overdue: number;
     done_today: number;
-    report_submitted: boolean;
+    report_submitted: boolean | null;
   }>;
   today_reports: Array<{
     id: string;
@@ -53,8 +55,8 @@ interface Dashboard {
     comment: string | null;
     blockers: string | null;
     tomorrow: string | null;
-  }>;
-  report_not_submitted: Array<{ id: string; name: string }>;
+  }> | null;
+  report_not_submitted: Array<{ id: string; name: string }> | null;
 }
 
 export default function WorkAdminPage() {
@@ -228,17 +230,25 @@ export default function WorkAdminPage() {
         {dash ? (
           <div className="work-card">
             <h2>今日の状況（{dash.date}）</h2>
-            <div className="work-stats">
-              <Stat label="未受領" value={dash.summary.unaccepted} />
-              <Stat label="対応中" value={dash.summary.in_progress} />
-              <Stat label="遅延" value={dash.summary.overdue} danger={dash.summary.overdue > 0} />
-              <Stat label="本日完了" value={dash.summary.done_today} good />
-              <Stat
-                label="未確認の完了"
-                value={dash.summary.unconfirmed}
-                warn={dash.summary.unconfirmed > 0}
-              />
-            </div>
+            {dash.summary ? (
+              <div className="work-stats">
+                <Stat label="未受領" value={dash.summary.unaccepted} />
+                <Stat label="対応中" value={dash.summary.in_progress} />
+                <Stat label="遅延" value={dash.summary.overdue} danger={dash.summary.overdue > 0} />
+                <Stat label="本日完了" value={dash.summary.done_today} good />
+                <Stat
+                  label="未確認の完了"
+                  value={dash.summary.unconfirmed}
+                  warn={dash.summary.unconfirmed > 0}
+                />
+              </div>
+            ) : (
+              /* 🔴 0件と読めなかったことを区別する。数字を出さない */
+              <div className="work-error">
+                タスクの集計を取得できませんでした。件数は表示していません（0件ではありません）。
+                マイグレーションが未実行か、データベースに接続できていない可能性があります。
+              </div>
+            )}
 
             <h2 style={{ marginTop: 18 }}>人別の状況</h2>
             <div className="work-scroll">
@@ -262,7 +272,7 @@ export default function WorkAdminPage() {
                       </td>
                       <td>{u.done_today}</td>
                       <td>
-                        {u.role === 'admin' ? (
+                        {u.role === 'admin' || u.report_submitted === null ? (
                           <span style={{ color: '#999' }}>—</span>
                         ) : u.report_submitted ? (
                           <span style={{ color: '#1f7a3d', fontWeight: 700 }}>提出済</span>
@@ -277,13 +287,21 @@ export default function WorkAdminPage() {
             </div>
 
             <h2 style={{ marginTop: 18 }}>
-              今日の日報（{dash.today_reports.length}件
-              {dash.report_not_submitted.length > 0
-                ? ` / 未提出 ${dash.report_not_submitted.length}名`
+              今日の日報
+              {dash.today_reports
+                ? `（${dash.today_reports.length}件${
+                    dash.report_not_submitted && dash.report_not_submitted.length > 0
+                      ? ` / 未提出 ${dash.report_not_submitted.length}名`
+                      : ''
+                  }）`
                 : ''}
-              ）
             </h2>
-            {dash.today_reports.length === 0 ? (
+            {!dash.today_reports ? (
+              <p className="work-note">
+                日報を取得できませんでした（0件ではありません）。第2段のマイグレーションが
+                未実行の可能性があります。
+              </p>
+            ) : dash.today_reports.length === 0 ? (
               <p className="work-note">まだ提出がありません。</p>
             ) : (
               dash.today_reports.map(r => (
