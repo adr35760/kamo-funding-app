@@ -82,3 +82,60 @@ function normalize(value: string | undefined): string {
   }
   return v;
 }
+
+/**
+ * 業務Botから見えるルームの一覧（Chatwork API `GET /rooms`）。
+ *
+ * 🔴 ルームID登録UIのためにある。t iku に `#!rid●●●●` の数字を
+ *   手で探させると必ず詰まるので、名前つきの候補を出して選ばせる。
+ */
+export interface ChatworkRoom {
+  room_id: number;
+  name: string;
+  /** 'my' | 'direct' | 'group' */
+  type: string;
+}
+
+export type ChatworkRoomsResult =
+  | { ok: true; rooms: ChatworkRoom[] }
+  | { ok: false; reason: 'not_configured' | 'api_error'; error?: string };
+
+export async function listChatworkRooms(): Promise<ChatworkRoomsResult> {
+  const token = normalize(process.env.CHATWORK_API_TOKEN);
+  if (!token) return { ok: false, reason: 'not_configured' };
+
+  try {
+    const res = await fetch(`${CHATWORK_API_BASE}/rooms`, {
+      method: 'GET',
+      headers: { 'X-ChatWorkToken': token },
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      const text = (await res.text().catch(() => '')).slice(0, 200);
+      return { ok: false, reason: 'api_error', error: `status=${res.status} ${text}` };
+    }
+    const data = (await res.json().catch(() => null)) as ChatworkRoom[] | null;
+    if (!Array.isArray(data)) return { ok: false, reason: 'api_error', error: 'unexpected response' };
+    return {
+      ok: true,
+      rooms: data.map(r => ({
+        room_id: Number(r.room_id),
+        name: String(r.name ?? ''),
+        type: String(r.type ?? ''),
+      })),
+    };
+  } catch (e) {
+    return { ok: false, reason: 'api_error', error: e instanceof Error ? e.message : 'unknown' };
+  }
+}
+
+/**
+ * 業務通知の本文。
+ * 🔴 通知用グループに1本送る形なので、**誰宛かを先頭に必ず付ける**
+ *   （全員が見るグループなので、宛名が無いと自分宛か判断できない）。
+ */
+export function buildGroupNotice(toName: string | null, lines: string[]): string {
+  const head = toName ? `[${toName}さん] ` : '';
+  const [first, ...rest] = lines;
+  return [`${head}${first ?? ''}`, ...rest].join('\n');
+}

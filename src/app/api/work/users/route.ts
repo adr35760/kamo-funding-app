@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
-import { requireWorkAdmin } from '@/lib/work-session';
+import { requireWorkAdmin, requireWorkAdminOrSiteAdmin } from '@/lib/work-session';
 
 /**
  * GET /api/work/users — 利用者一覧
@@ -87,7 +87,11 @@ export async function GET(request: NextRequest) {
  * 🔴 通知用グループのIDを入れてはいけない（なりすまし防止）。画面側にも注意を出している。
  */
 export async function PATCH(request: NextRequest) {
-  const auth = await requireWorkAdmin(request);
+  /**
+   * 🔴 初回設定のため、既存サイト管理者でも通す（work-session.ts の鶏と卵の説明）。
+   *   room_id が未登録だと誰も /work にログインできず、この画面にも入れない。
+   */
+  const auth = await requireWorkAdminOrSiteAdmin(request);
   if ('response' in auth) return auth.response;
 
   try {
@@ -98,7 +102,17 @@ export async function PATCH(request: NextRequest) {
     }
 
     const patch: Record<string, unknown> = {};
-    if ('chatwork_room_id' in body) patch.chatwork_room_id = normalizeOrNull(body.chatwork_room_id);
+    if ('chatwork_room_id' in body) {
+      const room = normalizeOrNull(body.chatwork_room_id);
+      // Chatwork の room_id は数字のみ。誤入力（URLごと貼る等）を弾く
+      if (room !== null && !/^\d+$/.test(room)) {
+        return NextResponse.json(
+          { success: false, error: 'ルームIDは数字で入力してください（URL末尾 #!rid●●●● の数字部分）' },
+          { status: 400 }
+        );
+      }
+      patch.chatwork_room_id = room;
+    }
     if ('chatwork_account_id' in body) patch.chatwork_account_id = normalizeOrNull(body.chatwork_account_id);
     if ('email' in body) patch.email = normalizeOrNull(body.email);
     if ('is_active' in body) patch.is_active = !!body.is_active;

@@ -63,6 +63,28 @@ export async function middleware(request: NextRequest) {
   if (pathname === '/api/work/users' && request.nextUrl.searchParams.get('for') === 'login') {
     return NextResponse.next();
   }
+  /**
+   * 🔴 Cron は Cookie を持たないので、セッション検証にかけると必ず落ちる。
+   *   既存 `/api/cron/*` と同じく `CRON_SECRET`（Authorization ヘッダ）で
+   *   各ルート自身が認証する。ここは素通しにするが**無認証ではない**。
+   */
+  if (pathname.startsWith('/api/work/cron/')) {
+    return NextResponse.next();
+  }
+  /**
+   * 🔴 初回設定の画面・API は既存サイト管理者でも通す必要がある（鶏と卵）。
+   *   room_id が未登録だと誰も /work にログインできないため、
+   *   ここを work セッション必須にすると永久に設定できない。
+   *   認証は各API内の `requireWorkAdminOrSiteAdmin` が行う（素通しではない）。
+   */
+  if (
+    pathname === '/work/setup' ||
+    pathname === '/api/work/settings' ||
+    pathname === '/api/work/chatwork-rooms' ||
+    (pathname === '/api/work/users' && request.method === 'PATCH')
+  ) {
+    return NextResponse.next();
+  }
 
   if (pathname === '/work' || pathname.startsWith('/work/') || pathname.startsWith('/api/work/')) {
     const session = await verifyWorkSession(request.cookies.get(WORK_SESSION_COOKIE)?.value);

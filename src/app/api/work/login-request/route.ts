@@ -109,14 +109,20 @@ export async function POST(request: NextRequest) {
     if (!sent.ok) {
       // room_id 未登録は運用上よく起きるので、管理者が原因を分かる形で返す。
       // 🔴 ただしURLは返さない（送信できていないので、ここで返すと経路を迂回してしまう）
-      const reason =
-        sent.reason === 'no_room'
-          ? 'あなたのチャットワーク個人チャットが未登録です。管理者に設定を依頼してください。'
-          : 'チャットワークへの送信に失敗しました。管理者にお問い合わせください。';
+      /**
+       * 🔴 ステータスの切り分け（2026-09-27 修正）:
+       *   - room_id 未登録は**設定が足りていない**状態で、上流の障害ではない → 409
+       *     （502だと「Chatworkが落ちている」と読めてしまい、運用側の調査が空振りする）
+       *   - Chatwork API 自体の失敗は上流障害 → 502 のまま
+       */
+      const isNoRoom = sent.reason === 'no_room';
+      const reason = isNoRoom
+        ? 'あなたのチャットワーク個人チャットが未登録です。管理者に設定を依頼してください。'
+        : 'チャットワークへの送信に失敗しました。管理者にお問い合わせください。';
       console.error('work/login-request chatwork send failed:', sent.reason, sent.error ?? '');
       return NextResponse.json(
-        { success: false, error: reason },
-        { status: 502, headers: { 'Cache-Control': 'no-store' } }
+        { success: false, error: reason, reason: sent.reason },
+        { status: isNoRoom ? 409 : 502, headers: { 'Cache-Control': 'no-store' } }
       );
     }
 

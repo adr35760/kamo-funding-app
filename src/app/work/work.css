@@ -277,3 +277,30 @@
   white-space: nowrap;
 }
 .work-table th { background: #f5f6f8; font-size: 12px; color: #556; }
+
+/* ---- ダッシュボードの数値（スマホで2列、広い画面で並ぶ）---- */
+.work-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.work-stat {
+  flex: 1 1 88px;
+  background: #f7f8fa;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.work-stat-label {
+  font-size: 11px;
+  color: #667;
+  white-space: nowrap;
+}
+.work-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}

@@ -27,6 +27,36 @@ interface Category {
   name: string;
 }
 
+interface Dashboard {
+  date: string;
+  summary: {
+    unaccepted: number;
+    in_progress: number;
+    overdue: number;
+    done_today: number;
+    unconfirmed: number;
+  };
+  per_user: Array<{
+    id: string;
+    name: string;
+    role: string;
+    open: number;
+    overdue: number;
+    done_today: number;
+    report_submitted: boolean;
+  }>;
+  today_reports: Array<{
+    id: string;
+    user_name: string;
+    submitted_at: string | null;
+    read_at: string | null;
+    comment: string | null;
+    blockers: string | null;
+    tomorrow: string | null;
+  }>;
+  report_not_submitted: Array<{ id: string; name: string }>;
+}
+
 export default function WorkAdminPage() {
   const [me, setMe] = useState<{ id: string; name: string; role: string } | null>(null);
   const [users, setUsers] = useState<WorkUser[]>([]);
@@ -37,6 +67,7 @@ export default function WorkAdminPage() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [creating, setCreating] = useState(false);
+  const [dash, setDash] = useState<Dashboard | null>(null);
   const todayIso = tokyoTodayIso();
 
   // 新規タスクのフォーム
@@ -53,11 +84,12 @@ export default function WorkAdminPage() {
   const load = useCallback(async (nextScope: typeof scope) => {
     setError('');
     try {
-      const [meRes, userRes, catRes, taskRes] = await Promise.all([
+      const [meRes, userRes, catRes, taskRes, dashRes] = await Promise.all([
         fetch('/api/work/me', { cache: 'no-store' }),
         fetch('/api/work/users', { cache: 'no-store' }),
         fetch('/api/work/categories', { cache: 'no-store' }),
         fetch(`/api/work/tasks?scope=${nextScope}`, { cache: 'no-store' }),
+        fetch('/api/work/dashboard', { cache: 'no-store' }),
       ]);
 
       if (meRes.status === 401) {
@@ -75,6 +107,9 @@ export default function WorkAdminPage() {
       if (Array.isArray(catData.categories)) setCategories(catData.categories);
       if (taskData.success) setTasks(Array.isArray(taskData.tasks) ? taskData.tasks : []);
       else if (taskData.error) setError(taskData.error);
+
+      const dashData = await dashRes.json().catch(() => ({}));
+      if (dashData.success) setDash(dashData);
     } catch {
       setError('通信に失敗しました。');
     } finally {
@@ -102,7 +137,12 @@ export default function WorkAdminPage() {
         setError(data.error || 'タスクの作成に失敗しました');
         return;
       }
-      setNotice(`「${data.task.title}」を登録しました。`);
+      // 🔴 通知が飛ばなくても作成は成功。画面もそう見せる
+      setNotice(
+        data.notified
+          ? `「${data.task.title}」を登録し、通知を送りました。`
+          : `「${data.task.title}」を登録しました。（チャットワーク通知は未設定のため送られていません。登録は完了しています）`
+      );
       setForm({
         title: '',
         body: '',
@@ -142,25 +182,13 @@ export default function WorkAdminPage() {
     }
   };
 
-  const saveRoomId = async (user: WorkUser, roomId: string) => {
-    setError('');
-    setNotice('');
-    try {
-      const res = await fetch('/api/work/users', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: user.id, chatwork_room_id: roomId }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.success) {
-        setError(data.error || '保存に失敗しました');
-        return;
-      }
-      setNotice(`${user.name} さんの個人チャットIDを保存しました。`);
-      await load(scope);
-    } catch {
-      setError('通信に失敗しました。');
-    }
+  const markRead = async (reportId: string) => {
+    await fetch('/api/work/dashboard', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ report_id: reportId }),
+    }).catch(() => {});
+    await load(scope);
   };
 
   const logout = async () => {
@@ -179,7 +207,8 @@ export default function WorkAdminPage() {
         <h1>業務管理（管理者）</h1>
         <span className="work-who">{me ? `${me.name} さん` : ''}</span>
         <div style={{ display: 'flex', gap: 6 }}>
-          <a href="/work">やることリスト</a>
+          <a href="/work">やること</a>
+          <a href="/work/setup">設定</a>
           <button onClick={logout}>ログアウト</button>
         </div>
       </div>
@@ -194,6 +223,100 @@ export default function WorkAdminPage() {
           </div>
         ) : null}
         {error ? <div className="work-error">{error}</div> : null}
+
+        {/* ---- 0. ダッシュボード ---- */}
+        {dash ? (
+          <div className="work-card">
+            <h2>今日の状況（{dash.date}）</h2>
+            <div className="work-stats">
+              <Stat label="未受領" value={dash.summary.unaccepted} />
+              <Stat label="対応中" value={dash.summary.in_progress} />
+              <Stat label="遅延" value={dash.summary.overdue} danger={dash.summary.overdue > 0} />
+              <Stat label="本日完了" value={dash.summary.done_today} good />
+              <Stat
+                label="未確認の完了"
+                value={dash.summary.unconfirmed}
+                warn={dash.summary.unconfirmed > 0}
+              />
+            </div>
+
+            <h2 style={{ marginTop: 18 }}>人別の状況</h2>
+            <div className="work-scroll">
+              <table className="work-table">
+                <thead>
+                  <tr>
+                    <th>名前</th>
+                    <th>抱え</th>
+                    <th>遅延</th>
+                    <th>本日完了</th>
+                    <th>日報</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dash.per_user.map(u => (
+                    <tr key={u.id}>
+                      <td>{u.name}</td>
+                      <td>{u.open}</td>
+                      <td style={{ color: u.overdue > 0 ? '#b81414' : undefined, fontWeight: u.overdue > 0 ? 700 : 400 }}>
+                        {u.overdue}
+                      </td>
+                      <td>{u.done_today}</td>
+                      <td>
+                        {u.role === 'admin' ? (
+                          <span style={{ color: '#999' }}>—</span>
+                        ) : u.report_submitted ? (
+                          <span style={{ color: '#1f7a3d', fontWeight: 700 }}>提出済</span>
+                        ) : (
+                          <span style={{ color: '#b81414' }}>未提出</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <h2 style={{ marginTop: 18 }}>
+              今日の日報（{dash.today_reports.length}件
+              {dash.report_not_submitted.length > 0
+                ? ` / 未提出 ${dash.report_not_submitted.length}名`
+                : ''}
+              ）
+            </h2>
+            {dash.today_reports.length === 0 ? (
+              <p className="work-note">まだ提出がありません。</p>
+            ) : (
+              dash.today_reports.map(r => (
+                <div
+                  key={r.id}
+                  className="work-task"
+                  style={{ borderLeftColor: r.read_at ? '#d9dde3' : '#e6a700' }}
+                >
+                  <p className="work-task-title">
+                    {r.user_name}
+                    {!r.read_at ? (
+                      <span className="work-chip due-today" style={{ marginLeft: 8 }}>未読</span>
+                    ) : null}
+                  </p>
+                  {r.comment ? <p className="work-task-body">所感: {r.comment}</p> : null}
+                  {r.blockers ? (
+                    <p className="work-task-body" style={{ color: '#b81414' }}>
+                      困っていること: {r.blockers}
+                    </p>
+                  ) : null}
+                  {r.tomorrow ? <p className="work-task-body">明日: {r.tomorrow}</p> : null}
+                  {!r.read_at ? (
+                    <div className="work-actions">
+                      <button className="work-btn work-btn-ghost" onClick={() => markRead(r.id)}>
+                        既読にする
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ))
+            )}
+          </div>
+        ) : null}
 
         {/* ---- 1. 指示を出す ---- */}
         <div className="work-card">
@@ -336,94 +459,43 @@ export default function WorkAdminPage() {
           ))
         )}
 
-        {/* ---- 3. 利用者のチャットワーク設定 ---- */}
+        {/* ---- 3. 設定への案内（room_id登録は /work/setup に移した）---- */}
         <div className="work-card">
-          <h2>利用者のチャットワーク設定</h2>
+          <h2>チャットワークの設定</h2>
           <p className="work-note">
-            🔴 ここに入れるのは<strong>その人との個人チャット（1対1）のルームID</strong>です。
-            通知用グループのIDを入れてはいけません（グループを見られる全員が、
-            その人になりすましてログインできてしまいます）。
-            ルームIDは個人チャットを開いたときのURL末尾 <code>#!rid●●●●</code> の数字です。
-          </p>
-          <div className="work-scroll">
-            <table className="work-table">
-              <thead>
-                <tr>
-                  <th>名前</th>
-                  <th>役割</th>
-                  <th>個人チャットID</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(u => (
-                  <RoomIdRow key={u.id} user={u} onSave={saveRoomId} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="work-note">
-            未設定の人はログインリンクを受け取れません。
-            <code>CHATWORK_API_TOKEN</code> が未設定の間は、ログイン画面に開発用リンクが
-            表示されます（トークン設定後は表示されません）。
+            個人チャットのルームIDと通知用グループの登録は
+            <a href="/work/setup" style={{ fontWeight: 700 }}> 初回設定の画面 </a>
+            に移しました。ログインできない人がいる場合は、まずそちらで個人チャットが
+            登録されているか確認してください。
           </p>
         </div>
+
       </div>
     </div>
   );
 }
 
-/** 個人チャットIDの1行。入力中の値をその行だけで持つ */
-function RoomIdRow({
-  user,
-  onSave,
+/** ダッシュボードの数値1つ */
+function Stat({
+  label,
+  value,
+  danger,
+  warn,
+  good,
 }: {
-  user: WorkUser;
-  onSave: (user: WorkUser, roomId: string) => Promise<void>;
+  label: string;
+  value: number;
+  danger?: boolean;
+  warn?: boolean;
+  good?: boolean;
 }) {
-  const [value, setValue] = useState(user.chatwork_room_id ?? '');
-  const [saving, setSaving] = useState(false);
-
-  const save = async () => {
-    setSaving(true);
-    try {
-      await onSave(user, value);
-    } finally {
-      setSaving(false);
-    }
-  };
-
+  const color = danger ? '#b81414' : warn ? '#8a6100' : good ? '#1f7a3d' : '#12284b';
   return (
-    <tr>
-      <td>{user.name}</td>
-      <td>{user.role === 'admin' ? '管理者' : 'メンバー'}</td>
-      <td>
-        <input
-          type="text"
-          inputMode="numeric"
-          value={value}
-          onChange={e => setValue(e.target.value)}
-          placeholder="未設定"
-          style={{
-            minHeight: 40,
-            border: '1px solid #d9dde3',
-            borderRadius: 6,
-            padding: '8px 10px',
-            fontSize: 14,
-            width: 160,
-          }}
-        />
-      </td>
-      <td>
-        <button
-          className="work-btn work-btn-ghost"
-          style={{ minWidth: 80, minHeight: 40 }}
-          onClick={save}
-          disabled={saving || value === (user.chatwork_room_id ?? '')}
-        >
-          {saving ? '保存中' : '保存'}
-        </button>
-      </td>
-    </tr>
+    <div className="work-stat">
+      <span className="work-stat-label">{label}</span>
+      <span className="work-stat-value" style={{ color }}>
+        {value}
+      </span>
+    </div>
   );
 }

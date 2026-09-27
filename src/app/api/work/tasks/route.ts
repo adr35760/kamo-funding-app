@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { requireWorkAdmin, requireWorkSession } from '@/lib/work-session';
+import { notifyGroup } from '@/lib/work-notify';
 
 /**
  * GET  /api/work/tasks — タスク一覧
@@ -132,7 +133,35 @@ export async function POST(request: NextRequest) {
         if (r.error) console.error('work_task_events insert failed:', r.error.code);
       });
 
-    return NextResponse.json({ success: true, task: data }, { headers: { 'Cache-Control': 'no-store' } });
+    /**
+     * 🔴 新しい指示の通知。**失敗してもタスク作成は成功として返す。**
+     *   notifyGroup は throw しない作りだが、ここでも結果を待つだけで分岐させない。
+     *   「通知が飛ばないとタスクが作れない」は第1段で申し送った禁じ手。
+     */
+    let assigneeName: string | null = null;
+    if (data.assignee_id) {
+      const { data: u } = await supabase
+        .from('work_users')
+        .select('name')
+        .eq('id', data.assignee_id)
+        .maybeSingle();
+      assigneeName = u?.name ?? null;
+    }
+    const notice = await notifyGroup(supabase, {
+      kind: 'task_assigned',
+      dedupeKey: `task_assigned:${data.id}`,
+      toName: assigneeName,
+      lines: [
+        `新しい指示: ${data.title}`,
+        data.due_date ? `期限 ${data.due_date}${data.due_time ? ' ' + String(data.due_time).slice(0, 5) : ''}` : '期限なし',
+        '業務管理システムのやることリストから受領してください。',
+      ],
+    });
+
+    return NextResponse.json(
+      { success: true, task: data, notified: notice.sent, notify_reason: notice.reason ?? null },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (err) {
     console.error('API /work/tasks POST error:', err);
     return NextResponse.json({ success: false, error: 'サーバーエラーが発生しました' }, { status: 500 });

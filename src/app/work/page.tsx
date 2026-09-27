@@ -107,6 +107,7 @@ export default function WorkHomePage() {
         <h1>やることリスト</h1>
         <span className="work-who">{me ? `${me.name} さん` : ''}</span>
         <div style={{ display: 'flex', gap: 6 }}>
+          <a href="/work/report">日報</a>
           {me?.role === 'admin' ? <a href="/work/admin">管理</a> : null}
           <button onClick={logout}>ログアウト</button>
         </div>
