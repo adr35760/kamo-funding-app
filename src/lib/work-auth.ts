@@ -10,7 +10,7 @@
  *   1. ログインリンクは**個人チャット限定**。通知用グループに送ると、
  *      グループを見られる全員が他人になりすませる。
  *   2. トークンは**ハッシュだけDBに保存**する（平文はDBに残さない）。
- *   3. 有効期限10分・**1回使用で失効**。
+ *   3. 有効期限2時間・**1回使用で失効**。
  *   4. `/api/work/*` は**サーバー側でセッションを検証**する。画面の出し分けだけに頼らない
  *      （過去に `/api/ai/*` が素通しだった事故がある）。
  *   5. 鍵・トークンを `NEXT_PUBLIC_` の環境変数に入れない（配信JSに埋め込まれる）。
@@ -24,8 +24,8 @@ export const WORK_SESSION_COOKIE = 'kamo_work_session';
 /** セッションの有効期間。毎日使うものなので長め（PRD: 30日） */
 export const WORK_SESSION_TTL_SECONDS = 30 * 24 * 60 * 60;
 
-/** ワンタイムトークンの有効期間（PRD: 10分） */
-export const WORK_LOGIN_TOKEN_TTL_SECONDS = 10 * 60;
+/** ワンタイムトークンの有効期間（t iku指定 2026-09-29: 2時間） */
+export const WORK_LOGIN_TOKEN_TTL_SECONDS = 2 * 60 * 60;
 
 export type WorkRole = 'admin' | 'member';
 

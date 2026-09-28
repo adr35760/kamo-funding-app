@@ -65,7 +65,7 @@ export function buildLoginMessage(name: string, url: string, minutes: number): s
     '下のリンクを開くとログインできます。',
     url,
     '',
-    `※ このリンクは ${minutes}分で無効になります。1回しか使えません。`,
+    `※ このリンクは ${minutes >= 60 && minutes % 60 === 0 ? `${minutes / 60}時間` : `${minutes}分`}で無効になります。1回しか使えません。`,
     '※ 心当たりがない場合は開かずに破棄してください。',
     '[/info]',
   ].join('\n');

@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     if (error || !row) return reject();
     if (row.used_at) return reject();                       // 1回使用で失効
-    if (new Date(row.expires_at).getTime() < Date.now()) return reject(); // 10分で失効
+    if (new Date(row.expires_at).getTime() < Date.now()) return reject(); // 2時間で失効
 
     const { data: user, error: userError } = await supabase
       .from('work_users')
