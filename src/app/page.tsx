@@ -7,19 +7,18 @@ import LegalFooter from '@/components/LegalFooter';
 
 /**
  * 商品・サービスの全体像（2026-09-29 t iku指示）。
- * 価格は「イメージ」。①は現行価格（説明会 無料／オンライン9,800円／リアル25,000円）に合わせる
- * — t iku原案の「5,500円」は現行商品に無いため、t ikuの確認を得て現行基準にした。
- * 専用ページが無い④〜⑧はリンクを張らず、下の「無料の掲載説明会へ」に相談を集める。
+ * 2026-09-29 12:05 JST t ikuの改訂版に差し替え（全角数字は半角に統一）。
+ * 専用ページが無い④⑤はリンクを張らず、下の「無料の掲載説明会へ」に相談を集める。
  */
 const SERVICES: { name: string; price: string; role: string; href?: string }[] = [
-  { name: '掲載説明会・セミナー', price: '無料〜25,000円', role: '見込み客を集める入口', href: '/lp' },
-  { name: 'AIクラファン設計', price: '無料〜低価格', role: '企画・リターン・ページ下書きを作る', href: '/ai-tool' },
-  { name: 'クラファン掲載', price: '成功報酬型', role: 'プラットフォーム収益', href: '/apply-listing' },
-  { name: '個別コンサル', price: '28.8万〜35万円', role: '企画・リターン・集客導線を伴走' },
-  { name: '事務局代行', price: '18万円〜', role: 'ページ制作・運営実務' },
-  { name: '継続伴走', price: '月3〜10万円', role: '終了後の集客・販売・事業化' },
-  { name: 'コミュニティ', price: '月3,000〜1万円', role: '挑戦者同士をつなぐ' },
-  { name: 'アドバイザー養成', price: '高単価', role: 'ノウハウを提供できる人を育成' },
+  { name: '掲載説明会・セミナー', price: '無料', role: '気軽にクラファンについて知りたい！・掲載希望の方は必須受講です', href: '/seminar-info' },
+  { name: 'AIクラファン設計', price: '9,800円', role: '達成率95%ノウハウを4時間で伝授！AIツールであなたの企画をその場で作成！', href: '/ai-seminar' },
+  { name: 'クラファン掲載申し込み', price: '無料', role: 'KAMOファンディングに掲載したい方はこちらから！', href: '/apply-listing' },
+  { name: '個別コンサル', price: '5万〜35万円', role: '90分壁打ち・ページ作成、商品構成、リターンアドバイス・伴走でページ作成・リターン戦略・募集方法まで' },
+  { name: '事務局代行', price: '18万円〜', role: 'ページ制作代行・運営実務・ライブ配信サポートなど' },
+  { name: 'アドバイザー養成', price: '価格設定中', role: 'クラウドファンディングのコンサル業務で生計を立てていきたい方！', href: '/partner-session-announce' },
+  { name: '紹介制度（登録）', price: '無料', role: '挑戦者同士をつなぐ', href: '/partners' },
+  { name: 'お仕事サポーター', price: '面談で設定', role: 'ライティング・サムネイル・ライブ配信補助など', href: '/supporters' },
 ];
 const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
 
@@ -115,7 +114,7 @@ export default function HomePage() {
             </table>
           </div>
           <p className="svc-note">
-            価格は目安です。④〜⑧の内容・お見積りは、まず無料の掲載説明会でご相談ください。
+            価格は目安です。④個別コンサル・⑤事務局代行の内容・お見積りは、まず無料の掲載説明会でご相談ください。
           </p>
           <div className="svc-cta">
             <a href="/seminar-info" className="btn-primary">まずは無料の掲載説明会へ →</a>
