@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { normalizeAccountNumber, accountNumberError, normalizeAccountHolder, accountHolderError } from '@/lib/bank-input';
 import { createHash } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import type { BankAccountInput, CrowdfundingPage, HearingInput } from '@/lib/ai-prompts';
@@ -32,6 +33,22 @@ export async function POST(request: NextRequest) {
     };
     const page = body.page;
     const bankAccount = sanitizeBankAccount(body.bank_account);
+
+    /**
+     * 口座番号（半角数字）・口座名義（半角カナ）は必須（t iku指示 2026-09-29）。
+     * 画面側の確認だけに頼らず、サーバーでも同じ規則で正規化・検証する。
+     * 🔴 エラー文言に入力値そのものは入れない（口座情報をログ・応答に残さない）。
+     */
+    if (bankAccount) {
+      bankAccount.accountNumber = normalizeAccountNumber(bankAccount.accountNumber);
+      bankAccount.accountHolder = normalizeAccountHolder(bankAccount.accountHolder);
+    }
+    const bankErr =
+      accountNumberError(bankAccount?.accountNumber ?? '') ||
+      accountHolderError(bankAccount?.accountHolder ?? '');
+    if (bankErr) {
+      return NextResponse.json({ success: false, error: bankErr }, { status: 400 });
+    }
 
     if (!page || !page.project || !page.project.title) {
       return NextResponse.json(

@@ -1,5 +1,6 @@
 'use client';
 
+import { normalizeAccountNumber, accountNumberError, normalizeAccountHolder, accountHolderError } from '@/lib/bank-input';
 import { useEffect, useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
 import LegalFooter from '@/components/LegalFooter';
@@ -175,6 +176,22 @@ export default function AIToolPage() {
     setBank(prev => ({ ...prev, [key]: value }));
   };
 
+  /**
+   * 口座番号＝半角数字・必須／口座名義＝半角カナ・必須（t iku指示 2026-09-29）。
+   * 🔴 正規化は入力中ではなく**欄を離れたとき**に行う。日本語入力（IME）の変換中に
+   *   文字を置き換えると入力が壊れるため。
+   */
+  const [bankTouched, setBankTouched] = useState({ accountNumber: false, accountHolder: false });
+  const accountNumberErr = accountNumberError(normalizeAccountNumber(bank.accountNumber));
+  const accountHolderErr = accountHolderError(normalizeAccountHolder(bank.accountHolder));
+  const blurBank = (key: 'accountNumber' | 'accountHolder') => {
+    setBank(prev => ({
+      ...prev,
+      [key]: key === 'accountNumber' ? normalizeAccountNumber(prev[key]) : normalizeAccountHolder(prev[key]),
+    }));
+    setBankTouched(prev => ({ ...prev, [key]: true }));
+  };
+
   const updateContact = (key: string, value: string) => {
     setContact(prev => ({ ...prev, [key]: value }));
   };
@@ -207,7 +224,10 @@ export default function AIToolPage() {
     // メールアドレス・電話番号・起案者住所は必須（事務局からの連絡・書類送付に使う）
     isValidEmail(contact.email) &&
     contact.phone.trim().length > 0 &&
-    contact.address.trim().length > 0;
+    contact.address.trim().length > 0 &&
+    // 口座番号（半角数字）・口座名義（半角カナ）は必須（t iku指示 2026-09-29）
+    !accountNumberErr &&
+    !accountHolderErr;
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -334,7 +354,7 @@ export default function AIToolPage() {
           mode,
           // 連絡先は page（掲載用JSON）には入らない別カラム扱い。口座と同じ経路。
           contact,
-          ...(hasBankInput ? { bank_account: bank } : {}),
+          bank_account: bank,
         }),
       });
       const data = await res.json();
@@ -714,7 +734,7 @@ export default function AIToolPage() {
                 支援金振込口座（銀行口座）
               </div>
               <p style={{ fontSize: 11, color: '#8A6D1F', margin: '0 0 12px' }}>
-                KAMO事務局への提出用です。<strong>掲載用JSON・PDF・AI生成には一切使用しません</strong>（管理画面でのみ確認できます）。未入力でも生成できます。
+                KAMO事務局への提出用です。<strong>掲載用JSON・PDF・AI生成には一切使用しません</strong>（管理画面でのみ確認できます）。<strong>口座番号・口座名義は必須です。</strong>
               </p>
               <div style={{ display: 'grid', gap: 12 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -736,19 +756,25 @@ export default function AIToolPage() {
                       <option value="貯蓄">貯蓄</option>
                     </select>
                   </Field>
-                  <Field label="口座番号">
+                  <Field label="口座番号" required>
                     <input value={bank.accountNumber} onChange={e => updateBank('accountNumber', e.target.value)}
+                      onBlur={() => blurBank('accountNumber')}
                       style={inputStyle} placeholder="例: 1234567" inputMode="numeric" autoComplete="off" />
+                    <p style={{ fontSize: 11, color: bankTouched.accountNumber && accountNumberErr ? '#E60012' : '#8A6D1F', margin: '4px 0 0' }}>
+                      {bankTouched.accountNumber && accountNumberErr ? accountNumberErr : '半角数字で入力してください'}
+                    </p>
                   </Field>
                 </div>
-                <Field label="口座名義">
+                <Field label="口座名義" required>
                   <input value={bank.accountHolder} onChange={e => updateBank('accountHolder', e.target.value)}
-                    style={inputStyle} placeholder="例: yamada taro" autoComplete="off" />
-                  {/* 🔴 案内のみ。入力値の自動小文字化はしない —
-                      勝手に変換すると、本人の申告と実際の口座情報が食い違ったときに
-                      原因が追えなくなる（入力された文字をそのまま事務局へ渡す）。 */}
-                  <p style={{ fontSize: 11, color: '#8A6D1F', margin: '4px 0 0' }}>
-                    半角小文字で入力ください
+                    onBlur={() => blurBank('accountHolder')}
+                    style={inputStyle} placeholder="例: ﾔﾏﾀﾞ ﾀﾛｳ" autoComplete="off" />
+                  {/* 半角カナ指定（t iku指示 2026-09-29）。ひらがな・全角カナは欄を離れたときに
+                      半角カナへ幅だけ変換する（読み・綴りは変えない）。ローマ字・漢字は変換せず止める。 */}
+                  <p style={{ fontSize: 11, color: bankTouched.accountHolder && accountHolderErr ? '#E60012' : '#8A6D1F', margin: '4px 0 0' }}>
+                    {bankTouched.accountHolder && accountHolderErr
+                      ? accountHolderErr
+                      : '半角カナで入力してください（ひらがな・全角カナで入力しても自動で半角カナに直ります）'}
                   </p>
                 </Field>
               </div>
