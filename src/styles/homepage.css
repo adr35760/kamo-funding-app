@@ -162,3 +162,31 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 768px) {
   .btn-seminar { width: 100%; justify-content: center; font-size: 16px; padding: 15px 22px; }
 }
+
+/* ===== 商品・サービス一覧（2026-09-29） ===== */
+.svc-ladder { padding: 72px 0 24px; background: var(--kamo-white); }
+.svc-table-wrap { max-width: 920px; margin: 0 auto; border: 2px solid var(--kamo-red); border-radius: var(--radius-lg); overflow: hidden; }
+.svc-table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.svc-table thead th { background: var(--kamo-red); color: var(--kamo-white); font-weight: 700; padding: 14px 16px; text-align: left; }
+.svc-table thead th.svc-price-h { text-align: right; }
+.svc-table tbody th, .svc-table tbody td { padding: 14px 16px; border-top: 1px solid var(--kamo-border); vertical-align: middle; text-align: left; line-height: 1.6; }
+.svc-table tbody tr:nth-child(even) { background: var(--kamo-light-bg); }
+.svc-table tbody th { font-weight: 700; white-space: nowrap; }
+.svc-table tbody th a { color: var(--kamo-red); text-decoration: underline; text-underline-offset: 3px; }
+.svc-no { color: var(--kamo-red); margin-right: 6px; }
+.svc-table td.svc-price { text-align: right; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.svc-note { max-width: 920px; margin: 14px auto 0; font-size: 14px; color: #666; text-align: center; }
+.svc-cta { text-align: center; margin-top: 24px; }
+
+/* スマホは表を「カード」に組み替える（横スクロールさせない） */
+@media (max-width: 640px) {
+  .svc-ladder { padding: 48px 0 16px; }
+  .svc-table thead { display: none; }
+  .svc-table, .svc-table tbody, .svc-table tr, .svc-table th, .svc-table td { display: block; width: 100%; }
+  .svc-table tbody tr { padding: 14px 16px; border-top: 1px solid var(--kamo-border); }
+  .svc-table tbody tr:first-child { border-top: none; }
+  .svc-table tbody th, .svc-table tbody td { padding: 0; border-top: none; }
+  .svc-table tbody th { white-space: normal; font-size: 17px; }
+  .svc-table td.svc-price { text-align: left; color: var(--kamo-red); margin: 4px 0 2px; }
+  .svc-table tbody td:last-child { font-size: 15px; color: #444; }
+}

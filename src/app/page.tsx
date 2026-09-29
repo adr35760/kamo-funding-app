@@ -5,6 +5,24 @@ import '@/styles/homepage.css';
 import SiteHeader from '@/components/SiteHeader';
 import LegalFooter from '@/components/LegalFooter';
 
+/**
+ * 商品・サービスの全体像（2026-09-29 t iku指示）。
+ * 価格は「イメージ」。①は現行価格（説明会 無料／オンライン9,800円／リアル25,000円）に合わせる
+ * — t iku原案の「5,500円」は現行商品に無いため、t ikuの確認を得て現行基準にした。
+ * 専用ページが無い④〜⑧はリンクを張らず、下の「無料の掲載説明会へ」に相談を集める。
+ */
+const SERVICES: { name: string; price: string; role: string; href?: string }[] = [
+  { name: '掲載説明会・セミナー', price: '無料〜25,000円', role: '見込み客を集める入口', href: '/lp' },
+  { name: 'AIクラファン設計', price: '無料〜低価格', role: '企画・リターン・ページ下書きを作る', href: '/ai-tool' },
+  { name: 'クラファン掲載', price: '成功報酬型', role: 'プラットフォーム収益', href: '/apply-listing' },
+  { name: '個別コンサル', price: '28.8万〜35万円', role: '企画・リターン・集客導線を伴走' },
+  { name: '事務局代行', price: '18万円〜', role: 'ページ制作・運営実務' },
+  { name: '継続伴走', price: '月3〜10万円', role: '終了後の集客・販売・事業化' },
+  { name: 'コミュニティ', price: '月3,000〜1万円', role: '挑戦者同士をつなぐ' },
+  { name: 'アドバイザー養成', price: '高単価', role: 'ノウハウを提供できる人を育成' },
+];
+const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
+
 export default function HomePage() {
   return (
     <>
@@ -66,11 +84,50 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== SERVICE LADDER（2026-09-29 t iku指示で再構築） ===== */}
+      <section className="svc-ladder" id="services">
+        <div className="container">
+          <div className="quick-links-title">
+            <h2>KAMOファンディングの<span className="accent">商品・サービス</span></h2>
+            <p>入口の無料説明会から、事業化までの伴走、ノウハウを教える側まで。挑戦の段階に合わせて選べます</p>
+          </div>
+          <div className="svc-table-wrap">
+            <table className="svc-table">
+              <thead>
+                <tr>
+                  <th scope="col">商品・サービス</th>
+                  <th scope="col" className="svc-price-h">価格イメージ</th>
+                  <th scope="col">役割</th>
+                </tr>
+              </thead>
+              <tbody>
+                {SERVICES.map((s, i) => (
+                  <tr key={s.name}>
+                    <th scope="row">
+                      <span className="svc-no">{CIRCLED[i]}</span>
+                      {s.href ? <a href={s.href}>{s.name}</a> : s.name}
+                    </th>
+                    <td className="svc-price">{s.price}</td>
+                    <td>{s.role}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="svc-note">
+            価格は目安です。④〜⑧の内容・お見積りは、まず無料の掲載説明会でご相談ください。
+          </p>
+          <div className="svc-cta">
+            <a href="/seminar-info" className="btn-primary">まずは無料の掲載説明会へ →</a>
+          </div>
+        </div>
+      </section>
+
       {/* ===== QUICK LINKS ===== */}
       <section className="quick-links">
         <div className="container">
           <div className="quick-links-title">
-            <h2>KAMOファンディングの<span className="accent">サービス</span></h2>
+            <h2>いますぐ<span className="accent">参加・登録</span>できるもの</h2>
             <p>あなたの目的に合わせて選べます</p>
           </div>
           <div className="links-grid">
@@ -126,7 +183,7 @@ export default function HomePage() {
             </div>
             <div className="stat-item">
               <div className="stat-number">¥0</div>
-              <div className="stat-label">参加費・掲載費</div>
+              <div className="stat-label">掲載説明会の参加費</div>
             </div>
           </div>
         </div>
