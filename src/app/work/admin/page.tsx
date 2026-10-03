@@ -27,8 +27,23 @@ interface Category {
   name: string;
 }
 
+interface BoardItem {
+  id: string;
+  title: string;
+  body: string | null;
+  assignee: string;
+  status: string;
+  overdue: boolean;
+  due_date: string | null;
+  due_time: string | null;
+  priority: string;
+  done_comment: string | null;
+}
+
 interface Dashboard {
   date: string;
+  board?: Array<{ group: string; total: number; done: number; overdue: number; items: BoardItem[] }> | null;
+  latest_notes?: Array<{ name: string; comment: string }> | null;
   // 🔴 null = 読めなかった（0件ではない）。画面は「—」を出す
   summary: {
     unaccepted: number;
@@ -225,6 +240,75 @@ export default function WorkAdminPage() {
           </div>
         ) : null}
         {error ? <div className="work-error">{error}</div> : null}
+
+        {/* ---- 全体進捗ボード（管理者のみ） ---- */}
+        {dash?.board && dash.board.length > 0 ? (
+          <div className="work-card">
+            <h2>全体の進捗</h2>
+            {(() => {
+              const all = dash.board!.reduce((a, g) => ({ t: a.t + g.total, d: a.d + g.done, o: a.o + g.overdue }), { t: 0, d: 0, o: 0 });
+              return (
+                <p className="work-note" style={{ fontWeight: 700, fontSize: 15 }}>
+                  完了 {all.d} / {all.t} 件（{all.t ? Math.round((all.d / all.t) * 100) : 0}%）
+                  {all.o > 0 ? <span style={{ color: '#e02020' }}>　遅延 {all.o} 件</span> : null}
+                </p>
+              );
+            })()}
+            {dash.board.map(g => {
+              const pct = g.total ? Math.round((g.done / g.total) * 100) : 0;
+              return (
+                <div key={g.group} style={{ marginTop: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
+                    <span>【{g.group}】</span>
+                    <span>
+                      {g.done}/{g.total}
+                      {g.overdue > 0 ? <span style={{ color: '#e02020' }}>　遅延{g.overdue}</span> : null}
+                    </span>
+                  </div>
+                  <div style={{ height: 8, background: '#eee', borderRadius: 4, margin: '4px 0 6px' }}>
+                    <div style={{ width: `${pct}%`, height: '100%', background: g.overdue > 0 ? '#e02020' : '#1f7a3d', borderRadius: 4 }} />
+                  </div>
+                  {g.items.map(it => {
+                    const st = it.overdue
+                      ? { label: '遅延', color: '#e02020' }
+                      : it.status === 'confirmed'
+                        ? { label: '確認済', color: '#1f7a3d' }
+                        : it.status === 'done'
+                          ? { label: '完了', color: '#1f7a3d' }
+                          : it.status === 'in_progress'
+                            ? { label: '対応中', color: '#1a5fb4' }
+                            : { label: '未受領', color: '#b8860b' };
+                    return (
+                      <div key={it.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', padding: '5px 0', borderTop: '1px solid #f0f0f0', fontSize: 14 }}>
+                        <span style={{ flex: '0 0 auto', minWidth: 48, textAlign: 'center', color: '#fff', background: st.color, borderRadius: 4, fontSize: 12, padding: '2px 4px' }}>
+                          {st.label}
+                        </span>
+                        <div style={{ flex: 1 }}>
+                          <div>{it.title}</div>
+                          <div style={{ color: '#666', fontSize: 12 }}>
+                            {it.assignee}
+                            {it.due_date ? `／期限 ${it.due_date.slice(5).replace('-', '/')}${it.due_time ? ' ' + it.due_time.slice(0, 5) : ''}` : ''}
+                            {it.done_comment ? `／${it.done_comment}` : ''}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+            {dash.latest_notes && dash.latest_notes.length > 0 ? (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ fontWeight: 700 }}>今日の日報の所感（数字の報告）</div>
+                {dash.latest_notes.map(n => (
+                  <p key={n.name} className="work-note" style={{ margin: '4px 0', whiteSpace: 'pre-wrap' }}>
+                    {n.name}：{n.comment}
+                  </p>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         {/* ---- 0. ダッシュボード ---- */}
         {dash ? (

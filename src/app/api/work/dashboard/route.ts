@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseAdmin();
 
     const [tasksRes, usersRes, reportsRes] = await Promise.all([
-      supabase.from('work_tasks').select('id, assignee_id, status, due_date, done_at'),
+      supabase.from('work_tasks').select('id, title, body, assignee_id, status, due_date, due_time, priority, done_at, done_comment'),
       supabase.from('work_users').select('id, name, role, is_active').order('name'),
       supabase
         .from('work_reports')
@@ -115,10 +115,57 @@ export async function GET(request: NextRequest) {
           .map(u => ({ id: u.id, name: u.name }))
       : null;
 
+    /**
+     * 全体進捗ボード（t iku 指示 2026-10-04）。
+     * タイトル頭の【…】でグループ分けし、【1 今月】→【2 毎週】→【3 …】の順に並べる。
+     * 【】が無いタスクは「その他」にまとめる。admin API なので管理者にしか出ない。
+     */
+    const groupsMap = new Map<string, typeof tasks>();
+    for (const t of tasks) {
+      const m = /^【([^】]+)】/.exec(t.title ?? '');
+      const key = m ? m[1] : 'その他';
+      if (!groupsMap.has(key)) groupsMap.set(key, []);
+      groupsMap.get(key)!.push(t);
+    }
+    const board = tasksReadable
+      ? Array.from(groupsMap.entries())
+          .sort(([a], [b]) => (a === 'その他' ? 1 : b === 'その他' ? -1 : a.localeCompare(b, 'ja')))
+          .map(([group, list]) => ({
+            group,
+            total: list.length,
+            done: list.filter(t => t.status === 'done' || t.status === 'confirmed').length,
+            overdue: list.filter(isOverdue).length,
+            items: list
+              .sort((a, b) => String(a.title).localeCompare(String(b.title), 'ja'))
+              .map(t => ({
+                id: t.id,
+                title: String(t.title).replace(/^【[^】]+】/, ''),
+                body: t.body,
+                assignee: users.find(u => u.id === t.assignee_id)?.name ?? '未割当',
+                status: t.status,
+                overdue: isOverdue(t),
+                due_date: t.due_date,
+                due_time: t.due_time,
+                priority: t.priority,
+                done_comment: t.done_comment,
+              })),
+          }))
+      : null;
+
+    // 日報の所感から最新の数字（「7/9」「32/60」など）を拾うための直近コメント
+    const latestNotes = reportsReadable
+      ? users.map(u => {
+          const r = reports.find(x => x.user_id === u.id && x.submitted_at);
+          return { name: u.name, comment: r?.comment ?? null };
+        }).filter(x => x.comment)
+      : null;
+
     return NextResponse.json(
       {
         success: true,
         date: today,
+        board,
+        latest_notes: latestNotes,
         summary,
         per_user: perUser,
         today_reports: reportsReadable ? todayReports : null,
