@@ -19,6 +19,12 @@ interface TaskSnap {
   done_comment?: string | null;
 }
 
+interface Sched {
+  time: string;
+  title: string;
+  kind: string;
+}
+
 interface Auto {
   done: TaskSnap[];
   ongoing: TaskSnap[];
@@ -28,6 +34,8 @@ interface Auto {
 export default function WorkReportPage() {
   const [date, setDate] = useState('');
   const [auto, setAuto] = useState<Auto | null>(null);
+  const [schedule, setSchedule] = useState<Sched[]>([]);
+  const [scheduleTomorrow, setScheduleTomorrow] = useState<Sched[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [form, setForm] = useState({ comment: '', blockers: '', tomorrow: '' });
@@ -54,6 +62,8 @@ export default function WorkReportPage() {
       setSubmitted(!!data.submitted);
       setReport(data.report ?? null);
       setAuto(data.auto ?? null);
+      setSchedule(Array.isArray(data.schedule) ? data.schedule : []);
+      setScheduleTomorrow(Array.isArray(data.scheduleTomorrow) ? data.scheduleTomorrow : []);
       if (data.report) {
         setForm({
           comment: String(data.report.comment ?? ''),
@@ -151,6 +161,25 @@ export default function WorkReportPage() {
           <div className="work-empty">読み込み中...</div>
         ) : (
           <>
+            {/* ---- 日程（自動） ---- */}
+            {[
+              { h: 'この日の日程（自動）', list: schedule },
+              { h: '翌日の日程（自動）', list: scheduleTomorrow },
+            ].map(sec => (
+              <div className="work-card" key={sec.h}>
+                <h2>{sec.h}</h2>
+                {sec.list.length === 0 ? (
+                  <p className="work-note">予定はありません。</p>
+                ) : (
+                  sec.list.map((s, i) => (
+                    <p key={i} className="work-note" style={{ margin: '4px 0' }}>
+                      ・{s.time}　{s.title}（{s.kind}）
+                    </p>
+                  ))
+                )}
+              </div>
+            ))}
+
             {/* ---- 自動で入る欄 ---- */}
             <div className="work-card">
               <h2>本日完了した項目（自動）</h2>

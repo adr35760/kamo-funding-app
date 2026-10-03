@@ -3,6 +3,8 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { requireWorkSession } from '@/lib/work-session';
 import { jstDateIso, jstDayEndUtc, jstDayStartUtc } from '@/lib/work-date';
 import { notifyGroup } from '@/lib/work-notify';
+import { collectSchedule } from '@/lib/work-schedule';
+import { shiftDateIso } from '@/lib/work-date';
 
 /**
  * GET  /api/work/reports — 日報の取得（下書き＋自動集計）
@@ -63,10 +65,16 @@ export async function GET(request: NextRequest) {
       .eq('report_date', dateIso)
       .maybeSingle();
 
+    // その日と翌日の日程（定例＋イベント）。提出済みでも表示する
+    const [schedule, scheduleTomorrow] = await Promise.all([
+      collectSchedule(supabase, dateIso),
+      collectSchedule(supabase, shiftDateIso(dateIso, 1)),
+    ]);
+
     // 提出済みなら保存済みスナップショットをそのまま返す（当時の内容を変えない）
     if (existing?.submitted_at) {
       return NextResponse.json(
-        { success: true, date: dateIso, report: existing, auto: null, submitted: true },
+        { success: true, date: dateIso, report: existing, auto: null, submitted: true, schedule, scheduleTomorrow },
         { headers: { 'Cache-Control': 'no-store' } }
       );
     }
@@ -75,7 +83,7 @@ export async function GET(request: NextRequest) {
     const auto = await collectAuto(supabase, targetUserId, dateIso);
 
     return NextResponse.json(
-      { success: true, date: dateIso, report: existing ?? null, auto, submitted: false },
+      { success: true, date: dateIso, report: existing ?? null, auto, submitted: false, schedule, scheduleTomorrow },
       { headers: { 'Cache-Control': 'no-store' } }
     );
   } catch (err) {
