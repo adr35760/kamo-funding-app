@@ -41,7 +41,9 @@ export function accountNumberError(value: string): string | null {
 
 /** 口座名義: ひらがな・全角カナ・全角記号を半角カナへ（読みは変えない） */
 export function normalizeAccountHolder(raw: string): string {
-  let s = String(raw ?? '').trim();
+  // 🔴 trim しない: 入力のたびに呼ぶため、姓と名の間の空白を打った瞬間に消えてしまう。
+  //   前後の空白は検証・保存時に trimHolder() で落とす。
+  let s = String(raw ?? '');
   // ひらがな → 全角カタカナ
   s = s.replace(/[ぁ-ゖ]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
   // 全角カタカナ → 半角カナ
@@ -53,8 +55,13 @@ export function normalizeAccountHolder(raw: string): string {
   }).join('');
   // 全角英数 → 半角、英字は大文字（銀行の口座名義の表記）
   s = s.replace(/[Ａ-Ｚａ-ｚ０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xfee0));
-  // 連続空白を1つに
-  return s.replace(/\s+/g, ' ');
+  // 連続空白を1つに（先頭の空白は入力途中でも意味がないので落とす）
+  return s.replace(/\s+/g, ' ').replace(/^ /, '');
+}
+
+/** 保存・検証用: 前後の空白を落とした口座名義 */
+export function finalizeAccountHolder(raw: string): string {
+  return normalizeAccountHolder(raw).trim();
 }
 
 /** 半角カナとして受け付ける文字（銀行の口座名義で使われる範囲） */

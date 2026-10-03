@@ -1,6 +1,6 @@
 'use client';
 
-import { normalizeAccountNumber, accountNumberError, normalizeAccountHolder, accountHolderError } from '@/lib/bank-input';
+import { normalizeAccountNumber, accountNumberError, normalizeAccountHolder, finalizeAccountHolder, accountHolderError } from '@/lib/bank-input';
 import { useEffect, useState } from 'react';
 import SiteHeader from '@/components/SiteHeader';
 import LegalFooter from '@/components/LegalFooter';
@@ -177,19 +177,24 @@ export default function AIToolPage() {
   };
 
   /**
-   * 口座番号＝半角数字・必須／口座名義＝半角カナ・必須（t iku指示 2026-09-29）。
-   * 🔴 正規化は入力中ではなく**欄を離れたとき**に行う。日本語入力（IME）の変換中に
-   *   文字を置き換えると入力が壊れるため。
+   * 口座番号＝半角数字・必須／口座名義＝半角カナ・必須（t iku指示 2026-09-29、10-03 修正）。
+   * 🔴 10-03: 「欄を離れたとき」だけ変換していたため、入力中は全角・ひらがなのまま見え、
+   *   「直らない」と判断された。→ **入力するたびにその場で変換**する。
+   *   ただし日本語入力（IME）の**変換中**に置き換えると入力が壊れるので、
+   *   変換中（isComposing）は触らず、確定した瞬間（compositionend）に変換する。
+   * エラーは入力が始まった時点から表示し、「確認画面へ」の直下にも未入力・誤りを並べる。
    */
-  const [bankTouched, setBankTouched] = useState({ accountNumber: false, accountHolder: false });
+  const [composing, setComposing] = useState(false);
   const accountNumberErr = accountNumberError(normalizeAccountNumber(bank.accountNumber));
-  const accountHolderErr = accountHolderError(normalizeAccountHolder(bank.accountHolder));
-  const blurBank = (key: 'accountNumber' | 'accountHolder') => {
-    setBank(prev => ({
-      ...prev,
-      [key]: key === 'accountNumber' ? normalizeAccountNumber(prev[key]) : normalizeAccountHolder(prev[key]),
-    }));
-    setBankTouched(prev => ({ ...prev, [key]: true }));
+  const accountHolderErr = accountHolderError(finalizeAccountHolder(bank.accountHolder));
+  const normBank = (key: 'accountNumber' | 'accountHolder', v: string) =>
+    key === 'accountNumber' ? normalizeAccountNumber(v) : normalizeAccountHolder(v);
+  const changeBank = (key: 'accountNumber' | 'accountHolder', v: string, isComposing: boolean) => {
+    updateBank(key, isComposing ? v : normBank(key, v));
+  };
+  const endComposeBank = (key: 'accountNumber' | 'accountHolder', v: string) => {
+    setComposing(false);
+    updateBank(key, normBank(key, v));
   };
 
   const updateContact = (key: string, value: string) => {
@@ -228,6 +233,21 @@ export default function AIToolPage() {
     // 口座番号（半角数字）・口座名義（半角カナ）は必須（t iku指示 2026-09-29）
     !accountNumberErr &&
     !accountHolderErr;
+
+  /** 「確認画面へ」が押せない理由（canProceedStep1 と同じ条件を文で返す） */
+  const stepOneProblems = (): string[] => {
+    const out: string[] = [];
+    if (!form.industry) out.push('業種を選んでください');
+    if (!form.businessDescription) out.push('事業概要を入力してください');
+    if (!(form.goalAmount > 0)) out.push('集めたい金額を入力してください');
+    if (!form.creatorName) out.push('起案者名を入力してください');
+    if (!isValidEmail(contact.email)) out.push('メールアドレスを正しく入力してください');
+    if (!contact.phone.trim()) out.push('電話番号を入力してください');
+    if (!contact.address.trim()) out.push('起案者住所を入力してください');
+    if (accountNumberErr) out.push(accountNumberErr);
+    if (accountHolderErr) out.push(accountHolderErr);
+    return out;
+  };
 
   const handleGenerate = async () => {
     setLoading(true);
@@ -354,7 +374,7 @@ export default function AIToolPage() {
           mode,
           // 連絡先は page（掲載用JSON）には入らない別カラム扱い。口座と同じ経路。
           contact,
-          bank_account: bank,
+          bank_account: { ...bank, accountHolder: finalizeAccountHolder(bank.accountHolder) },
         }),
       });
       const data = await res.json();
@@ -757,22 +777,26 @@ export default function AIToolPage() {
                     </select>
                   </Field>
                   <Field label="口座番号" required>
-                    <input value={bank.accountNumber} onChange={e => updateBank('accountNumber', e.target.value)}
-                      onBlur={() => blurBank('accountNumber')}
+                    <input value={bank.accountNumber}
+                      onChange={e => changeBank('accountNumber', e.target.value, (e.nativeEvent as InputEvent).isComposing || composing)}
+                      onCompositionStart={() => setComposing(true)}
+                      onCompositionEnd={e => endComposeBank('accountNumber', e.currentTarget.value)}
                       style={inputStyle} placeholder="例: 1234567" inputMode="numeric" autoComplete="off" />
-                    <p style={{ fontSize: 11, color: bankTouched.accountNumber && accountNumberErr ? '#E60012' : '#8A6D1F', margin: '4px 0 0' }}>
-                      {bankTouched.accountNumber && accountNumberErr ? accountNumberErr : '半角数字で入力してください'}
+                    <p style={{ fontSize: 11, color: bank.accountNumber && accountNumberErr ? '#E60012' : '#8A6D1F', margin: '4px 0 0' }}>
+                      {bank.accountNumber && accountNumberErr ? accountNumberErr : '半角数字で入力してください（全角で入力しても自動で半角になります）'}
                     </p>
                   </Field>
                 </div>
                 <Field label="口座名義" required>
-                  <input value={bank.accountHolder} onChange={e => updateBank('accountHolder', e.target.value)}
-                    onBlur={() => blurBank('accountHolder')}
+                  <input value={bank.accountHolder}
+                    onChange={e => changeBank('accountHolder', e.target.value, (e.nativeEvent as InputEvent).isComposing || composing)}
+                    onCompositionStart={() => setComposing(true)}
+                    onCompositionEnd={e => endComposeBank('accountHolder', e.currentTarget.value)}
                     style={inputStyle} placeholder="例: ﾔﾏﾀﾞ ﾀﾛｳ" autoComplete="off" />
                   {/* 半角カナ指定（t iku指示 2026-09-29）。ひらがな・全角カナは欄を離れたときに
                       半角カナへ幅だけ変換する（読み・綴りは変えない）。ローマ字・漢字は変換せず止める。 */}
-                  <p style={{ fontSize: 11, color: bankTouched.accountHolder && accountHolderErr ? '#E60012' : '#8A6D1F', margin: '4px 0 0' }}>
-                    {bankTouched.accountHolder && accountHolderErr
+                  <p style={{ fontSize: 11, color: bank.accountHolder && accountHolderErr ? '#E60012' : '#8A6D1F', margin: '4px 0 0' }}>
+                    {bank.accountHolder && accountHolderErr
                       ? accountHolderErr
                       : '半角カナで入力してください（ひらがな・全角カナで入力しても自動で半角カナに直ります）'}
                   </p>
@@ -843,6 +867,12 @@ export default function AIToolPage() {
             }}>
             確認画面へ →
           </button>
+          {/* 押せない理由をボタンの直下に出す（なぜ進めないか分からない状態を作らない） */}
+          {!canProceedStep1 && (
+            <ul style={{ margin: '10px 0 0', paddingLeft: 18, fontSize: 12, color: '#E60012' }}>
+              {stepOneProblems().map(m => <li key={m}>{m}</li>)}
+            </ul>
+          )}
         </div>
       )}
 

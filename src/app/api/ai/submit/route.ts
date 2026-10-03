@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { normalizeAccountNumber, accountNumberError, normalizeAccountHolder, accountHolderError } from '@/lib/bank-input';
+import { normalizeAccountNumber, accountNumberError, normalizeAccountHolder, finalizeAccountHolder, accountHolderError } from '@/lib/bank-input';
 import { createHash } from 'crypto';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import type { BankAccountInput, CrowdfundingPage, HearingInput } from '@/lib/ai-prompts';
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
      */
     if (bankAccount) {
       bankAccount.accountNumber = normalizeAccountNumber(bankAccount.accountNumber);
-      bankAccount.accountHolder = normalizeAccountHolder(bankAccount.accountHolder);
+      bankAccount.accountHolder = finalizeAccountHolder(bankAccount.accountHolder);
     }
     const bankErr =
       accountNumberError(bankAccount?.accountNumber ?? '') ||
