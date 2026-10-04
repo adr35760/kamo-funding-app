@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import '../work.css';
+import { formatMinutes } from '../WorkTaskList';
 
 /**
  * /work/report — 日報。
@@ -17,6 +18,8 @@ interface TaskSnap {
   title: string;
   due_date: string | null;
   done_comment?: string | null;
+  estimated_minutes?: number | null;
+  self_added?: boolean;
 }
 
 interface Sched {
@@ -182,14 +185,22 @@ export default function WorkReportPage() {
 
             {/* ---- 自動で入る欄 ---- */}
             <div className="work-card">
-              <h2>本日完了した項目（自動）</h2>
+              <h2>
+                本日完了した項目（自動）
+                {done.some(t => t.estimated_minutes) ? (
+                  <span style={{ fontSize: 13, fontWeight: 400 }}>
+                    　想定合計 {formatMinutes(done.reduce((a, t) => a + (t.estimated_minutes ?? 0), 0))}
+                  </span>
+                ) : null}
+              </h2>
               {done.length === 0 ? (
                 <p className="work-note">まだありません。</p>
               ) : (
                 done.map(t => (
                   <p key={t.id} className="work-note" style={{ margin: '4px 0' }}>
-                    ・{t.title}
-                    {t.done_comment ? `（${t.done_comment}）` : ''}
+                    ・{t.self_added ? '［自分］' : '［指示］'}{t.title}
+                    {t.estimated_minutes ? `（想定 ${formatMinutes(t.estimated_minutes)}）` : ''}
+                    {t.done_comment ? `：${t.done_comment}` : ''}
                   </p>
                 ))
               )}
@@ -202,7 +213,8 @@ export default function WorkReportPage() {
               ) : (
                 ongoing.map(t => (
                   <p key={t.id} className="work-note" style={{ margin: '4px 0' }}>
-                    ・{t.title}
+                    ・{t.self_added ? '［自分］' : '［指示］'}{t.title}
+                    {t.estimated_minutes ? `（想定 ${formatMinutes(t.estimated_minutes)}）` : ''}
                   </p>
                 ))
               )}

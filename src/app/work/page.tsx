@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import './work.css';
-import WorkTaskCard, { tokyoTodayIso, type WorkTask } from './WorkTaskList';
+import WorkTaskCard, { formatMinutes, tokyoTodayIso, type WorkTask } from './WorkTaskList';
 
 /**
  * /work — メンバーの「今日のやることリスト」。
@@ -31,6 +31,9 @@ export default function WorkHomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const todayIso = tokyoTodayIso();
+  const [showAdd, setShowAdd] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [form, setForm] = useState({ title: '', body: '', due_date: '', estimated: '' });
 
   const load = useCallback(async (nextScope: 'open' | 'done') => {
     setError('');
@@ -89,6 +92,40 @@ export default function WorkHomePage() {
     }
   };
 
+  const addMyTask = async () => {
+    if (!form.title.trim()) {
+      setError('内容を入れてください');
+      return;
+    }
+    setAdding(true);
+    setError('');
+    try {
+      const res = await fetch('/api/work/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: form.title,
+          body: form.body,
+          due_date: form.due_date || todayIso,
+          estimated_minutes: form.estimated ? Number(form.estimated) : null,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        setError(data.error || '追加に失敗しました');
+        return;
+      }
+      setForm({ title: '', body: '', due_date: '', estimated: '' });
+      setShowAdd(false);
+      setScope('open');
+      await load('open');
+    } catch {
+      setError('通信に失敗しました。');
+    } finally {
+      setAdding(false);
+    }
+  };
+
   const logout = async () => {
     await fetch('/api/work/me', { method: 'DELETE' }).catch(() => {});
     window.location.href = '/work/login';
@@ -127,6 +164,48 @@ export default function WorkHomePage() {
           >
             完了済み
           </button>
+        </div>
+
+        {/* ---- 自分のタスクを追加（指示以外の自分の仕事） ---- */}
+        <div className="work-card" style={{ marginTop: 12 }}>
+          {!showAdd ? (
+            <button className="work-btn work-btn-accept" style={{ width: '100%' }} onClick={() => setShowAdd(true)}>
+              ＋ 自分のタスクを追加
+            </button>
+          ) : (
+            <>
+              <h2>自分のタスクを追加</h2>
+              <div className="work-field">
+                <label>内容（必須）</label>
+                <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="例：BNI 1to1（田中さん）" />
+              </div>
+              <div className="work-field">
+                <label>想定時間</label>
+                <select value={form.estimated} onChange={e => setForm({ ...form, estimated: e.target.value })}>
+                  <option value="">選ばない</option>
+                  {[15, 30, 45, 60, 90, 120, 180, 240, 300, 360, 480].map(m => (
+                    <option key={m} value={m}>{formatMinutes(m)}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="work-field">
+                <label>やる日（空なら今日）</label>
+                <input type="date" value={form.due_date} onChange={e => setForm({ ...form, due_date: e.target.value })} />
+              </div>
+              <div className="work-field">
+                <label>メモ（任意）</label>
+                <textarea value={form.body} onChange={e => setForm({ ...form, body: e.target.value })} rows={2} />
+              </div>
+              <div className="work-actions">
+                <button className="work-btn work-btn-done" onClick={addMyTask} disabled={adding}>
+                  {adding ? '追加中...' : '追加する'}
+                </button>
+                <button className="work-btn work-btn-ghost" onClick={() => setShowAdd(false)} disabled={adding}>
+                  やめる
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         {overdueCount > 0 && scope === 'open' ? (

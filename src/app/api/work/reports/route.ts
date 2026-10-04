@@ -24,6 +24,8 @@ interface TaskSnapshot {
   title: string;
   due_date: string | null;
   done_comment?: string | null;
+  estimated_minutes?: number | null;
+  self_added?: boolean;
 }
 
 export async function GET(request: NextRequest) {
@@ -174,10 +176,14 @@ async function collectAuto(
 ): Promise<{ done: TaskSnapshot[]; ongoing: TaskSnapshot[]; overdue: TaskSnapshot[] }> {
   const empty = { done: [], ongoing: [], overdue: [] };
   try {
-    const { data, error } = await supabase
-      .from('work_tasks')
-      .select('id, title, due_date, status, done_at, done_comment')
-      .eq('assignee_id', userId);
+    const q = (cols: string) => supabase.from('work_tasks').select(cols).eq('assignee_id', userId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let { data, error } = (await q('id, title, due_date, status, done_at, done_comment, created_by, estimated_minutes')) as { data: any[] | null; error: { code?: string; message?: string } | null };
+    if (error?.code === '42703') {
+      // estimated_minutes 列がまだ無いとき
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ({ data, error } = (await q('id, title, due_date, status, done_at, done_comment, created_by')) as { data: any[] | null; error: { code?: string; message?: string } | null });
+    }
 
     if (error || !data) {
       console.error('collectAuto error:', error?.code, error?.message);
@@ -197,6 +203,8 @@ async function collectAuto(
         title: t.title,
         due_date: t.due_date,
         done_comment: t.done_comment ?? null,
+        estimated_minutes: t.estimated_minutes ?? null,
+        self_added: t.created_by === userId,
       };
       const isDone = t.status === 'done' || t.status === 'confirmed';
       if (isDone && t.done_at) {

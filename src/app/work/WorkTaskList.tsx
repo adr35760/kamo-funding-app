@@ -23,6 +23,8 @@ export interface WorkTask {
   status: 'unaccepted' | 'in_progress' | 'done' | 'confirmed' | string;
   done_comment: string | null;
   done_at?: string | null;
+  estimated_minutes?: number | null;
+  created_by?: string | null;
 }
 
 export const STATUS_LABELS: Record<string, string> = {
@@ -126,6 +128,8 @@ export default function WorkTaskCard({
             {PRIORITY_LABELS[task.priority]}
           </span>
         ) : null}
+        {task.estimated_minutes ? <span className="work-chip">想定 {formatMinutes(task.estimated_minutes)}</span> : null}
+        {task.created_by && task.created_by === task.assignee_id ? <span className="work-chip">自分で追加</span> : null}
         {categoryName ? <span className="work-chip">{categoryName}</span> : null}
         {isAdmin && assigneeName ? <span className="work-chip">担当: {assigneeName}</span> : null}
       </div>
@@ -202,4 +206,13 @@ export default function WorkTaskCard({
       </div>
     </div>
   );
+}
+
+/** 分を「1時間30分」形式に */
+export function formatMinutes(min: number): string {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  if (h && m) return `${h}時間${m}分`;
+  if (h) return `${h}時間`;
+  return `${m}分`;
 }

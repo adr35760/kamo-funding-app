@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
-import { requireWorkAdmin, requireWorkSession } from '@/lib/work-session';
+import { requireWorkSession } from '@/lib/work-session';
 import { notifyGroup } from '@/lib/work-notify';
 
 /**
@@ -19,8 +19,11 @@ import { notifyGroup } from '@/lib/work-notify';
 const TASK_COLUMNS = `
   id, title, body, assignee_id, category_id, due_date, due_time,
   priority, status, created_by, created_at, accepted_at, done_at,
-  confirmed_at, done_comment
+  confirmed_at, done_comment, estimated_minutes
 `;
+/** estimated_minutes 列が未作成（マイグレーション前）のときの退避用 */
+const TASK_COLUMNS_LEGACY = TASK_COLUMNS.replace(', estimated_minutes', '');
+const isMissingColumn = (e: { code?: string } | null) => e?.code === '42703' || e?.code === 'PGRST204';
 
 export async function GET(request: NextRequest) {
   const auth = await requireWorkSession(request);
@@ -33,7 +36,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const supabase = getSupabaseAdmin();
-    let query = supabase.from('work_tasks').select(TASK_COLUMNS);
+    const build = (cols: string) => {
+    let query = supabase.from('work_tasks').select(cols);
 
     // 🔴 member は自分の担当に固定する。クエリで他人を指定されても効かせない。
     if (session.role !== 'admin') {
@@ -58,8 +62,11 @@ export async function GET(request: NextRequest) {
       .order('due_date', { ascending: true, nullsFirst: false })
       .order('due_time', { ascending: true, nullsFirst: true })
       .order('created_at', { ascending: true });
+    return query;
+    };
 
-    const { data, error } = await query;
+    let { data, error } = await build(TASK_COLUMNS);
+    if (isMissingColumn(error)) ({ data, error } = await build(TASK_COLUMNS_LEGACY));
     if (error) {
       console.error('work/tasks GET error:', error.code, error.message);
       return NextResponse.json(
@@ -86,8 +93,14 @@ export async function GET(request: NextRequest) {
  * Body: { title, body?, assignee_id, category_id?, due_date?, due_time?, priority? }
  */
 export async function POST(request: NextRequest) {
-  const auth = await requireWorkAdmin(request);
+  /**
+   * 管理者: 誰にでも指示を出せる（従来どおり）。
+   * メンバー: **自分のタスクだけ**追加できる（t iku 指示 2026-10-05）。
+   *   担当は本人に固定・状態は「対応中」から開始・通知は飛ばさない。
+   */
+  const auth = await requireWorkSession(request);
   if ('response' in auth) return auth.response;
+  const isAdmin = auth.session.role === 'admin';
 
   try {
     const raw = await request.json();
@@ -101,24 +114,34 @@ export async function POST(request: NextRequest) {
     const insertData: Record<string, unknown> = {
       title,
       body: normalizeOrNull(raw?.body),
-      assignee_id: normalizeOrNull(raw?.assignee_id),
+      assignee_id: isAdmin ? normalizeOrNull(raw?.assignee_id) : auth.session.userId,
       category_id: toIntOrNull(raw?.category_id),
       due_date: normalizeOrNull(raw?.due_date),
       due_time: normalizeOrNull(raw?.due_time),
       priority,
-      status: 'unaccepted',
+      status: isAdmin && normalizeOrNull(raw?.assignee_id) !== auth.session.userId ? 'unaccepted' : 'in_progress',
       created_by: auth.session.userId,
     };
+    const est = toIntOrNull(raw?.estimated_minutes);
+    if (est && est > 0) insertData.estimated_minutes = est;
 
     const supabase = getSupabaseAdmin();
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('work_tasks')
       .insert(insertData)
       .select(TASK_COLUMNS)
       .single();
+    if (isMissingColumn(error)) {
+      delete insertData.estimated_minutes;
+      ({ data, error } = await supabase
+        .from('work_tasks')
+        .insert(insertData)
+        .select(TASK_COLUMNS_LEGACY)
+        .single());
+    }
 
-    if (error) {
-      console.error('work/tasks POST error:', error.code, error.message);
+    if (error || !data) {
+      console.error('work/tasks POST error:', error?.code, error?.message);
       return NextResponse.json(
         { success: false, error: 'タスクの作成に失敗しました' },
         { status: 500 }
@@ -138,6 +161,11 @@ export async function POST(request: NextRequest) {
      *   notifyGroup は throw しない作りだが、ここでも結果を待つだけで分岐させない。
      *   「通知が飛ばないとタスクが作れない」は第1段で申し送った禁じ手。
      */
+    // 自分で自分に追加したタスクは通知しない
+    if (data.assignee_id === auth.session.userId) {
+      return NextResponse.json({ success: true, task: data, notified: false }, { headers: { 'Cache-Control': 'no-store' } });
+    }
+
     let assigneeName: string | null = null;
     if (data.assignee_id) {
       const { data: u } = await supabase
