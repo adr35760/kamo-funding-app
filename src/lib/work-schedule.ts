@@ -16,7 +16,14 @@ export interface ScheduleItem {
   kind: string; // 区分ラベル
 }
 
-const WEEKLY_FIXED: { weekday: number; start: string; end: string; title: string }[] = [
+/**
+ * 🔴 毎週の会議の**唯一の定義**（2026-10-05 一本化）。
+ *   日報の「日程」とチャットワークの会議リマインドの両方がここを読む。
+ *   以前はリマインドが DB の work_task_recurrences（9/27の古い「社員会議・社内会議」）を
+ *   読んでいて、日報の日程と食い違っていた（t iku 指摘 2026-10-05）。
+ *   会議を変えるときはここだけ直す。月曜の社員会議は t iku 指示で廃止。
+ */
+export const WEEKLY_FIXED: { weekday: number; start: string; end: string; title: string }[] = [
   // 0=日 … 4=木 5=金
   { weekday: 4, start: '18:00', end: '18:45', title: '社内ミーティング' },
   { weekday: 4, start: '18:45', end: '19:00', title: 'EXPO' },
@@ -68,4 +75,15 @@ export async function collectSchedule(supabase: SupabaseClient, dateIso: string)
   }
 
   return items.sort((a, b) => a.sort.localeCompare(b.sort)).map(({ sort: _s, ...rest }) => rest);
+}
+
+/** その日の毎週の会議（開始時刻順）。リマインド用。 */
+export function weeklyMeetingsOn(dateIso: string) {
+  const wd = jstWeekday(dateIso);
+  return WEEKLY_FIXED.filter(f => f.weekday === wd).sort((a, b) => a.start.localeCompare(b.start));
+}
+
+/** リマインド本文の行。例: ["・18:00〜18:45 社内ミーティング", ...] */
+export function meetingLines(dateIso: string): string[] {
+  return weeklyMeetingsOn(dateIso).map(m => `・${m.start}〜${m.end} ${m.title}`);
 }

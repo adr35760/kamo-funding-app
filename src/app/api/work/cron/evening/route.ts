@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { notifyGroup } from '@/lib/work-notify';
-import { isBusinessDay, jstDateIso } from '@/lib/work-date';
+import { formatJaDate, isBusinessDay, jstDateIso, shiftDateIso } from '@/lib/work-date';
+import { meetingLines } from '@/lib/work-schedule';
 
 /**
  * GET /api/work/cron/evening — 終業 21:00 JST（= 12:00 UTC）
@@ -20,9 +21,32 @@ export async function GET(request: NextRequest) {
 
   const today = jstDateIso();
 
+  /**
+   * 🔴 翌日の会議の予告（2026-10-05）。金曜 8:30 の BNI は朝9時の通知では間に合わないため、
+   *   前日 21:00 に翌日分を出す。休日判定より前に置く（日曜夜→月曜分も出せるように）。
+   *   失敗しても日報リマインドは続ける。
+   */
+  let tomorrowMeetings: { sent: boolean; count: number } = { sent: false, count: 0 };
+  try {
+    const tomorrow = shiftDateIso(today, 1);
+    const lines = meetingLines(tomorrow);
+    if (lines.length > 0) {
+      const sb = getSupabaseAdmin();
+      const n = await notifyGroup(sb, {
+        kind: 'meeting_reminder',
+        dedupeKey: `meeting_tomorrow:${tomorrow}`,
+        toName: null,
+        lines: [`明日（${formatJaDate(tomorrow)}）の会議`, ...lines],
+      });
+      tomorrowMeetings = { sent: n.sent, count: lines.length };
+    }
+  } catch (e) {
+    console.error('work/cron/evening: 翌日会議の予告に失敗（日報リマインドは継続）:', e);
+  }
+
   if (!isBusinessDay(today)) {
     return NextResponse.json(
-      { ok: true, date: today, skipped: '休日のため送信しない' },
+      { ok: true, date: today, skipped: '休日のため日報リマインドは送信しない', tomorrow_meetings: tomorrowMeetings },
       { headers: { 'Cache-Control': 'no-store' } }
     );
   }
@@ -104,6 +128,7 @@ export async function GET(request: NextRequest) {
         pending_names: pending.map(u => u.name),
         notified: notice.sent,
         notify_reason: notice.reason ?? null,
+        tomorrow_meetings: tomorrowMeetings,
       },
       { headers: { 'Cache-Control': 'no-store' } }
     );

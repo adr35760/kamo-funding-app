@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { notifyGroup } from '@/lib/work-notify';
+import { meetingLines } from '@/lib/work-schedule';
 import {
   formatJaDate,
   isBusinessDay,
@@ -22,7 +23,8 @@ import {
  *   2. 期限が明日のタスクの予告
  *   3. 期限が今日のタスクの通知
  *   4. 🔴 期限切れ未完了は**1通にまとめる**（1件ずつ飛ばさない＝PRD 3.6）
- *   5. 当日の会議リマインド（開始30分前ぶんは evening/daily では出さず、ここで当日分を案内）
+ *   5. 当日の会議リマインド（09:00に当日分を1通。会議の定義は work-schedule.ts の WEEKLY_FIXED）
+ *      ※ 金曜 8:30 の BNI は 09:00 だと間に合わないので、前日 21:00 の evening で予告する
  *
  * 🔴 通知が飛ばなくてもタスク生成は行う（通知は補助機能）。
  */
@@ -58,6 +60,12 @@ export async function GET(request: NextRequest) {
     }
 
     for (const r of recurrences ?? []) {
+      /**
+       * 🔴 会議（remind_minutes_before あり＝9/27の「社員会議」「社内会議」）はタスクにしない。
+       *   会議は WEEKLY_FIXED が唯一の定義で、リマインドもそちらから出す（2026-10-05）。
+       *   DB行が残っていても二重・旧名称の通知にならないようコード側で除外する。
+       */
+      if (r.remind_minutes_before) continue;
       if (!shouldGenerate(r, today)) continue;
       // 二重生成は work_tasks(recurrence_id, due_date) のユニーク制約で防ぐ。
       // 競合時は 23505 が返るので、それは「既に生成済み」として扱う。
@@ -149,19 +157,17 @@ export async function GET(request: NextRequest) {
       else result.skipped.push(`overdue_digest(${r.reason})`);
     }
 
-    // ---- 5. 当日の会議リマインド ----
-    for (const r of recurrences ?? []) {
-      if (!r.remind_minutes_before || !shouldGenerate(r, today)) continue;
+    // ---- 5. 当日の会議リマインド（WEEKLY_FIXED から1通にまとめる） ----
+    const todays = meetingLines(today);
+    if (todays.length > 0) {
       const notice = await notifyGroup(supabase, {
         kind: 'meeting_reminder',
-        dedupeKey: `meeting_reminder:${r.id}:${today}`,
+        dedupeKey: `meeting_today:${today}`,
         toName: null,
-        lines: [
-          `本日 ${String(r.due_time ?? '').slice(0, 5)} から「${r.title}」です`,
-          `${r.remind_minutes_before}分前にご準備ください。`,
-        ],
+        lines: [`本日（${formatJaDate(today)}）の会議`, ...todays],
       });
-      if (notice.sent) result.notified.push(`meeting:${r.title}`);
+      if (notice.sent) result.notified.push(`meeting_today:${todays.length}件`);
+      else result.skipped.push(`meeting_today(${notice.reason})`);
     }
 
     return NextResponse.json({ ok: true, ...result }, { headers: { 'Cache-Control': 'no-store' } });
