@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { notifyGroup } from '@/lib/work-notify';
-import { meetingLines } from '@/lib/work-schedule';
 import {
   formatJaDate,
   isBusinessDay,
@@ -22,12 +21,12 @@ import {
  *   1. 繰り返しタスク（定例業務）の生成
  *   2. 期限が明日のタスクの予告（**担当者がいるものだけ**）
  *   3. 期限が今日のタスクの通知（**担当者がいるものだけ**）
- *   4. 当日の会議リマインド（09:00に当日分を1通。会議の定義は work-schedule.ts の WEEKLY_FIXED）
- *      ※ 金曜 8:30 の BNI は 09:00 だと間に合わないので、前日 21:00 の evening で予告する
  *
- * 🔴 2026-10-11 t iku 指示「期限切れのリマインドを送らない／未割り当ては一旦削除で送らない」。
- *   旧 4 の**期限切れ未完了のまとめ（overdue_digest）は撤去**し、
- *   あわせて **未割り当て（assignee_id なし）のタスクには通知しない**。
+ * 🔴 2026-10-11 t iku 指示。
+ *   ・「期限切れのリマインドを送らない」→ 期限切れ未完了のまとめ（overdue_digest）を撤去。
+ *   ・「未割り当ては一旦削除で送らない」「担当者の指示が出たときのみ、毎朝リマインド」
+ *     → **未割り当て（assignee_id なし）のタスクには通知しない**。
+ *   ・「会議（前日21:00に翌日分／当日9:00に当日分）も中止」→ 当日会議リマインドを撤去。
  *   再開するときは git の履歴から戻す。
  *
  * 🔴 通知が飛ばなくてもタスク生成は行う（通知は補助機能）。
@@ -137,18 +136,7 @@ export async function GET(request: NextRequest) {
       if (r.sent) result.notified.push(`due_today:${t.title}`);
     }
 
-    // ---- 5. 当日の会議リマインド（WEEKLY_FIXED から1通にまとめる） ----
-    const todays = meetingLines(today);
-    if (todays.length > 0) {
-      const notice = await notifyGroup(supabase, {
-        kind: 'meeting_reminder',
-        dedupeKey: `meeting_today:${today}`,
-        toName: null,
-        lines: [`本日（${formatJaDate(today)}）の会議`, ...todays],
-      });
-      if (notice.sent) result.notified.push(`meeting_today:${todays.length}件`);
-      else result.skipped.push(`meeting_today(${notice.reason})`);
-    }
+    // ---- 当日の会議リマインドは撤去（t iku 指示 2026-10-11）----
 
     return NextResponse.json({ ok: true, ...result }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (err) {
