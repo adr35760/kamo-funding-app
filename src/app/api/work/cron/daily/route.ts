@@ -20,11 +20,15 @@ import {
  *
  * やること:
  *   1. 繰り返しタスク（定例業務）の生成
- *   2. 期限が明日のタスクの予告
- *   3. 期限が今日のタスクの通知
- *   4. 🔴 期限切れ未完了は**1通にまとめる**（1件ずつ飛ばさない＝PRD 3.6）
- *   5. 当日の会議リマインド（09:00に当日分を1通。会議の定義は work-schedule.ts の WEEKLY_FIXED）
+ *   2. 期限が明日のタスクの予告（**担当者がいるものだけ**）
+ *   3. 期限が今日のタスクの通知（**担当者がいるものだけ**）
+ *   4. 当日の会議リマインド（09:00に当日分を1通。会議の定義は work-schedule.ts の WEEKLY_FIXED）
  *      ※ 金曜 8:30 の BNI は 09:00 だと間に合わないので、前日 21:00 の evening で予告する
+ *
+ * 🔴 2026-10-11 t iku 指示「期限切れのリマインドを送らない／未割り当ては一旦削除で送らない」。
+ *   旧 4 の**期限切れ未完了のまとめ（overdue_digest）は撤去**し、
+ *   あわせて **未割り当て（assignee_id なし）のタスクには通知しない**。
+ *   再開するときは git の履歴から戻す。
  *
  * 🔴 通知が飛ばなくてもタスク生成は行う（通知は補助機能）。
  */
@@ -111,8 +115,8 @@ export async function GET(request: NextRequest) {
 
     const tasks = openTasks ?? [];
 
-    // 明日が期限
-    for (const t of tasks.filter(t => t.due_date === tomorrow)) {
+    // 明日が期限（未割り当ては通知しない＝t iku 指示 2026-10-11）
+    for (const t of tasks.filter(t => t.due_date === tomorrow && t.assignee_id)) {
       const r = await notifyGroup(supabase, {
         kind: 'due_tomorrow',
         dedupeKey: `due_tomorrow:${t.id}:${tomorrow}`,
@@ -122,8 +126,8 @@ export async function GET(request: NextRequest) {
       if (r.sent) result.notified.push(`due_tomorrow:${t.title}`);
     }
 
-    // 今日が期限
-    for (const t of tasks.filter(t => t.due_date === today)) {
+    // 今日が期限（未割り当ては通知しない＝t iku 指示 2026-10-11）
+    for (const t of tasks.filter(t => t.due_date === today && t.assignee_id)) {
       const r = await notifyGroup(supabase, {
         kind: 'due_today',
         dedupeKey: `due_today:${t.id}:${today}`,
@@ -131,30 +135,6 @@ export async function GET(request: NextRequest) {
         lines: [`本日が期限です: ${t.title}`],
       });
       if (r.sent) result.notified.push(`due_today:${t.title}`);
-    }
-
-    // 🔴 期限切れは1通にまとめる
-    const overdue = tasks.filter(t => t.due_date && t.due_date < today);
-    if (overdue.length > 0) {
-      const byUser = new Map<string, string[]>();
-      for (const t of overdue) {
-        const key = nameOf(t.assignee_id) ?? '未割当';
-        const list = byUser.get(key) ?? [];
-        list.push(`・${t.title}（期限 ${t.due_date ? formatJaDate(t.due_date) : '不明'}）`);
-        byUser.set(key, list);
-      }
-      const lines = [`期限を過ぎている未完了が ${overdue.length} 件あります`];
-      for (const [name, items] of Array.from(byUser.entries())) {
-        lines.push('', `【${name}】`, ...items);
-      }
-      const r = await notifyGroup(supabase, {
-        kind: 'overdue_digest',
-        dedupeKey: `overdue_digest:${today}`,
-        toName: null,
-        lines,
-      });
-      if (r.sent) result.notified.push(`overdue_digest:${overdue.length}件`);
-      else result.skipped.push(`overdue_digest(${r.reason})`);
     }
 
     // ---- 5. 当日の会議リマインド（WEEKLY_FIXED から1通にまとめる） ----
