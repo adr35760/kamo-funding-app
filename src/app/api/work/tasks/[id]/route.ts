@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
-import { requireWorkSession } from '@/lib/work-session';
+import { requireWorkAdmin, requireWorkSession } from '@/lib/work-session';
 
 /**
  * PATCH /api/work/tasks/:id — 状態遷移（受領・完了・確認・差し戻し）
@@ -158,3 +158,46 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 }
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * DELETE /api/work/tasks/:id — タスクの削除（admin のみ）
+ *
+ * 🔴 t iku 指示（2026-10-12）: 誤登録・不要になったタスクを管理画面から消せるようにする。
+ *   監査ログ（work_task_events）は task_id が ON DELETE CASCADE なので一緒に消える。
+ *   実行は取り消せないため、画面側で確認ダイアログを必ず出す。
+ */
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireWorkAdmin(request);
+  if ('response' in auth) return auth.response;
+
+  const taskId = String(params.id ?? '').trim();
+  if (!taskId) {
+    return NextResponse.json({ success: false, error: 'タスクIDが必要です' }, { status: 400 });
+  }
+
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('work_tasks')
+      .delete()
+      .eq('id', taskId)
+      .select('id, title')
+      .maybeSingle();
+
+    if (error) {
+      console.error('work/tasks DELETE error:', error.code, error.message);
+      return NextResponse.json({ success: false, error: '削除に失敗しました' }, { status: 500 });
+    }
+    if (!data) {
+      return NextResponse.json({ success: false, error: 'タスクが見つかりません' }, { status: 404 });
+    }
+
+    return NextResponse.json(
+      { success: true, deleted: data },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
+  } catch (err) {
+    console.error('API /work/tasks DELETE error:', err);
+    return NextResponse.json({ success: false, error: 'サーバーエラーが発生しました' }, { status: 500 });
+  }
+}

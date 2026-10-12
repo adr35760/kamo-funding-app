@@ -208,6 +208,22 @@ export default function WorkAdminPage() {
     await load(scope);
   };
 
+  /** タスク削除（admin のみ）。確認はカード側で取る */
+  const handleDelete = async (taskId: string, title: string) => {
+    try {
+      const res = await fetch(`/api/work/tasks/${taskId}`, { method: 'DELETE' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        setError(data.error || '削除に失敗しました');
+        return;
+      }
+      setNotice(`「${title}」を削除しました。`);
+      await load(scope);
+    } catch {
+      setError('通信に失敗しました。');
+    }
+  };
+
   const logout = async () => {
     await fetch('/api/work/me', { method: 'DELETE' }).catch(() => {});
     window.location.href = '/work/login';
@@ -291,6 +307,17 @@ export default function WorkAdminPage() {
                             {it.done_comment ? `／${it.done_comment}` : ''}
                           </div>
                         </div>
+                        <button
+                          className="work-btn work-btn-ghost"
+                          style={{ flex: '0 0 auto', color: '#e02020', fontSize: 12, padding: '2px 8px' }}
+                          onClick={() => {
+                            if (window.confirm(`「${it.title}」を削除します。取り消せません。よろしいですか？`)) {
+                              void handleDelete(it.id, it.title);
+                            }
+                          }}
+                        >
+                          削除
+                        </button>
                       </div>
                     );
                   })}
@@ -557,6 +584,7 @@ export default function WorkAdminPage() {
               isAdmin
               isMine={t.assignee_id === me?.id}
               onAction={handleAction}
+              onDelete={handleDelete}
             />
           ))
         )}

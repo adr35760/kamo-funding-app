@@ -77,6 +77,8 @@ interface Props {
   /** 自分が担当かどうか。受領・完了を出すかの判断に使う */
   isMine: boolean;
   onAction: (taskId: string, action: 'accept' | 'done' | 'confirm' | 'reopen', comment?: string) => Promise<void>;
+  /** 管理者のみ。タスクを削除する（取り消し不可・確認ダイアログつき） */
+  onDelete?: (taskId: string, title: string) => Promise<void>;
 }
 
 export default function WorkTaskCard({
@@ -87,6 +89,7 @@ export default function WorkTaskCard({
   isAdmin = false,
   isMine,
   onAction,
+  onDelete,
 }: Props) {
   const [busy, setBusy] = useState('');
   const [showComment, setShowComment] = useState(false);
@@ -191,6 +194,21 @@ export default function WorkTaskCard({
             disabled={busy !== ''}
           >
             {busy === 'confirm' ? '処理中...' : '確認済みにする'}
+          </button>
+        ) : null}
+
+        {isAdmin && onDelete ? (
+          <button
+            className="work-btn work-btn-ghost"
+            style={{ color: '#e02020' }}
+            onClick={() => {
+              if (window.confirm(`「${task.title}」を削除します。取り消せません。よろしいですか？`)) {
+                void onDelete(task.id, task.title);
+              }
+            }}
+            disabled={busy !== ''}
+          >
+            削除
           </button>
         ) : null}
 
