@@ -5,6 +5,10 @@
       "schedule": "0 0 * * *"
     },
     {
+      "path": "/api/cron/survey-invites",
+      "schedule": "0 0 * * *"
+    },
+    {
       "path": "/api/work/cron/daily",
       "schedule": "0 0 * * *"
     },

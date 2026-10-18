@@ -2,6 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import GeneratedPageDoc, { generatedDocStyles, type GeneratedPageData } from '@/components/GeneratedPageDoc';
+import {
+  summarizeSurvey,
+  buildSurveyCsv,
+  formatJstDateTime,
+  SURVEY_QUESTION_LABELS,
+  type SurveyResponseRow,
+  type Distribution,
+} from '@/lib/survey-aggregate';
 
 interface Event {
   finished?: boolean;
@@ -101,7 +109,7 @@ const partnerTypeLabels: Record<string, string> = {
 
 export default function AdminPage() {
   const [tab, setTab] = useState<
-    'events' | 'registrations' | 'partners' | 'referrals' | 'ai' | 'listing'
+    'events' | 'registrations' | 'partners' | 'referrals' | 'ai' | 'listing' | 'survey'
   >('events');
   const [events, setEvents] = useState<Event[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -497,6 +505,9 @@ export default function AdminPage() {
         </TabButton>
         <TabButton active={tab === 'listing'} onClick={() => setTab('listing')}>
           掲載申し込み
+        </TabButton>
+        <TabButton active={tab === 'survey'} onClick={() => setTab('survey')}>
+          アンケート
         </TabButton>
       </div>
 
@@ -986,6 +997,7 @@ export default function AdminPage() {
 
           {/* 掲載申し込みタブ */}
           {tab === 'listing' && <ListingApplicationsPanel />}
+          {tab === 'survey' && <SurveyPanel />}
         </>
       )}
 
@@ -1977,6 +1989,256 @@ interface ListingApplicationDetail extends ListingApplicationRow {
   remarks: string | null;
   agency: string | null;
   agreed_terms: boolean;
+}
+
+interface SurveyEventRow {
+  id: string;
+  title: string;
+  event_date: string;
+  duration_minutes: number | null;
+  type: string;
+}
+
+/**
+ * アンケートタブ（掲載説明会後アンケートの集計）。
+ *
+ *  - 説明会ごとに: 回答数 / 満足度平均 / 満足度の分布 / 設問2〜6の内訳 /
+ *    自由記述の一覧（新しい順）/ CSV出力
+ *  - 上部に「個別ミーティングを希望」した人の一覧（名前・メールがあれば併記）
+ *
+ * 🔴 取得できなかったときは「0件」と断定しない（理由を出す）。
+ */
+function SurveyPanel() {
+  const [rows, setRows] = useState<SurveyResponseRow[]>([]);
+  const [events, setEvents] = useState<SurveyEventRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [selectedEventId, setSelectedEventId] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setNotice('');
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/admin/survey');
+      const data = await res.json();
+      if (data.needsMigration) {
+        setNotice(data.error || '保存先テーブルが未作成です');
+        setRows([]);
+        setEvents([]);
+        return;
+      }
+      if (!res.ok || data.error) {
+        // 0件と取得失敗を区別する（「回答0件」と誤って断定しない）
+        setErrorMsg(data.error || '取得に失敗しました');
+        return;
+      }
+      setRows(data.responses ?? []);
+      setEvents(data.events ?? []);
+    } catch {
+      setErrorMsg('取得に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const titleMap = new Map<string, string>(events.map((e) => [e.id, e.title]));
+  const countsByEvent = new Map<string, number>();
+  for (const r of rows) {
+    if (!r.event_id) continue;
+    countsByEvent.set(r.event_id, (countsByEvent.get(r.event_id) ?? 0) + 1);
+  }
+
+  const scoped = selectedEventId ? rows.filter((r) => r.event_id === selectedEventId) : rows;
+  const summary = summarizeSurvey(scoped);
+  const scopeLabel = selectedEventId ? titleMap.get(selectedEventId) ?? selectedEventId : '全イベント';
+
+  const downloadCsv = () => {
+    const csv = buildSurveyCsv(scoped, titleMap);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `survey_${stamp}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  if (loading) return <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>読み込み中...</div>;
+
+  const distBlock = (title: string, d: Distribution[]) => (
+    <div style={{ marginBottom: 18 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: '#1A2332', marginBottom: 8 }}>{title}</div>
+      {d.map((row) => (
+        <div key={row.key} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, fontSize: 13 }}>
+          <span style={{ width: 96, flex: '0 0 auto', color: '#666' }}>{row.label}</span>
+          <span style={{ flex: '1 1 auto', background: '#f0f0f0', borderRadius: 4, height: 10, overflow: 'hidden' }}>
+            <span style={{ display: 'block', width: `${row.percent}%`, height: '100%', background: '#D4A017' }} />
+          </span>
+          <span style={{ width: 56, textAlign: 'right', flex: '0 0 auto' }}>{row.count}件</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <div>
+      {notice && (
+        <div style={{
+          background: '#FFF8E1', border: '1px solid #E6D9A8', borderRadius: 8,
+          padding: 16, marginBottom: 16, fontSize: 13,
+        }}>
+          ⚠️ {notice}
+        </div>
+      )}
+      {errorMsg && (
+        <div style={{
+          background: '#FFF5F5', border: '1px solid #FFD6D6', borderRadius: 8,
+          padding: 16, marginBottom: 16, fontSize: 13, color: '#C0392B',
+        }}>
+          ⚠️ {errorMsg}（「回答0件」ではありません。再読み込みしてください）
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 20 }}>
+        <select
+          value={selectedEventId}
+          onChange={(e) => setSelectedEventId(e.target.value)}
+          style={{
+            padding: '9px 12px', borderRadius: 6, border: '1px solid #ddd', fontSize: 13,
+            background: '#fff', maxWidth: '100%',
+          }}
+        >
+          <option value="">全イベント（{rows.length}件）</option>
+          {events
+            .filter((e) => (countsByEvent.get(e.id) ?? 0) > 0)
+            .map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.title}（{countsByEvent.get(e.id)}件）
+              </option>
+            ))}
+        </select>
+        <button onClick={downloadCsv} disabled={scoped.length === 0} style={{
+          padding: '9px 16px', borderRadius: 6, border: 'none',
+          background: scoped.length === 0 ? '#ccc' : '#E60012', color: '#fff', fontSize: 13,
+          cursor: scoped.length === 0 ? 'default' : 'pointer',
+        }}>
+          CSV出力（{scoped.length}件）
+        </button>
+        <button onClick={load} style={{
+          padding: '9px 16px', borderRadius: 6, border: '1px solid #ddd',
+          background: '#fff', color: '#666', fontSize: 13, cursor: 'pointer',
+        }}>
+          再読み込み
+        </button>
+      </div>
+
+      {rows.length === 0 ? (
+        <EmptyState message="アンケートの回答はまだありません。" />
+      ) : (
+        <>
+          {/* 個別ミーティング希望者（そのまま案内先に使える） */}
+          <div style={{
+            background: '#FFFDF5', border: '1px solid #F2E6B8', borderRadius: 8,
+            padding: 16, marginBottom: 20,
+          }}>
+            <div style={{ fontSize: 15, fontWeight: 900, color: '#8A6D1F', marginBottom: 10 }}>
+              🤝 個別ミーティングを希望した人（{summary.meetingRequests.length}件）
+            </div>
+            {summary.meetingRequests.length === 0 ? (
+              <div style={{ fontSize: 13, color: '#999' }}>該当なし</div>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ textAlign: 'left', color: '#666' }}>
+                    <Th>回答日時（JST）</Th>
+                    <Th>お名前</Th>
+                    <Th>メールアドレス</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summary.meetingRequests.map((r) => (
+                    <tr key={r.id} style={{ borderTop: '1px solid #F2E6B8' }}>
+                      <td style={{ padding: '8px 12px', whiteSpace: 'nowrap' }}>{formatJstDateTime(r.created_at)}</td>
+                      <td style={{ padding: '8px 12px' }}>{r.name || '—'}</td>
+                      <td style={{ padding: '8px 12px' }}>{r.email || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            <p style={{ fontSize: 12, color: '#8A6D1F', margin: '8px 0 0' }}>
+              ※ 名前・メールは任意のため、未入力の回答は「—」になります。
+            </p>
+          </div>
+
+          <div style={{ fontSize: 14, color: '#666', marginBottom: 12 }}>
+            集計対象: <strong style={{ color: '#1A2332' }}>{scopeLabel}</strong>（回答 {summary.total}件）
+          </div>
+
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
+            <div style={{ flex: '1 1 160px', background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: 16 }}>
+              <div style={{ fontSize: 12, color: '#666' }}>回答数</div>
+              <div style={{ fontSize: 26, fontWeight: 900, color: '#1A2332' }}>{summary.total}</div>
+            </div>
+            <div style={{ flex: '1 1 160px', background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: 16 }}>
+              <div style={{ fontSize: 12, color: '#666' }}>満足度 平均</div>
+              <div style={{ fontSize: 26, fontWeight: 900, color: '#E60012' }}>
+                {summary.satisfactionAvg === null ? '—' : summary.satisfactionAvg.toFixed(2)}
+              </div>
+            </div>
+            <div style={{ flex: '1 1 160px', background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: 16 }}>
+              <div style={{ fontSize: 12, color: '#666' }}>分かりやすさ 平均</div>
+              <div style={{ fontSize: 26, fontWeight: 900, color: '#1A2332' }}>
+                {summary.clarityAvg === null ? '—' : summary.clarityAvg.toFixed(2)}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: 20, marginBottom: 20 }}>
+            {distBlock(`${SURVEY_QUESTION_LABELS.satisfaction}（1〜5）`, summary.satisfactionDist)}
+            {distBlock(`${SURVEY_QUESTION_LABELS.clarity}（1〜5）`, summary.clarityDist)}
+            {distBlock(SURVEY_QUESTION_LABELS.listing_intent, summary.listingIntentDist)}
+            {distBlock(SURVEY_QUESTION_LABELS.wants_meeting, summary.wantsMeetingDist)}
+            {distBlock(SURVEY_QUESTION_LABELS.wants_seminar, summary.wantsSeminarDist)}
+            {distBlock(SURVEY_QUESTION_LABELS.interested_advisor, summary.interestedAdvisorDist)}
+          </div>
+
+          {/* 自由記述（現在のUIでは収集していないが、列は残してあるため受け口として用意） */}
+          <div style={{ background: '#fff', border: '1px solid #eee', borderRadius: 8, padding: 20 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#1A2332', marginBottom: 10 }}>
+              ご意見・ご感想（自由記述）
+            </div>
+            {(() => {
+              const comments = scoped
+                .filter((r) => (r.comment ?? '').trim() !== '')
+                .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+              if (comments.length === 0) {
+                return <div style={{ fontSize: 13, color: '#999' }}>自由記述の回答はありません。</div>;
+              }
+              return comments.map((r) => (
+                <div key={r.id} style={{ borderTop: '1px solid #f2f2f2', padding: '10px 0', fontSize: 13 }}>
+                  <div style={{ color: '#999', fontSize: 12, marginBottom: 4 }}>
+                    {formatJstDateTime(r.created_at)}
+                    {r.name ? ` ／ ${r.name}` : ''}
+                  </div>
+                  <div style={{ whiteSpace: 'pre-wrap' }}>{r.comment}</div>
+                </div>
+              ));
+            })()}
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 function TabButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {

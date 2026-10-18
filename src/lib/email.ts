@@ -1111,3 +1111,91 @@ export async function sendSeminarInviteEmail(
     seminarInviteHtml({ name, eventTitle, eventDateFullJa })
   );
 }
+
+/**
+ * サイトの公開オリジン。アンケート案内メールのリンク生成に使う。
+ * 独自ドメインへ移行する場合は NEXT_PUBLIC_SITE_URL を設定すれば全メールが追随する。
+ */
+const SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL || 'https://kamo-funding-app.vercel.app').replace(
+  /\/+$/,
+  ''
+);
+
+/** アンケート回答ページのURL（回を指定） */
+export function surveyUrlFor(eventId: string): string {
+  return `${SITE_ORIGIN}/survey?event=${encodeURIComponent(eventId)}`;
+}
+
+/**
+ * 掲載説明会後アンケートのご案内メール（件名はPM指定 2026-10-17）。
+ *
+ * 🔴 件名・本文の日付をベタ書きしない。配布は「終了した回」に対して行うため、
+ *    回ごとの event_date から算出した表記を渡す。
+ */
+export const SURVEY_INVITE_SUBJECT =
+  '【ご協力のお願い／KAMOファンディング】本日の掲載説明会について、2分のアンケート';
+
+export function surveyInviteHtml(params: {
+  name: string;
+  eventTitle: string;
+  /** 年を含む正式表記。例: "2026年10月14日（水）19:30〜21:00" */
+  eventDateFullJa: string;
+  /** 回答ページのURL */
+  surveyUrl: string;
+}): string {
+  const { name, eventTitle, eventDateFullJa, surveyUrl } = params;
+  const safeName = escapeHtml(name);
+  return `
+    <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: #E60012; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
+        <h1 style="margin: 0; font-size: 24px;">🔥 KAMOファンディング</h1>
+        <p style="margin: 4px 0 0; font-size: 14px;">掲載説明会アンケートのご協力のお願い</p>
+      </div>
+      <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 8px 8px; border: 1px solid #eee;">
+        <p>${safeName}様</p>
+        <p>KAMOファンディング事務局です。<br />
+        先日は無料掲載説明会にご参加いただき、誠にありがとうございました。</p>
+
+        <div style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; border: 1px solid #FFD6D6;">
+          <p style="margin: 0 0 4px; font-weight: 700; color: #E60012;">📅 ご参加いただいた回</p>
+          <p style="margin: 0 0 8px; font-size: 18px; font-weight: 700;">${eventDateFullJa}</p>
+          <p style="margin: 0; font-size: 13px; color: #666;">${escapeHtml(eventTitle)}</p>
+        </div>
+
+        <p style="margin-top: 16px;">
+          今後の運営の参考にさせていただきたく、<strong>2分程度のアンケート</strong>にご協力をお願いいたします。<br />
+          全6問です。回答は匿名でも送信できます。
+        </p>
+
+        <p style="margin-top: 20px; text-align: center;">
+          <a href="${surveyUrl}"
+             style="display: inline-block; background: #E60012; color: #fff; font-weight: 700; padding: 16px 28px; border-radius: 8px; text-decoration: none;">
+            アンケートに回答する →
+          </a>
+        </p>
+        <p style="margin-top: 8px; font-size: 13px; color: #666; text-align: center; word-break: break-all;">
+          うまく開かない場合はこちら: <a href="${surveyUrl}" style="color: #E60012;">${surveyUrl}</a>
+        </p>
+
+        <p style="margin-top: 20px; font-size: 12px; color: #999;">
+          KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
+          ${SITE_ORIGIN}/
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+export async function sendSurveyInviteEmail(
+  name: string,
+  email: string,
+  eventTitle: string,
+  eventDateFullJa: string,
+  surveyUrl: string
+): Promise<EmailResult> {
+  return sendEmail(
+    email,
+    SURVEY_INVITE_SUBJECT,
+    surveyInviteHtml({ name, eventTitle, eventDateFullJa, surveyUrl })
+  );
+}
