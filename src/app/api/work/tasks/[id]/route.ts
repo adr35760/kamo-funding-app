@@ -38,10 +38,14 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
   let action: Action | '' = '';
   let comment: string | null = null;
+  let actualMinutes: number | null = null;
   try {
     const body = await request.json();
     action = ['accept', 'done', 'confirm', 'reopen'].includes(body?.action) ? body.action : '';
     comment = typeof body?.comment === 'string' && body.comment.trim() ? body.comment.trim() : null;
+    // 実績時間（分）。1日24時間を超える値は受け取らない
+    const am = Number(body?.actual_minutes);
+    if (Number.isFinite(am) && am > 0 && am <= 24 * 60) actualMinutes = Math.round(am);
   } catch {
     action = '';
   }
@@ -128,12 +132,26 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       patch.confirmed_at = null;
     }
 
-    const { data: updated, error: updateError } = await supabase
+    // 実績時間。担当者本人か管理者だけが記録できる（報酬・労働時間の基礎になる）
+    if (actualMinutes && (isAssignee || isAdmin)) patch.actual_minutes = actualMinutes;
+
+    let { data: updated, error: updateError } = await supabase
       .from('work_tasks')
       .update(patch)
       .eq('id', taskId)
       .select(TASK_COLUMNS)
       .single();
+
+    // 実績時間の列がまだ無い環境では、実績なしで状態遷移だけ通す（業務を止めない）
+    if (updateError && (updateError.code === '42703' || updateError.code === 'PGRST204') && 'actual_minutes' in patch) {
+      delete patch.actual_minutes;
+      ({ data: updated, error: updateError } = await supabase
+        .from('work_tasks')
+        .update(patch)
+        .eq('id', taskId)
+        .select(TASK_COLUMNS)
+        .single());
+    }
 
     if (updateError) {
       console.error('work/tasks PATCH error:', updateError.code, updateError.message);

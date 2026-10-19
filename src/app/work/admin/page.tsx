@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import '../work.css';
 import WorkTaskCard, { tokyoTodayIso, type WorkTask } from '../WorkTaskList';
+import { FIXED_ITEMS, INCENTIVE_RATES, formatMinutes, formatYen } from '@/lib/work-pay';
 
 /**
  * /work/admin — 管理者（t iku）の画面。第1段の範囲は次の3つだけ。
@@ -96,7 +97,23 @@ export default function WorkAdminPage() {
     due_date: '',
     due_time: '',
     priority: 'mid',
+    // 制度（固定給／インセンティブ）
+    work_kind: 'fixed',
+    fixed_item_code: '',
+    incentive_code: '',
+    unit_count: '1',
+    sales_base: '',
+    estimated_minutes: '',
+    deliverable: '',
+    revision_scope: '',
+    acceptance_criteria: '',
   });
+  const incentiveRate = INCENTIVE_RATES.find(r => r.code === form.incentive_code) ?? null;
+  const estimateYen = incentiveRate
+    ? incentiveRate.kind === 'per_unit'
+      ? incentiveRate.value * Math.max(1, Number(form.unit_count) || 1)
+      : Math.floor(((Number(form.sales_base) || 0) * incentiveRate.value) / 100)
+    : 0;
 
   const load = useCallback(async (nextScope: typeof scope) => {
     setError('');
@@ -161,13 +178,18 @@ export default function WorkAdminPage() {
           : `「${data.task.title}」を登録しました。（チャットワーク通知は未設定のため送られていません。登録は完了しています）`
       );
       setForm({
+        ...form,
         title: '',
         body: '',
-        assignee_id: form.assignee_id, // 同じ人に続けて出すことが多いので担当は残す
-        category_id: form.category_id,
         due_date: '',
         due_time: '',
         priority: 'mid',
+        unit_count: '1',
+        sales_base: '',
+        estimated_minutes: '',
+        deliverable: '',
+        revision_scope: '',
+        acceptance_criteria: '',
       });
       await load(scope);
     } catch {
@@ -241,6 +263,7 @@ export default function WorkAdminPage() {
         <span className="work-who">{me ? `${me.name} さん` : ''}</span>
         <div style={{ display: 'flex', gap: 6 }}>
           <a href="/work">やること</a>
+          <a href="/work/payroll">報酬</a>
           <a href="/work/setup">設定</a>
           <button onClick={logout}>ログアウト</button>
         </div>
@@ -462,6 +485,110 @@ export default function WorkAdminPage() {
               />
             </div>
             <div className="work-field">
+              <label>区分</label>
+              <select
+                value={form.work_kind}
+                onChange={e => setForm({ ...form, work_kind: e.target.value })}
+              >
+                <option value="fixed">固定給の日常業務（①〜⑦）</option>
+                <option value="incentive">インセンティブ業務（成果報酬）</option>
+              </select>
+            </div>
+            {form.work_kind === 'fixed' ? (
+              <div className="work-field">
+                <label>業務区分（固定給の内訳）</label>
+                <select
+                  value={form.fixed_item_code}
+                  onChange={e => setForm({ ...form, fixed_item_code: e.target.value })}
+                >
+                  <option value="">選ばない</option>
+                  {FIXED_ITEMS.map(i => (
+                    <option key={i.code} value={i.code}>
+                      {i.no} {i.name}（月目安 {formatMinutes(i.monthlyMinutes)}）
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <>
+                <div className="work-field">
+                  <label>インセンティブ業務</label>
+                  <select
+                    value={form.incentive_code}
+                    onChange={e => setForm({ ...form, incentive_code: e.target.value })}
+                  >
+                    <option value="">選んでください</option>
+                    {['制作', '相談', 'イベント', '営業', '紹介'].map(cat => (
+                      <optgroup key={cat} label={cat}>
+                        {INCENTIVE_RATES.filter(r => r.category === cat).map(r => (
+                          <option key={r.code} value={r.code}>
+                            {r.name}（{r.kind === 'per_unit' ? `${formatYen(r.value)}／${r.unitLabel}` : `${r.value}%`}）
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+                {incentiveRate?.kind === 'per_unit' ? (
+                  <div className="work-field">
+                    <label>数量（{incentiveRate.unitLabel}）</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={form.unit_count}
+                      onChange={e => setForm({ ...form, unit_count: e.target.value })}
+                    />
+                  </div>
+                ) : incentiveRate ? (
+                  <div className="work-field">
+                    <label>{incentiveRate.unitLabel}（税抜・円）</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={form.sales_base}
+                      onChange={e => setForm({ ...form, sales_base: e.target.value })}
+                      placeholder="例: 300000"
+                    />
+                  </div>
+                ) : null}
+                {incentiveRate ? (
+                  <p className="work-note" style={{ fontWeight: 700 }}>
+                    この案件の報酬: {formatYen(estimateYen)}
+                    {incentiveRate.kind === 'percent' ? '（成約額が確定したら修正してください）' : ''}
+                  </p>
+                ) : null}
+                <div className="work-field">
+                  <label>成果物</label>
+                  <input
+                    type="text"
+                    value={form.deliverable}
+                    onChange={e => setForm({ ...form, deliverable: e.target.value })}
+                    placeholder="例: サムネイル画像3枚（1200×630）"
+                  />
+                </div>
+                <div className="work-row">
+                  <div className="work-field">
+                    <label>修正対応の範囲</label>
+                    <input
+                      type="text"
+                      value={form.revision_scope}
+                      onChange={e => setForm({ ...form, revision_scope: e.target.value })}
+                      placeholder="例: 2回まで"
+                    />
+                  </div>
+                  <div className="work-field">
+                    <label>完了・検収条件</label>
+                    <input
+                      type="text"
+                      value={form.acceptance_criteria}
+                      onChange={e => setForm({ ...form, acceptance_criteria: e.target.value })}
+                      placeholder="例: 掲載OKの返信をもって完了"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+            <div className="work-field">
               <label>内容</label>
               <textarea
                 value={form.body}
@@ -526,6 +653,17 @@ export default function WorkAdminPage() {
                   <option value="mid">中</option>
                   <option value="low">低</option>
                 </select>
+              </div>
+              <div className="work-field">
+                <label>想定時間（分）</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={15}
+                  value={form.estimated_minutes}
+                  onChange={e => setForm({ ...form, estimated_minutes: e.target.value })}
+                  placeholder="例: 60"
+                />
               </div>
             </div>
             <button className="work-btn work-btn-accept" type="submit" disabled={creating}>

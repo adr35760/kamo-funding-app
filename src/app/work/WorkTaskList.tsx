@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { findFixedItem, findIncentiveRate, formatMinutes, formatYen, incentiveYen } from '@/lib/work-pay';
 
 /**
  * タスク1件のカード。**一覧の中で受領・完了まで完結する**。
@@ -25,6 +26,17 @@ export interface WorkTask {
   done_at?: string | null;
   estimated_minutes?: number | null;
   created_by?: string | null;
+  work_kind?: string | null;
+  fixed_item_code?: string | null;
+  incentive_code?: string | null;
+  unit_rate?: number | null;
+  unit_count?: number | null;
+  rate_percent?: number | string | null;
+  sales_base?: number | null;
+  deliverable?: string | null;
+  revision_scope?: string | null;
+  acceptance_criteria?: string | null;
+  actual_minutes?: number | null;
 }
 
 export const STATUS_LABELS: Record<string, string> = {
@@ -76,7 +88,12 @@ interface Props {
   isAdmin?: boolean;
   /** 自分が担当かどうか。受領・完了を出すかの判断に使う */
   isMine: boolean;
-  onAction: (taskId: string, action: 'accept' | 'done' | 'confirm' | 'reopen', comment?: string) => Promise<void>;
+  onAction: (
+    taskId: string,
+    action: 'accept' | 'done' | 'confirm' | 'reopen',
+    comment?: string,
+    actualMinutes?: number
+  ) => Promise<void>;
   /** 管理者のみ。タスクを削除する（取り消し不可・確認ダイアログつき） */
   onDelete?: (taskId: string, title: string) => Promise<void>;
 }
@@ -94,6 +111,13 @@ export default function WorkTaskCard({
   const [busy, setBusy] = useState('');
   const [showComment, setShowComment] = useState(false);
   const [comment, setComment] = useState('');
+  const isIncentive = task.work_kind === 'incentive';
+  const rate = findIncentiveRate(task.incentive_code);
+  const fixedItem = findFixedItem(task.fixed_item_code);
+  // 実績時間は想定時間を初期値にする（そのまま押せる＝記録が続く）
+  const [actualInput, setActualInput] = useState(
+    task.actual_minutes ? String(task.actual_minutes) : task.estimated_minutes ? String(task.estimated_minutes) : ''
+  );
 
   const due = dueState(task.due_date, todayIso);
   const cardClass =
@@ -102,7 +126,8 @@ export default function WorkTaskCard({
   const run = async (action: 'accept' | 'done' | 'confirm' | 'reopen') => {
     setBusy(action);
     try {
-      await onAction(task.id, action, action === 'done' ? comment : undefined);
+      const minutes = actualInput ? Number(actualInput) : undefined;
+      await onAction(task.id, action, action === 'done' ? comment : undefined, minutes);
       setShowComment(false);
       setComment('');
     } finally {
@@ -115,7 +140,18 @@ export default function WorkTaskCard({
       <p className="work-task-title">{task.title}</p>
       {task.body ? <p className="work-task-body">{task.body}</p> : null}
 
+      {isIncentive ? (
+        <p className="work-note" style={{ margin: '0 0 6px', fontWeight: 700, color: '#1f7a3d' }}>
+          インセンティブ：{rate?.name ?? '成果報酬'}　{formatYen(incentiveYen(task))}
+          {task.deliverable ? <span style={{ fontWeight: 400, color: '#666' }}>／成果物 {task.deliverable}</span> : null}
+          {task.acceptance_criteria ? <span style={{ fontWeight: 400, color: '#666' }}>／検収 {task.acceptance_criteria}</span> : null}
+          {task.revision_scope ? <span style={{ fontWeight: 400, color: '#666' }}>／修正 {task.revision_scope}</span> : null}
+        </p>
+      ) : null}
+
       <div className="work-task-meta">
+        {!isIncentive && fixedItem ? <span className="work-chip">{fixedItem.no} {fixedItem.name}</span> : null}
+        {task.actual_minutes ? <span className="work-chip">実績 {formatMinutes(task.actual_minutes)}</span> : null}
         <span
           className={
             'work-chip' +
@@ -152,6 +188,18 @@ export default function WorkTaskCard({
           onChange={e => setComment(e.target.value)}
           rows={2}
         />
+      ) : null}
+
+      {isMine && (task.status === 'unaccepted' || task.status === 'in_progress') ? (
+        <div className="work-field" style={{ marginTop: 4 }}>
+          <label style={{ fontSize: 12 }}>かかった時間（分）{task.estimated_minutes ? `・想定 ${formatMinutes(task.estimated_minutes)}` : ''}</label>
+          <select value={actualInput} onChange={e => setActualInput(e.target.value)}>
+            <option value="">記録しない</option>
+            {[15, 30, 45, 60, 90, 120, 180, 240, 300, 360, 480].map(m => (
+              <option key={m} value={m}>{formatMinutes(m)}</option>
+            ))}
+          </select>
+        </div>
       ) : null}
 
       <div className="work-actions">
@@ -226,11 +274,5 @@ export default function WorkTaskCard({
   );
 }
 
-/** 分を「1時間30分」形式に */
-export function formatMinutes(min: number): string {
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  if (h && m) return `${h}時間${m}分`;
-  if (h) return `${h}時間`;
-  return `${m}分`;
-}
+// 分の表示は src/lib/work-pay.ts に集約。既存の import 元（日報画面）を壊さないよう再輸出する
+export { formatMinutes } from '@/lib/work-pay';

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { requireWorkSession } from '@/lib/work-session';
 import { notifyGroup } from '@/lib/work-notify';
+import { findFixedItem, findIncentiveRate, formatYen, incentiveYen } from '@/lib/work-pay';
 
 /**
  * GET  /api/work/tasks — タスク一覧
@@ -19,10 +20,21 @@ import { notifyGroup } from '@/lib/work-notify';
 const TASK_COLUMNS = `
   id, title, body, assignee_id, category_id, due_date, due_time,
   priority, status, created_by, created_at, accepted_at, done_at,
+  confirmed_at, done_comment, estimated_minutes,
+  work_kind, fixed_item_code, incentive_code, unit_rate, unit_count, rate_percent,
+  sales_base, deliverable, revision_scope, acceptance_criteria, actual_minutes, approved_at
+`;
+/** 制度まわりの列がまだ無いとき（マイグレーション前）の退避用 */
+const TASK_COLUMNS_LEGACY = `
+  id, title, body, assignee_id, category_id, due_date, due_time,
+  priority, status, created_by, created_at, accepted_at, done_at,
   confirmed_at, done_comment, estimated_minutes
 `;
-/** estimated_minutes 列が未作成（マイグレーション前）のときの退避用 */
-const TASK_COLUMNS_LEGACY = TASK_COLUMNS.replace(', estimated_minutes', '');
+const TASK_COLUMNS_MINIMAL = `
+  id, title, body, assignee_id, category_id, due_date, due_time,
+  priority, status, created_by, created_at, accepted_at, done_at,
+  confirmed_at, done_comment
+`;
 const isMissingColumn = (e: { code?: string } | null) => e?.code === '42703' || e?.code === 'PGRST204';
 
 export async function GET(request: NextRequest) {
@@ -67,6 +79,7 @@ export async function GET(request: NextRequest) {
 
     let { data, error } = await build(TASK_COLUMNS);
     if (isMissingColumn(error)) ({ data, error } = await build(TASK_COLUMNS_LEGACY));
+    if (isMissingColumn(error)) ({ data, error } = await build(TASK_COLUMNS_MINIMAL));
     if (error) {
       console.error('work/tasks GET error:', error.code, error.message);
       return NextResponse.json(
@@ -125,6 +138,42 @@ export async function POST(request: NextRequest) {
     const est = toIntOrNull(raw?.estimated_minutes);
     if (est && est > 0) insertData.estimated_minutes = est;
 
+    /**
+     * 固定給／インセンティブの区分（t iku 指示 2026-10-19）。
+     * 🔴 単価はクライアントから受け取らず**サーバー側でカタログから引く**。
+     *   画面から金額を送れると、誰でも自分の報酬を書き換えられてしまう。
+     * 🔴 インセンティブ業務は事前依頼・承認が前提なので **admin だけが作れる**。
+     *   メンバーが自分で足せるのは固定給の業務だけ。
+     */
+    const kind = isAdmin && raw?.work_kind === 'incentive' ? 'incentive' : 'fixed';
+    insertData.work_kind = kind;
+    if (kind === 'fixed') {
+      const item = findFixedItem(typeof raw?.fixed_item_code === 'string' ? raw.fixed_item_code : null);
+      if (item) insertData.fixed_item_code = item.code;
+    } else {
+      const rate = findIncentiveRate(typeof raw?.incentive_code === 'string' ? raw.incentive_code : null);
+      if (!rate) {
+        return NextResponse.json(
+          { success: false, error: 'インセンティブ業務の種類を選んでください' },
+          { status: 400 }
+        );
+      }
+      insertData.incentive_code = rate.code;
+      if (rate.kind === 'per_unit') {
+        insertData.unit_rate = rate.value;
+        insertData.unit_count = Math.max(1, toIntOrNull(raw?.unit_count) ?? 1);
+      } else {
+        insertData.rate_percent = rate.value;
+        insertData.sales_base = Math.max(0, toIntOrNull(raw?.sales_base) ?? 0);
+      }
+      insertData.deliverable = normalizeOrNull(raw?.deliverable);
+      insertData.revision_scope = normalizeOrNull(raw?.revision_scope);
+      insertData.acceptance_criteria = normalizeOrNull(raw?.acceptance_criteria);
+      // 依頼した時点で事前承認とみなす（誰が依頼したかを残す）
+      insertData.approved_at = new Date().toISOString();
+      insertData.approved_by = auth.session.userId;
+    }
+
     const supabase = getSupabaseAdmin();
     let { data, error } = await supabase
       .from('work_tasks')
@@ -179,11 +228,7 @@ export async function POST(request: NextRequest) {
       kind: 'task_assigned',
       dedupeKey: `task_assigned:${data.id}`,
       toName: assigneeName,
-      lines: [
-        `新しい指示: ${data.title}`,
-        data.due_date ? `期限 ${data.due_date}${data.due_time ? ' ' + String(data.due_time).slice(0, 5) : ''}` : '期限なし',
-        '業務管理システムのやることリストから受領してください。',
-      ],
+      lines: buildTaskNoticeLines(data),
     });
 
     return NextResponse.json(
@@ -209,3 +254,20 @@ function toIntOrNull(value: unknown): number | null {
 }
 
 export const dynamic = 'force-dynamic';
+
+/** 指示通知の本文。インセンティブ案件は報酬も一緒に伝える */
+function buildTaskNoticeLines(t: Record<string, unknown>): string[] {
+  const lines = [`新しい指示: ${String(t.title)}`];
+  if (t.work_kind === 'incentive') {
+    const rate = findIncentiveRate(t.incentive_code as string);
+    const yen = incentiveYen(t as never);
+    lines.push(`【インセンティブ】${rate ? rate.name : '追加業務'}／報酬 ${formatYen(yen)}`);
+    if (t.deliverable) lines.push(`成果物: ${String(t.deliverable)}`);
+    if (t.acceptance_criteria) lines.push(`検収条件: ${String(t.acceptance_criteria)}`);
+  }
+  lines.push(
+    t.due_date ? `期限 ${t.due_date}${t.due_time ? ' ' + String(t.due_time).slice(0, 5) : ''}` : '期限なし'
+  );
+  lines.push('業務管理システムのやることリストから受領してください。');
+  return lines;
+}

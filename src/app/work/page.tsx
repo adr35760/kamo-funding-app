@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import './work.css';
 import WorkTaskCard, { formatMinutes, tokyoTodayIso, type WorkTask } from './WorkTaskList';
+import { FIXED_ITEMS } from '@/lib/work-pay';
 
 /**
  * /work — メンバーの「今日のやることリスト」。
@@ -33,7 +34,7 @@ export default function WorkHomePage() {
   const todayIso = tokyoTodayIso();
   const [showAdd, setShowAdd] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ title: '', body: '', due_date: '', estimated: '' });
+  const [form, setForm] = useState({ title: '', body: '', due_date: '', estimated: '', fixed_item_code: '' });
 
   const load = useCallback(async (nextScope: 'open' | 'done') => {
     setError('');
@@ -72,13 +73,14 @@ export default function WorkHomePage() {
   const handleAction = async (
     taskId: string,
     action: 'accept' | 'done' | 'confirm' | 'reopen',
-    comment?: string
+    comment?: string,
+    actualMinutes?: number
   ) => {
     try {
       const res = await fetch(`/api/work/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, comment }),
+        body: JSON.stringify({ action, comment, actual_minutes: actualMinutes }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.success) {
@@ -108,6 +110,8 @@ export default function WorkHomePage() {
           body: form.body,
           due_date: form.due_date || todayIso,
           estimated_minutes: form.estimated ? Number(form.estimated) : null,
+          fixed_item_code: form.fixed_item_code || null,
+          work_kind: 'fixed',
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -115,7 +119,7 @@ export default function WorkHomePage() {
         setError(data.error || '追加に失敗しました');
         return;
       }
-      setForm({ title: '', body: '', due_date: '', estimated: '' });
+      setForm({ title: '', body: '', due_date: '', estimated: '', fixed_item_code: '' });
       setShowAdd(false);
       setScope('open');
       await load('open');
@@ -145,6 +149,7 @@ export default function WorkHomePage() {
         <span className="work-who">{me ? `${me.name} さん` : ''}</span>
         <div style={{ display: 'flex', gap: 6 }}>
           <a href="/work/report">日報</a>
+          <a href="/work/payroll">報酬</a>
           {me?.role === 'admin' ? <a href="/work/admin">管理</a> : null}
           <button onClick={logout}>ログアウト</button>
         </div>
@@ -178,6 +183,15 @@ export default function WorkHomePage() {
               <div className="work-field">
                 <label>内容（必須）</label>
                 <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="例：BNI 1to1（田中さん）" />
+              </div>
+              <div className="work-field">
+                <label>業務区分（固定給の内訳）</label>
+                <select value={form.fixed_item_code} onChange={e => setForm({ ...form, fixed_item_code: e.target.value })}>
+                  <option value="">選ばない</option>
+                  {FIXED_ITEMS.map(i => (
+                    <option key={i.code} value={i.code}>{i.no} {i.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="work-field">
                 <label>想定時間</label>
