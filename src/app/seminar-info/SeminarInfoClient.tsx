@@ -162,7 +162,7 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
                 </svg>
               </div>
               <h3>AIクラファンページ<br />作成ツール</h3>
-              <p>参加者のみ！体験がその場でできます！<br />業界トップクラスです！</p>
+              <p>参加者のみ！体験がその場でできます！</p>
             </div>
           </div>
         </div>
