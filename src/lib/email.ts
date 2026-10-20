@@ -1133,7 +1133,7 @@ export function surveyUrlFor(eventId: string): string {
  *    回ごとの event_date から算出した表記を渡す。
  */
 export const SURVEY_INVITE_SUBJECT =
-  '【ご協力のお願い／KAMOファンディング】本日の掲載説明会について、2分のアンケート';
+  '【ご協力のお願い／KAMOファンディング】ご参加いただいた掲載説明会について、2分のアンケート';
 
 export function surveyInviteHtml(params: {
   name: string;

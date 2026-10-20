@@ -51,7 +51,7 @@ export const LISTING_INTENT_LABELS: Record<string, string> = {
 
 /** 設問のラベル（表示・CSVで共有） */
 export const SURVEY_QUESTION_LABELS = {
-  satisfaction: '本日の説明会の満足度',
+  satisfaction: 'ご参加いただいた説明会の満足度',
   clarity: '説明は分かりやすかったか',
   listing_intent: '掲載を検討したいか',
   wants_meeting: '生島との個別ミーティングを希望するか',

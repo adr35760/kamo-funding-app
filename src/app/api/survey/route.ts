@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
   // ---- 設問1・2（5段階・必須） ----
   const satisfaction = toIntInRange(body.satisfaction, 1, 5);
-  if (satisfaction === null) return bad('設問1「本日の説明会の満足度」を選択してください');
+  if (satisfaction === null) return bad('設問1「ご参加いただいた説明会の満足度」を選択してください');
   const clarity = toIntInRange(body.clarity, 1, 5);
   if (clarity === null) return bad('設問2「説明は分かりやすかったか」を選択してください');
 

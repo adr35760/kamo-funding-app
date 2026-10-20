@@ -193,7 +193,7 @@ export default function SurveyForm({ event }: { event: SurveyEventInfo | null })
                   <div className="survey-q">
                     <div className="survey-q-label">
                       <span className="survey-q-num">1</span>
-                      <span>本日の説明会の満足度</span>
+                      <span>ご参加いただいた説明会の満足度</span>
                       <span className="survey-required">必須</span>
                     </div>
                     <p className="survey-hint">1：不満 〜 5：満足</p>
