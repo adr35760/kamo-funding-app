@@ -374,3 +374,190 @@ a { color: inherit; text-decoration: none; }
     font-size: clamp(11px, calc(3.55vw - 0.9px), 19px);
   }
 }
+
+/* ============================================================
+   2026-10-25 構成変更（個別相談メイン／説明会は二番手）
+   t iku 指示・PM 経由。新規CSSファイルは作らず本ファイルに追記する。
+   既存ルールは消さず、.seminar-info-page 配下の追加クラスだけで組む。
+   ============================================================ */
+
+/* ---- ① ヒーロー：主CTA（個別相談）と副CTA（説明会日程） ---- */
+/* 旧 .hero-sub は「1行固定」のための nowrap が入っているため、
+   新しいサブコピーは別クラスにして自然に折り返す。 */
+.seminar-info-page .hero-lead {
+  font-size: 19px; line-height: 1.8; opacity: 0.95;
+  margin: 0 auto 30px; max-width: 720px; color: var(--kamo-white);
+}
+.seminar-info-page .hero-cta-row {
+  display: flex; justify-content: center; align-items: center;
+  gap: 12px; flex-wrap: wrap;
+}
+/* 長い主CTA（20文字）は nowrap のままだと375pxで横にはみ出すため、
+   この行の中だけ折り返しを許す（.seminar-info-page .hero-cta の nowrap を上書き）。 */
+.seminar-info-page .hero-cta-row .hero-cta { white-space: normal; text-align: center; line-height: 1.5; }
+.seminar-info-page .hero-cta--sub {
+  background: transparent; color: var(--kamo-white);
+  /* 枠は border ではなく inset の影で描く。border を使うと auto 高さに4px足され、
+     画面幅ごとに主ボタンと高さがずれるため（box-shadow は高さに影響しない）。 */
+  border: none; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.75);
+}
+.seminar-info-page .hero-cta--sub:hover {
+  background: rgba(255,255,255,0.12); color: var(--kamo-white);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.95);
+}
+.seminar-info-page .hero-note {
+  margin-top: 18px; font-size: 14px; color: rgba(255,255,255,0.85); text-align: center;
+  /* 375pxでは1行に収まらないため、バランス良く2行に割る（末尾1〜2文字だけ落ちるのを防ぐ） */
+  text-wrap: balance;
+}
+/* ヒーローH1の「"達成したいこと"」は語中で割れないよう不可分にする
+   （スマホで「達成したいこ／と」と改行されるのを防ぐ） */
+.seminar-info-page .hero h1 .h1-keep { white-space: nowrap; }
+@media (max-width: 520px) {
+  /* 375pxでは2つ並べると潰れるので縦積みにする（ボタンは全幅・押しやすい高さ） */
+  .seminar-info-page .hero-cta-row { flex-direction: column; align-items: stretch; }
+  /* 主・副で高さが揃うよう最小高を固定する（枠線の有無で6px差が出るため） */
+  .seminar-info-page .hero-cta-row .hero-cta { justify-content: center; font-size: 16px; padding: 15px 18px; min-height: 58px; }
+  .seminar-info-page .hero-lead { font-size: 17px; }
+  .seminar-info-page .hero-note { font-size: 13px; }
+}
+/* 最後のCTAバナー（赤背景）でも副ボタンは白枠のまま使う */
+.seminar-info-page .cta-banner .hero-cta-row { margin-top: 4px; }
+.seminar-info-page .cta-banner .hero-cta--sub { color: var(--kamo-white); }
+
+/* ---- ② こんな方へ ---- */
+.for-you { padding: 64px 0; background: var(--kamo-white); }
+.for-you-title { text-align: center; margin-bottom: 32px; }
+.for-you-title h2 {
+  font-size: clamp(24px, 3.2vw, 34px); font-weight: 900; line-height: 1.5; text-wrap: balance;
+}
+.for-you-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; max-width: 760px; margin: 0 auto; }
+.for-you-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--kamo-light-bg); border: 1px solid var(--kamo-border);
+  border-radius: var(--radius); padding: 18px 20px;
+}
+.for-you-card p { font-size: 16px; font-weight: 700; line-height: 1.6; overflow-wrap: break-word; }
+@media (max-width: 640px) { .for-you-grid { grid-template-columns: 1fr; } .for-you-card p { font-size: 15px; } }
+
+/* ---- ③ 個別相談で分かること（.learn を再利用） ---- */
+/* ---- ④ 実績・成功事例 ---- */
+.results { padding: 64px 0; background: var(--kamo-white); }
+.results-title { text-align: center; margin-bottom: 28px; }
+.results-title h2 { font-size: clamp(24px, 3.2vw, 34px); font-weight: 900; line-height: 1.5; }
+.results-title h2 .accent { color: var(--kamo-red); }
+.results-stats { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 36px; }
+.results-stat {
+  flex: 1 1 200px; max-width: 280px; text-align: center;
+  background: var(--kamo-light-bg); border: 2px solid var(--kamo-border);
+  border-radius: var(--radius-lg); padding: 22px 18px;
+}
+.results-num {
+  display: block; font-family: var(--font-en); font-weight: 900;
+  font-size: clamp(30px, 5vw, 44px); line-height: 1.15; color: var(--kamo-red);
+  letter-spacing: -0.01em;
+}
+.results-label { display: block; margin-top: 4px; font-size: 15px; font-weight: 700; color: var(--kamo-gray); }
+.results-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.result-card {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--kamo-white); border: 2px solid var(--kamo-border);
+  border-radius: var(--radius-lg); padding: 20px; transition: all 0.3s;
+}
+.result-card:hover { border-color: var(--kamo-red); transform: translateY(-3px); box-shadow: var(--shadow); }
+.result-card-owner { font-size: 13px; font-weight: 700; color: var(--kamo-red); }
+.result-card-title { font-size: 15px; font-weight: 700; line-height: 1.6; overflow-wrap: break-word; }
+.result-card-nums { margin-top: auto; display: flex; flex-direction: column; gap: 2px; padding-top: 6px; }
+.result-card-raised { font-family: var(--font-en); font-size: 20px; font-weight: 900; line-height: 1.3; }
+.result-card-rate { font-size: 14px; font-weight: 700; color: var(--kamo-red); }
+.results-more { text-align: center; margin-top: 24px; font-size: 15px; font-weight: 700; color: var(--kamo-red); }
+@media (max-width: 860px) { .results-grid { grid-template-columns: 1fr; } .result-card-title { font-size: 16px; } }
+
+/* ---- ⑤ 個別相談の流れ ---- */
+.flow { padding: 64px 0; background: var(--kamo-light-bg); }
+.flow-title { text-align: center; margin-bottom: 32px; }
+.flow-title h2 { font-size: clamp(24px, 3.2vw, 34px); font-weight: 900; line-height: 1.5; }
+.flow-title h2 .accent { color: var(--kamo-red); }
+.flow-list {
+  list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+  max-width: 840px; margin: 0 auto;
+}
+.flow-step {
+  background: var(--kamo-white); border: 2px solid var(--kamo-border);
+  border-radius: var(--radius-lg); padding: 24px 20px; text-align: center;
+}
+.flow-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--kamo-red); color: var(--kamo-white);
+  font-family: var(--font-en); font-weight: 900; font-size: 18px; margin-bottom: 10px;
+}
+.flow-step h3 { font-size: 17px; font-weight: 900; margin-bottom: 4px; }
+.flow-step p { font-size: 14px; color: var(--kamo-gray); line-height: 1.7; }
+@media (max-width: 768px) {
+  .flow-list { grid-template-columns: 1fr; }
+  .flow-step { padding: 20px 18px; }
+}
+
+/* ---- ⑥ 説明会はこんな方に（既存コンテンツの集約） ---- */
+.seminar-detail { padding: 64px 0; background: #FAFAFA; border-top: 1px solid #EEE; border-bottom: 1px solid #EEE; }
+.seminar-detail-title { text-align: center; margin-bottom: 24px; }
+.seminar-detail-title h2 { font-size: clamp(24px, 3.2vw, 34px); font-weight: 900; line-height: 1.5; }
+.seminar-detail-title h2 .accent { color: var(--kamo-red); }
+.seminar-for-you {
+  list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+  max-width: 720px; margin: 0 auto 44px;
+}
+.seminar-for-you li {
+  background: var(--kamo-white); border: 1px solid var(--kamo-border); border-radius: 100px;
+  padding: 8px 18px; font-size: 15px; font-weight: 700;
+}
+.seminar-block { margin-bottom: 40px; }
+.seminar-block-title {
+  text-align: center; font-size: 20px; font-weight: 900; margin-bottom: 20px; text-wrap: balance;
+}
+/* AIツールのカード（ダーク）は元のセクション余白を持たないので個別に調整 */
+.seminar-ai { max-width: 920px; margin: 0 auto 40px; }
+.seminar-ai .ai-card { padding: 36px; }
+.seminar-photo { margin-bottom: 40px; }
+/* 薄いグレー背景の上では白文字のキャプションが読めないため色だけ差し替える */
+.seminar-photo .hero-community-caption { color: var(--kamo-gray); }
+.schedule-block { scroll-margin-top: 96px; } /* 固定ヘッダー分のオフセット */
+.schedule-block .schedule-list { max-width: 640px; }
+.seminar-voicy { text-align: center; margin: 40px 0 0; }
+.seminar-voicy-lead { font-size: 17px; font-weight: 700; color: var(--kamo-red); margin-bottom: 16px; }
+.seminar-voicy img { display: block; margin: 0 auto 16px; }
+.seminar-voicy-btn {
+  display: inline-block; background: var(--kamo-red); color: #fff;
+  padding: 14px 36px; border-radius: 100px; font-size: 17px; font-weight: 700;
+  box-shadow: 0 4px 20px rgba(230,0,18,0.3);
+}
+
+/* ---- ⑦ よくある質問 ---- */
+.faq { padding: 64px 0; background: var(--kamo-white); }
+.faq-title { text-align: center; margin-bottom: 28px; }
+.faq-title h2 { font-size: clamp(24px, 3.2vw, 34px); font-weight: 900; line-height: 1.5; }
+.faq-title h2 .accent { color: var(--kamo-red); }
+.faq-list { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.faq-item {
+  background: var(--kamo-white); border: 2px solid var(--kamo-border);
+  border-radius: var(--radius); padding: 4px 20px;
+}
+.faq-item summary {
+  cursor: pointer; list-style: none; position: relative;
+  font-size: 16px; font-weight: 700; line-height: 1.7; padding: 14px 28px 14px 0;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: '＋'; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  color: var(--kamo-red); font-weight: 900;
+}
+.faq-item[open] summary::after { content: '−'; }
+.faq-item p { font-size: 15px; color: var(--kamo-gray); line-height: 1.8; padding: 0 0 14px; }
+
+/* ---- 新セクション共通：見出しのジャンプ率を既存と揃える ---- */
+.seminar-info-page .for-you-title h2,
+.seminar-info-page .results-title h2,
+.seminar-info-page .flow-title h2,
+.seminar-info-page .seminar-detail-title h2,
+.seminar-info-page .faq-title h2 { line-height: 1.5; }

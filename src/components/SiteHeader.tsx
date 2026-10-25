@@ -11,19 +11,19 @@ const NAV_ITEMS = [
   { href: '/ai-tool', label: 'AIツール' },
 ];
 
-const DEFAULT_CTA = { href: '/lp', label: '日程を確認する' };
+const DEFAULT_CTA: SiteHeaderLink = { href: '/lp', label: '日程を確認する' };
 
 /**
  * 主CTA（日程を確認する）の**右横**に置くボタン（t iku 指定 2026-09-17）。
  * 掲載申込フォームへの導線。全ページのヘッダーに出る。
  */
-const APPLY_CTA = { href: '/apply-listing', label: '掲載申し込みをする' };
+const APPLY_CTA: SiteHeaderLink = { href: '/apply-listing', label: '掲載申し込みをする' };
 
 /**
  * 主CTA（日程を確認する）の左横に置く副ボタン。
  * 位置や文言の変更はこの定数と SECONDARY_IN_DRAWER_ONLY だけで完結する。
  */
-const SECONDARY_CTA = { href: '/success', label: '成功事例を見る →' };
+const SECONDARY_CTA: SiteHeaderLink = { href: '/success', label: '成功事例を見る →' };
 /**
  * true にすると、狭い画面（768px以下）では副ボタンをヘッダーに出さず
  * ドロワーの先頭に入れる。390pxで主CTAと並べると窮屈なため既定で有効。
@@ -33,6 +33,8 @@ const SECONDARY_IN_DRAWER_ONLY = true;
 export interface SiteHeaderLink {
   href: string;
   label: string;
+  /** 外部サイト（カレンダー予約ページ等）へ飛ばす場合に true。新しいタブで開く */
+  external?: boolean;
 }
 
 interface SiteHeaderProps {
@@ -85,13 +87,21 @@ export default function SiteHeader({ current, cta, pageLinks }: SiteHeaderProps)
               </a>
             ))}
             <a href={SECONDARY_CTA.href} className="site-header-cta-secondary">{SECONDARY_CTA.label}</a>
-            <a href={actionCta.href} className="site-header-cta">{actionCta.label}</a>
+            <a
+              href={actionCta.href}
+              className="site-header-cta"
+              {...(actionCta.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            >{actionCta.label}</a>
             <a href={APPLY_CTA.href} className="site-header-cta-apply">{APPLY_CTA.label}</a>
           </nav>
 
           {/* スマホ: CTAは常時表示し、その他はハンバーガーへ */}
           <div className="site-header-mobile">
-            <a href={actionCta.href} className="site-header-cta">{actionCta.label}</a>
+            <a
+              href={actionCta.href}
+              className="site-header-cta"
+              {...(actionCta.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            >{actionCta.label}</a>
             <button
               type="button"
               className="site-header-toggle"

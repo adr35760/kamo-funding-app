@@ -8,6 +8,52 @@ import SiteHeader from '@/components/SiteHeader';
 import Image from 'next/image';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
 import LegalFooter from '@/components/LegalFooter';
+import { allSuccessCases, formatYen, projectUrl } from '@/lib/success-cases';
+import { CONSULT_URL, NUM_JISSEKI, NUM_TASSEI_RATE } from '@/lib/seminar-info-content';
+
+/**
+ * ④実績セクションで引用する成功事例（/success と同じ既存データを読む）。
+ * 金額・達成率・タイトルは success-cases.ts が正で、ここでは slug だけ選ぶ
+ * （数値を本文に書かない＝データ更新時に古い数字が残らない）。
+ */
+const FEATURED_SLUGS = ['nakajima01', 'ooshimakeisuke01', 'takibinokai'];
+
+/** ②こんな方へ */
+const FOR_YOU = [
+  'アイデアはあるが形にできていない',
+  '何から手を付けていいか分からない',
+  '過去に挑戦したが目標に届かなかった',
+  '掲載できるか現実的に知りたい',
+];
+
+/** ③個別相談（60分）で分かること */
+const CONSULT_GAINS = [
+  { title: 'あなたのアイデアの勝ち筋', body: '誰に・何を・どう届けるか' },
+  { title: '目標金額と期間の現実的な設計', body: '無理のない金額・期間の置き方' },
+  { title: '掲載までに必要な準備と順番', body: '何を先にやるか' },
+  { title: '費用とスケジュールの概算', body: 'かかる費用と時期の目安' },
+];
+
+/** ⑤個別相談の流れ（3ステップ） */
+const FLOW_STEPS = [
+  { title: '予約', body: 'カレンダーから日時を選ぶ' },
+  { title: '事前に3問', body: '事業・アイデア／目標金額／希望時期' },
+  { title: 'オンライン60分', body: 'Zoomで直接お話しします' },
+];
+
+/** ⑥説明会はこんな方に */
+const SEMINAR_FOR_YOU = ['まず全体像を聞きたい', '他の事例も聞きたい', '日程が合う'];
+
+/** ⑦よくある質問 */
+const FAQS = [
+  { q: '無料ですか', a: '無料です。' },
+  { q: '顔出し不要ですか', a: '構いません。' },
+  { q: '掲載を決めていなくても大丈夫ですか', a: '情報収集だけでも歓迎です。' },
+  { q: '所要時間は', a: '60分です。' },
+];
+
+/** 説明会の日程から選ぶCTA（ヒーロー副ボタン・最後のCTAで共用） */
+const SCHEDULE_ANCHOR = '#schedule';
 
 export default function SeminarInfoClient({ initialEvents = [] }: { initialEvents?: EventLike[] }) {
   const [submitting, setSubmitting] = useState(false);
@@ -86,140 +132,215 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
     }
   };
 
+  const featuredCases = allSuccessCases().filter(c => FEATURED_SLUGS.includes(c.slug));
+
   return (
     <div className="seminar-info-page">
-      <SiteHeader current="/seminar-info" cta={{ href: '#apply', label: '今すぐ申し込む' }} />
+      <SiteHeader
+        current="/seminar-info"
+        cta={{ href: CONSULT_URL, label: '個別相談を予約', external: true }}
+      />
 
+      {/* ===== ① ヒーロー（主CTA＝個別相談／副CTA＝説明会日程） ===== */}
       <section className="hero">
         <div className="container">
           <div className="hero-inner">
-            <div className="hero-badge"><span className="hero-badge-dot"></span>参加費無料・月2回オンライン開催</div>
-            <h1><span className="hero-line1"><span className="gold">KAMOファンディング</span>掲載説明会！</span><br /><span className="hero-line2">掲載方法から、<span className="gold">AIで企画を構築</span>する手法をお伝えします！</span></h1>
-            <p className="hero-sub">～夢を叶えたいなら！クラウドファンディングの活用方法を学ぶべし！</p>
-            <a href="#apply" className="hero-cta">今すぐ無料で申し込む →</a>
-            <div className="hero-meta">
-              <div className="hero-meta-item"><span className="kamo-icon kamo-icon-calendar sm"></span> 月2回開催</div>
-              <div className="hero-meta-item"><span className="kamo-icon kamo-icon-monitor sm"></span> オンライン（Zoom）</div>
-              <div className="hero-meta-item"><span className="kamo-icon kamo-icon-yen sm"></span> 参加費¥0</div>
-              <div className="hero-meta-item"><span className="kamo-icon kamo-icon-clock sm"></span> 約90分</div>
+            <div className="hero-badge"><span className="hero-badge-dot"></span>無料・60分・オンライン</div>
+            <h1>
+              実績{NUM_JISSEKI}・達成率{NUM_TASSEI_RATE}の私が、
+              <br />
+              あなたのアイデアと<span className="h1-keep">&quot;達成したいこと&quot;</span>を直接伺います
+            </h1>
+            <p className="hero-lead">クラウドファンディングで、挑戦をかたちにする最初の60分。</p>
+            <div className="hero-cta-row">
+              <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="hero-cta hero-cta--main">
+                個別相談を予約する（無料・60分）
+              </a>
+              <a href={SCHEDULE_ANCHOR} className="hero-cta hero-cta--sub">説明会の日程を見る</a>
             </div>
-            <figure className="hero-community">
-              <Image
-                src="/seminar-community.jpg"
-                alt="KAMOファンディング掲載説明会の参加者"
-                width={1400}
-                height={1055}
-                sizes="(max-width: 768px) 100vw, 720px"
-                className="hero-community-image"
-                priority
-              />
-              <figcaption className="hero-community-caption">オンラインで全国から参加できます</figcaption>
-            </figure>
+            <p className="hero-note">オンライン（Zoom）／顔出し不要／無理な営業はしません</p>
           </div>
         </div>
       </section>
 
-      <section className="benefits">
+      {/* ===== ② こんな方へ ===== */}
+      <section className="for-you">
         <div className="container">
-          <div className="benefits-title">
-            <h2><span className="bt-line1">本業が停滞している<span className="accent">今だからこそ！</span></span><br /><span className="bt-line2">クラウドファンディングが<span className="accent">最高の武器</span>になります！</span></h2>
-          </div>
-          <div className="benefits-grid">
-            <div className="benefit-card"><div className="kamo-icon kamo-icon-trending-up lg"></div><h3>短期キャンペーンで売上UP</h3><p>クラファンを「先行販売」「限定商品」の短期キャンペーンに使い、本業の売上を一気に引き上げる。</p></div>
-            <div className="benefit-card"><div className="kamo-icon kamo-icon-handshake lg"></div><h3>共犯者を集める仕組み</h3><p>「あなたの夢を応援したい」と言ってくれる人を集める。お金ではなく、応援者を集めるのがKAMO流。</p></div>
-            <div className="benefit-card"><div className="kamo-icon kamo-icon-flame lg"></div><h3>AI時代のマネタイズ力を上げていこう！</h3><p>自分ができることを販売できればどんな投資にも勝ります！AIを味方に、スキルをリターンとして売る力を養いましょう</p></div>
+          <div className="for-you-title"><h2>こんな方へ</h2></div>
+          <div className="for-you-grid">
+            {FOR_YOU.map(item => (
+              <div className="for-you-card" key={item}>
+                <span className="kamo-icon kamo-icon-check sm"></span>
+                <p>{item}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
+      {/* ===== ③ 個別相談（60分）で分かること ===== */}
       <section className="learn">
         <div className="container">
-          <div className="learn-title"><h2>説明会で<span className="accent">分かること</span></h2></div>
+          <div className="learn-title"><h2>個別相談（60分）で<span className="accent">分かること</span></h2></div>
           <div className="learn-list">
-            <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>KAMOファンディングの特徴</h4><p>総支援額16億円！達成率95%のノウハウの一端をご紹介</p></div></div>
-            <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>クラウドファンディングの集める構造を理解する</h4><p>クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</p></div></div>
-            <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>応援支援で高額支援を集めるノウハウを伝授</h4><p>スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</p></div></div>
-          </div>
-          <p style={{ textAlign: 'center', fontSize: '15px', color: '#E60012', fontWeight: '700', marginTop: '24px' }}>※KAMOファンディングに掲載希望者は参加必須です。</p>
-        </div>
-      </section>
-
-      <section className="ai-highlight">
-        <div className="container">
-          <div className="ai-card">
-            <div className="ai-card-text">
-              <h2>AIで<span className="gold">クラファンページ</span>が作れる</h2>
-              <p>説明会では、KAMOファンディング独自のツールの体験案内を行います！<br />瞬時でクラファンページが作成できます！</p>
-            </div>
-            <div className="ai-card-visual">
-              <div style={{width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', flexShrink: '0'}}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="4" y="8" width="16" height="12" rx="2" />
-                  <path d="M12 4V8" />
-                  <circle cx="9" cy="14" r="1" />
-                  <circle cx="15" cy="14" r="1" />
-                  <path d="M12 2V4" />
-                </svg>
+            {CONSULT_GAINS.map(item => (
+              <div className="learn-item" key={item.title}>
+                <div className="kamo-icon kamo-icon-check sm"></div>
+                <div><h4>{item.title}</h4><p>{item.body}</p></div>
               </div>
-              <h3>AIクラファンページ<br />作成ツール</h3>
-              <p>参加者のみ！体験がその場でできます！</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="schedule" id="schedule">
+      {/* ===== ④ 実績・成功事例 ===== */}
+      <section className="results">
         <div className="container">
-          <div className="schedule-title"><h2>説明会の<span className="accent">開催日程</span></h2></div>
-          <div className="schedule-list">
-            {eventsLoaded && events.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '40px 20px', background: '#FFF5F5', borderRadius: '16px', border: '2px solid #FFE0E0' }}>
-                <p style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>現在募集中の日程はありません</p>
-                <p style={{ fontSize: '15px', color: '#666' }}>次回日程は近日公開します。公開までお待ちください。</p>
-              </div>
-            )}
-            {events.map(ev => {
-              const p = eventCardParts(ev.event_date, ev.duration_minutes);
-              return (
-                <div className="schedule-item" key={ev.id}>
-                  <div className="schedule-date">
-                    <div className="date-main">
-                      <span className="date-month">{p.month}</span>
-                      <span className="date-day">{p.day}</span>
-                      <span className="date-weekday">{p.weekdayKakko}</span>
-                    </div>
-                    <div className="schedule-time">{p.timeRange}</div>
-                  </div>
-                  <div className="schedule-info">
-                    <h4>{ev.title}</h4>
-                    <p>オンライン（Zoom） | 参加費無料</p>
-                  </div>
-                  <div className="schedule-status" style={ev.finished
-                    ? { background: '#9E9E9E', color: '#fff' }
-                    : { background: '#E60012', color: '#fff' }}>{ev.finished ? '終了' : '募集中'}</div>
+          <div className="results-title"><h2>実績・<span className="accent">成功事例</span></h2></div>
+          <div className="results-stats">
+            <div className="results-stat">
+              <span className="results-num">{NUM_JISSEKI}</span>
+              <span className="results-label">の支援実績</span>
+            </div>
+            <div className="results-stat">
+              <span className="results-num">{NUM_TASSEI_RATE}</span>
+              <span className="results-label">達成率</span>
+            </div>
+          </div>
+          <div className="results-grid">
+            {featuredCases.map(c => (
+              <a
+                key={c.slug}
+                href={projectUrl(c.slug)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="result-card"
+              >
+                <span className="result-card-owner">{c.owner}</span>
+                <h3 className="result-card-title">{c.title}</h3>
+                <div className="result-card-nums">
+                  <span className="result-card-raised">{formatYen(c.raised)}</span>
+                  <span className="result-card-rate">達成率{c.achievementRate.toLocaleString('ja-JP')}%</span>
                 </div>
-              );
-            })}
+              </a>
+            ))}
           </div>
-          <div className="schedule-title" style={{ marginTop: '48px' }}><h2>参加申込は<span className="accent">こちら</span></h2></div>
-          <p style={{ textAlign: 'center', fontSize: '17px', fontWeight: '700', color: '#E60012', marginTop: '24px', marginBottom: '16px' }}>音声配信メディア！Voicyでも、クラウドファンディング成功ノウハウを配信中！</p>
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-            <img src="/voicy-banner.png" alt="Voicy — クラウドファンディング成功ノウハウ配信中" style={{ maxWidth: '400px', width: '100%', height: 'auto', borderRadius: '12px' }} />
-          </div>
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <a href="https://r.voicy.jp/GZV0X8DWjVW" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', background: '#E60012', color: '#fff', padding: '14px 36px', borderRadius: '100px', fontSize: '17px', fontWeight: '700', textDecoration: 'none', boxShadow: '0 4px 20px rgba(230,0,18,0.3)' }}>Voicyはこちら →</a>
-          </div>
+          <p className="results-more"><a href="/success">成功事例をすべて見る →</a></p>
         </div>
       </section>
 
-      <section className="cta-banner">
+      {/* ===== ⑤ 個別相談の流れ ===== */}
+      <section className="flow">
         <div className="container">
-          <h2>まずは無料説明会に参加してみませんか？</h2>
-          <p>月2回開催・参加費無料・約90分。あなたのビジネスにクラファンが使えるか、一緒に確かめましょう。</p>
-          <a href="#apply" className="hero-cta">説明会に申し込む →</a>
+          <div className="flow-title"><h2>個別相談の<span className="accent">流れ</span></h2></div>
+          <ol className="flow-list">
+            {FLOW_STEPS.map((step, i) => (
+              <li className="flow-step" key={step.title}>
+                <span className="flow-num">{i + 1}</span>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
+      {/* ===== ⑥ 説明会はこんな方に（既存コンテンツの集約＋日程＋申込） ===== */}
+      <section className="seminar-detail">
+        <div className="container">
+          <div className="seminar-detail-title"><h2>説明会は<span className="accent">こんな方に</span></h2></div>
+          <ul className="seminar-for-you">
+            {SEMINAR_FOR_YOU.map(item => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+
+          <div className="seminar-block">
+            <h3 className="seminar-block-title">説明会で分かること</h3>
+            <div className="learn-list">
+              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>KAMOファンディングの特徴</h4><p>総支援額{NUM_JISSEKI}！達成率{NUM_TASSEI_RATE}のノウハウの一端をご紹介</p></div></div>
+              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>クラウドファンディングの集める構造を理解する</h4><p>クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</p></div></div>
+              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>応援支援で高額支援を集めるノウハウを伝授</h4><p>スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</p></div></div>
+            </div>
+          </div>
+
+          <div className="seminar-ai">
+            <div className="ai-card">
+              <div className="ai-card-text">
+                <h2>AIで<span className="gold">クラファンページ</span>が作れる</h2>
+                <p>説明会では、KAMOファンディング独自のツールの体験案内を行います！<br />瞬時でクラファンページが作成できます！</p>
+              </div>
+              <div className="ai-card-visual">
+                <div style={{width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', flexShrink: '0'}}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="4" y="8" width="16" height="12" rx="2" />
+                    <path d="M12 4V8" />
+                    <circle cx="9" cy="14" r="1" />
+                    <circle cx="15" cy="14" r="1" />
+                    <path d="M12 2V4" />
+                  </svg>
+                </div>
+                <h3>AIクラファンページ<br />作成ツール</h3>
+                <p>参加者のみ！体験がその場でできます！</p>
+              </div>
+            </div>
+          </div>
+
+          <figure className="hero-community seminar-photo">
+            <Image
+              src="/seminar-community.jpg"
+              alt="KAMOファンディング掲載説明会の参加者"
+              width={1400}
+              height={1055}
+              sizes="(max-width: 768px) 100vw, 720px"
+              className="hero-community-image"
+            />
+            <figcaption className="hero-community-caption">オンラインで全国から参加できます</figcaption>
+          </figure>
+
+          <div id="schedule" className="schedule-block">
+            <h3 className="seminar-block-title">説明会の開催日程</h3>
+            <div className="schedule-list">
+              {eventsLoaded && events.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px 20px', background: '#FFF5F5', borderRadius: '16px', border: '2px solid #FFE0E0' }}>
+                  <p style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>現在募集中の日程はありません</p>
+                  <p style={{ fontSize: '15px', color: '#666' }}>次回日程は近日公開します。公開までお待ちください。</p>
+                </div>
+              )}
+              {events.map(ev => {
+                const p = eventCardParts(ev.event_date, ev.duration_minutes);
+                return (
+                  <div className="schedule-item" key={ev.id}>
+                    <div className="schedule-date">
+                      <div className="date-main">
+                        <span className="date-month">{p.month}</span>
+                        <span className="date-day">{p.day}</span>
+                        <span className="date-weekday">{p.weekdayKakko}</span>
+                      </div>
+                      <div className="schedule-time">{p.timeRange}</div>
+                    </div>
+                    <div className="schedule-info">
+                      <h4>{ev.title}</h4>
+                      <p>オンライン（Zoom） | 参加費無料</p>
+                    </div>
+                    <div className="schedule-status" style={ev.finished
+                      ? { background: '#9E9E9E', color: '#fff' }
+                      : { background: '#E60012', color: '#fff' }}>{ev.finished ? '終了' : '募集中'}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="seminar-voicy">
+            <p className="seminar-voicy-lead">音声配信メディア！Voicyでも、クラウドファンディング成功ノウハウを配信中！</p>
+            <img src="/voicy-banner.png" alt="Voicy — クラウドファンディング成功ノウハウ配信中" style={{ maxWidth: '400px', width: '100%', height: 'auto', borderRadius: '12px' }} />
+            <a href="https://r.voicy.jp/GZV0X8DWjVW" target="_blank" rel="noopener noreferrer" className="seminar-voicy-btn">Voicyはこちら →</a>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== 説明会 参加申込フォーム（既存のフォーム・送信処理は変更なし） ===== */}
       <section className="form-section" id="apply">
         <div className="container">
           <div className="form-card">
@@ -279,6 +400,35 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
                 <p className="form-note">※ 申込後に確認メールが自動送信されます<br />※ 個人情報は本説明会の運営目的のみに使用します</p>
               </form>
             )}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== ⑦ よくある質問 ===== */}
+      <section className="faq">
+        <div className="container">
+          <div className="faq-title"><h2>よくある<span className="accent">質問</span></h2></div>
+          <div className="faq-list">
+            {FAQS.map(item => (
+              <details className="faq-item" key={item.q}>
+                <summary>{item.q}</summary>
+                <p>{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== ⑧ 最後のCTA（個別相談が主・説明会が副） ===== */}
+      <section className="cta-banner">
+        <div className="container">
+          <h2>まずは、無料の個別相談から。</h2>
+          <p>60分で、あなたのアイデアの勝ち筋と現実的な設計をお伝えします。<br />説明会の日程から選ぶこともできます。</p>
+          <div className="hero-cta-row">
+            <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="hero-cta hero-cta--main">
+              個別相談を予約する（無料・60分）
+            </a>
+            <a href="#apply" className="hero-cta hero-cta--sub">説明会に申し込む</a>
           </div>
         </div>
       </section>
