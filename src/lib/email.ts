@@ -1,6 +1,8 @@
 import { Resend } from 'resend';
 import { normalizeEmail, isValidEmail } from '@/lib/email-address';
 import { referralTermsHtml } from '@/lib/referral-terms';
+import { referralShareUrl, siteOrigin } from '@/lib/referral-link';
+import { buildReferralShareMessage, buildReferralShortMessage } from '@/lib/referral-message';
 import {
   AI_SEMINAR,
   REAL_SEMINAR,
@@ -480,42 +482,93 @@ export async function sendReminderEmail(
 
 /**
  * 紹介パートナー登録完了メール
+ *
+ * 2026-10-26: 専用リンク（/r/<code>）と、そのまま送れる文面テンプレを追加。
+ * リンク経由の申込は registrations.referral_code に自動で紐付く。
  */
-export async function sendPartnerConfirmationEmail(
-  name: string,
-  email: string,
-  referralCode: string
-): Promise<EmailResult> {
-  const subject = '【KAMOファンディング】紹介パートナー登録完了 — 紹介コード発行';
-  const html = `
+export const PARTNER_CONFIRMATION_SUBJECT =
+  '【KAMOファンディング】紹介パートナー登録完了 — あなた専用の紹介リンク発行';
+
+export function partnerConfirmationHtml({
+  name,
+  referralCode,
+}: {
+  name: string;
+  referralCode: string;
+}): string {
+  const safeName = escapeHtml(name);
+  const shareUrl = referralShareUrl(referralCode);
+  const link = escapeHtml(shareUrl);
+
+  // 文面テンプレは referral-message.ts が正（登録完了画面と同じ文言を使う）
+  const shareTemplate = buildReferralShareMessage(name, referralCode);
+  const shortTemplate = buildReferralShortMessage(name, referralCode);
+
+  return `
     <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: #27AE60; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
         <h1 style="margin: 0; font-size: 24px;">🤝 KAMOファンディング</h1>
         <p style="margin: 4px 0 0; font-size: 14px;">紹介パートナー登録完了</p>
       </div>
       <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 8px 8px; border: 1px solid #eee;">
-        <p>${name}様</p>
+        <p>${safeName}様</p>
         <p>紹介パートナーの登録が完了しました。ありがとうございます！</p>
+
         <div style="margin: 20px 0; padding: 20px; background: #fff; border: 2px solid #27AE60; border-radius: 8px; text-align: center;">
           <p style="font-size: 13px; color: #666; margin: 0 0 4px;">あなたの紹介コード</p>
-          <p style="font-size: 28px; font-weight: bold; color: #27AE60; font-family: monospace; letter-spacing: 2px; margin: 0;">${referralCode}</p>
+          <p style="font-size: 28px; font-weight: bold; color: #27AE60; font-family: monospace; letter-spacing: 2px; margin: 0;">${escapeHtml(referralCode)}</p>
         </div>
-        <p style="margin-top: 16px;">このコードを紹介先に共有してください。掲載時にこのコードを使うことで、紹介実績として自動的に記録されます。</p>
-        <p style="margin-top: 16px; padding: 16px; background: #F0FFF0; border-radius: 8px; font-size: 14px;">
+
+        <p style="margin-top: 20px; font-weight: 700;">あなた専用の紹介リンク</p>
+        <p style="margin: 8px 0 0;">
+          <a href="${link}" style="color: #27AE60; word-break: break-all; font-weight: 700;">${link}</a>
+        </p>
+        <p style="margin: 8px 0 0; font-size: 13px; color: #666;">
+          このリンクを紹介先に送るだけでOKです。リンクから申し込まれた方は、
+          自動であなたの紹介として記録されます（コードの入力は不要）。
+        </p>
+        <p style="margin: 8px 0 0; font-size: 13px; color: #666;">
+          ※ 口頭で伝える場合は「${escapeHtml(referralCode)}」とお伝えください。
+          このメールは、あとで使えるように保存しておいてください。
+        </p>
+
+        <div style="margin-top: 20px; padding: 16px; background: #fff; border: 1px solid #ddd; border-radius: 8px;">
+          <p style="margin: 0 0 8px; font-weight: 700; font-size: 14px;">📋 そのまま送れる文面（メール・LINE向け）</p>
+          <p style="margin: 0 0 8px; font-size: 12px; color: #666;">以下の文面をコピーして、そのまま送ってください。</p>
+          <pre style="margin: 0; padding: 12px; background: #fafafa; border: 1px solid #eee; border-radius: 6px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; font-family: 'Noto Sans JP', sans-serif;">${escapeHtml(shareTemplate)}</pre>
+        </div>
+
+        <div style="margin-top: 12px; padding: 16px; background: #fff; border: 1px solid #ddd; border-radius: 8px;">
+          <p style="margin: 0 0 8px; font-weight: 700; font-size: 14px;">✉️ 短い文面（SNS・チャット向け）</p>
+          <pre style="margin: 0; padding: 12px; background: #fafafa; border: 1px solid #eee; border-radius: 6px; font-size: 13px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; font-family: 'Noto Sans JP', sans-serif;">${escapeHtml(shortTemplate)}</pre>
+        </div>
+
+        <p style="margin-top: 20px; padding: 16px; background: #F0FFF0; border-radius: 8px; font-size: 14px;">
           <strong>次のステップ：</strong><br />
           1. 説明会に参加（必須）<br />
-          2. 紹介先にKAMOファンディングを紹介<br />
-          3. 紹介コードを共有<br />
+          2. 紹介先にKAMOファンディングを紹介（上記リンクを送る）<br />
+          3. リンク経由の申込は自動で記録されます<br />
           4. 掲載完了で報酬（対象額の約2%）
         </p>
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
-          https://kamo-funding-app.vercel.app/
+          ${siteOrigin()}/
         </p>
       </div>
     </div>
   `;
-  return sendEmail(email, subject, html);
+}
+
+export async function sendPartnerConfirmationEmail(
+  name: string,
+  email: string,
+  referralCode: string
+): Promise<EmailResult> {
+  return sendEmail(
+    email,
+    PARTNER_CONFIRMATION_SUBJECT,
+    partnerConfirmationHtml({ name, referralCode })
+  );
 }
 
 /**
@@ -1113,17 +1166,12 @@ export async function sendSeminarInviteEmail(
 }
 
 /**
- * サイトの公開オリジン。アンケート案内メールのリンク生成に使う。
- * 独自ドメインへ移行する場合は NEXT_PUBLIC_SITE_URL を設定すれば全メールが追随する。
+ * アンケート回答ページのURL（回を指定）。
+ * オリジンは referral-link.ts の siteOrigin() に一本化している
+ * （独自ドメインへ移行するときは NEXT_PUBLIC_SITE_URL を設定すれば全メールが追随する）。
  */
-const SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL || 'https://kamo-funding-app.vercel.app').replace(
-  /\/+$/,
-  ''
-);
-
-/** アンケート回答ページのURL（回を指定） */
 export function surveyUrlFor(eventId: string): string {
-  return `${SITE_ORIGIN}/survey?event=${encodeURIComponent(eventId)}`;
+  return `${siteOrigin()}/survey?event=${encodeURIComponent(eventId)}`;
 }
 
 /**
@@ -1180,7 +1228,7 @@ export function surveyInviteHtml(params: {
 
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
-          ${SITE_ORIGIN}/
+          ${siteOrigin()}/
         </p>
       </div>
     </div>

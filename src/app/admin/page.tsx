@@ -39,6 +39,8 @@ interface Registration {
   utm_source?: string | null;
   utm_medium?: string | null;
   utm_campaign?: string | null;
+  /** 紹介パートナー専用リンク（/r/<code>）経由の申込。列未追加の環境では存在しない */
+  referral_code?: string | null;
   /**
    * 申込完了メールの送信状態（email_logs から導出）
    * 'sent' 送信成功 / 'failed' 送信失敗＝お客様に届いていない
@@ -109,7 +111,7 @@ const partnerTypeLabels: Record<string, string> = {
 
 export default function AdminPage() {
   const [tab, setTab] = useState<
-    'events' | 'registrations' | 'partners' | 'referrals' | 'ai' | 'listing' | 'survey'
+    'events' | 'registrations' | 'partners' | 'referrals' | 'referral-links' | 'ai' | 'listing' | 'survey'
   >('events');
   const [events, setEvents] = useState<Event[]>([]);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -374,11 +376,14 @@ export default function AdminPage() {
     const headers = [
       '名前', 'メール', '会社', '参加経路（本人申告）',
       '流入元(utm_source)', '流入種別(utm_medium)', '投稿単位(utm_campaign)',
+      '紹介コード(referral_code)',
       '挑戦内容', 'ステータス', '完了メール送信', '申込日時',
     ];
     const rows = registrations.map(r => [
       r.name, r.email, r.company || '', r.referrer_source || '',
       r.utm_source || '', r.utm_medium || '', r.utm_campaign || '',
+      // 列が無い環境では空欄ではなく「未計測」と書く（空欄＝紹介なしと読めてしまうため）
+      'referral_code' in r ? (r.referral_code || '') : '（未計測）',
       r.challenge_description || '', r.status,
       r.confirmation_email_status === 'sent' ? '送信済み'
         : r.confirmation_email_status === 'failed' ? '未着（送信失敗）' : '記録なし',
@@ -499,6 +504,9 @@ export default function AdminPage() {
         </TabButton>
         <TabButton active={tab === 'referrals'} onClick={() => setTab('referrals')}>
           紹介者一覧
+        </TabButton>
+        <TabButton active={tab === 'referral-links'} onClick={() => setTab('referral-links')}>
+          紹介リンク
         </TabButton>
         <TabButton active={tab === 'ai'} onClick={() => setTab('ai')}>
           AI生成結果
@@ -752,8 +760,19 @@ export default function AdminPage() {
                         </Td>
                         <Td style={{ minWidth: 110, verticalAlign: 'top' }}>{reg.company || '-'}</Td>
                         <Td style={{ minWidth: 90, verticalAlign: 'top' }}>{reg.referrer_source || '-'}</Td>
-                        <Td style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
+                        <Td style={{ fontSize: 12, whiteSpace: 'nowrap', verticalAlign: 'top' }}>
                           <UtmCell reg={reg} />
+                        </Td>
+                        {/* 紹介パートナーのリンク（/r/<code>）経由の申込。
+                            列が未追加の環境では undefined なので、0ではなく「—」で出す */}
+                        <Td style={{ fontSize: 12, whiteSpace: 'nowrap', verticalAlign: 'top' }}>
+                          {'referral_code' in reg ? (
+                            reg.referral_code
+                              ? <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#27AE60' }}>{reg.referral_code}</span>
+                              : <span style={{ color: '#999' }}>-</span>
+                          ) : (
+                            <span style={{ color: '#999' }} title="紹介コードの列が未追加のため不明">—</span>
+                          )}
                         </Td>
                         <Td style={{ minWidth: 180, maxWidth: 220, color: '#E60012', cursor: 'help', verticalAlign: 'top' }}
                           title={reg.challenge_description || ''}>
@@ -992,6 +1011,9 @@ export default function AdminPage() {
             </div>
           )}
 
+          {/* 紹介リンクタブ（パートナー別の申込数） */}
+          {tab === 'referral-links' && <ReferralLinksPanel />}
+
           {/* AI生成結果タブ */}
           {tab === 'ai' && <AIGenerationsPanel />}
 
@@ -1007,6 +1029,38 @@ export default function AdminPage() {
       </div>
     </div>
   );
+}
+
+/**
+ * 紹介リンクタブのデータ（/api/admin/referral-stats）。
+ * applications が null のときは「0件」ではなく**読めていない**（列が未追加）。
+ * 画面では 0 と区別して「—」で出す。
+ */
+interface ReferralPartnerStat {
+  id: string;
+  name: string;
+  email: string | null;
+  organization: string | null;
+  partnerType: string | null;
+  status: string | null;
+  code: string | null;
+  shareUrl: string | null;
+  applications: number | null;
+  lastAppliedAt: string | null;
+}
+
+interface ReferralStats {
+  ok: boolean;
+  columnAvailable: boolean;
+  columnError: string | null;
+  partners: ReferralPartnerStat[];
+  totals: {
+    applications: number | null;
+    unassigned: number | null;
+    withApplications: number | null;
+    partners: number;
+  };
+  unknownCodes: Array<{ code: string; count: number; lastAppliedAt: string | null }>;
 }
 
 const primaryBtn: React.CSSProperties = {
@@ -1520,6 +1574,8 @@ interface UtmBearing {
   utm_source?: string | null;
   utm_medium?: string | null;
   utm_campaign?: string | null;
+  /** 紹介パートナー専用リンク（/r/<code>）経由の申込。列未追加の環境では存在しない */
+  referral_code?: string | null;
 }
 
 function UtmCell({ reg }: { reg: UtmBearing }) {
@@ -2008,6 +2064,191 @@ interface SurveyEventRow {
  *
  * 🔴 取得できなかったときは「0件」と断定しない（理由を出す）。
  */
+/** 紹介リンクタブ — パートナー別の申込数と、配布用の共有リンク */
+function ReferralLinksPanel() {
+  const [data, setData] = useState<ReferralStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [copiedKey, setCopiedKey] = useState('');
+
+  const load = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/referral-stats');
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        // 🔴 失敗を「0件」として描かない（数字が出せないときは数字を出さない）
+        setData(null);
+        setError(json.error || '紹介リンクの集計を取得できませんでした');
+      } else {
+        setData(json as ReferralStats);
+      }
+    } catch {
+      setData(null);
+      setError('紹介リンクの集計を取得できませんでした（通信エラー）');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const copy = async (text: string, key: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(''), 2000);
+    } catch {
+      // クリップボードAPIが使えない環境（http等）では手動コピーにフォールバック
+      window.prompt('このリンクをコピーしてください', text);
+    }
+  };
+
+  /** 件数の表示。null は「読めていない」ので 0 ではなく — を出す */
+  const count = (n: number | null | undefined) => (n === null || n === undefined ? '—' : `${n}件`);
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <div>
+          <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>紹介リンク（パートナー別の申込数）</h2>
+          <p style={{ fontSize: 13, color: '#666' }}>
+            紹介パートナーの専用リンク（<code>/r/コード</code>）から申し込まれた件数です。リンク経由の申込は自動で紐付きます。
+          </p>
+        </div>
+        <button onClick={load} disabled={loading} style={{ ...secondaryBtn, fontSize: 13 }}>
+          {loading ? '読み込み中...' : '再読み込み'}
+        </button>
+      </div>
+
+      {error && (
+        <div style={{
+          background: '#FDECEA', border: '1px solid #F5C6C6', borderRadius: 8,
+          padding: 16, marginBottom: 16, fontSize: 13, color: '#B71C1C',
+        }}>
+          {error}
+        </div>
+      )}
+
+      {loading && !data && <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>読み込み中...</div>}
+
+      {data && (
+        <>
+          {!data.columnAvailable && (
+            <div style={{
+              background: '#FFF8E1', border: '1px solid #FFE082', borderRadius: 8,
+              padding: 16, marginBottom: 16, fontSize: 13, color: '#795548', lineHeight: 1.7,
+            }}>
+              <strong>申込数はまだ集計できません（データベースの列が未追加）。</strong><br />
+              申込側の受け取りは実装済みで、リンクは今すぐ配布できます。集計用の列を追加すれば、以降の申込から数字が出ます。<br />
+              <span style={{ color: '#999' }}>※ ここは「0件」ではありません。0件と区別して「—」で表示しています。</span>
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
+            <div style={{ flex: '1 1 180px', background: '#f9f9f9', borderRadius: 8, padding: 16 }}>
+              <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>紹介経由の申込（合計）</div>
+              <div style={{ fontSize: 24, fontWeight: 900 }}>{count(data.totals.applications)}</div>
+            </div>
+            <div style={{ flex: '1 1 180px', background: '#f9f9f9', borderRadius: 8, padding: 16 }}>
+              <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>紹介なし（通常の申込）</div>
+              <div style={{ fontSize: 24, fontWeight: 900 }}>{count(data.totals.unassigned)}</div>
+            </div>
+            <div style={{ flex: '1 1 180px', background: '#f9f9f9', borderRadius: 8, padding: 16 }}>
+              <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>申込があったパートナー</div>
+              <div style={{ fontSize: 24, fontWeight: 900 }}>{count(data.totals.withApplications)}</div>
+            </div>
+          </div>
+
+          {data.partners.length === 0 ? (
+            <EmptyState message="紹介パートナーの登録がまだありません。パートナー登録ページから登録すると、専用リンクが発行されます。" />
+          ) : (
+            <div style={{ overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
+              <table style={{ width: '100%', minWidth: 900, borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                    <Th>パートナー</Th>
+                    <Th>紹介コード</Th>
+                    <Th>共有リンク</Th>
+                    <Th>申込数</Th>
+                    <Th>直近の申込</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.partners.map(p => (
+                    <tr key={p.id} style={{ borderBottom: '1px solid #eee' }}>
+                      <Td>
+                        <div style={{ fontWeight: 700 }}>{p.name}</div>
+                        <div style={{ fontSize: 11, color: '#999' }}>{p.organization || p.email || '-'}</div>
+                      </Td>
+                      <Td style={{ fontFamily: 'monospace', fontWeight: 700, color: '#27AE60', whiteSpace: 'nowrap' }}>
+                        {p.code || '-'}
+                      </Td>
+                      <Td>
+                        {p.shareUrl ? (
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <code style={{ fontSize: 12, wordBreak: 'break-all' }}>{p.shareUrl}</code>
+                            <button
+                              onClick={() => copy(p.shareUrl as string, p.id)}
+                              style={{ ...secondaryBtn, padding: '4px 10px', fontSize: 12 }}>
+                              {copiedKey === p.id ? 'コピーしました' : 'コピー'}
+                            </button>
+                            <a href={p.shareUrl} target="_blank" rel="noopener noreferrer"
+                              style={{ fontSize: 12, color: '#E60012' }}>
+                              開く
+                            </a>
+                          </div>
+                        ) : (
+                          <span style={{ color: '#999' }}>コード未発行</span>
+                        )}
+                      </Td>
+                      <Td style={{ fontWeight: 900, fontSize: 15, whiteSpace: 'nowrap' }}>{count(p.applications)}</Td>
+                      <Td style={{ whiteSpace: 'nowrap', fontSize: 12, color: '#666' }}>
+                        {p.lastAppliedAt ? new Date(p.lastAppliedAt).toLocaleString('ja-JP') : '—'}
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {data.unknownCodes.length > 0 && (
+            <div style={{ marginTop: 20 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>未登録のコードからの申込</h3>
+              <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
+                パートナー一覧に無いコードで申込が記録されています（削除済みパートナー・入力の誤りなど）。消さずに残しています。
+              </p>
+              <table style={{ width: '100%', maxWidth: 560, borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
+                    <Th>コード</Th><Th>申込数</Th><Th>直近の申込</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.unknownCodes.map(u => (
+                    <tr key={u.code} style={{ borderBottom: '1px solid #eee' }}>
+                      <Td style={{ fontFamily: 'monospace' }}>{u.code}</Td>
+                      <Td>{u.count}件</Td>
+                      <Td style={{ fontSize: 12, color: '#666' }}>
+                        {u.lastAppliedAt ? new Date(u.lastAppliedAt).toLocaleString('ja-JP') : '—'}
+                      </Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function SurveyPanel() {
   const [rows, setRows] = useState<SurveyResponseRow[]>([]);
   const [events, setEvents] = useState<SurveyEventRow[]>([]);

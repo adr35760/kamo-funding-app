@@ -7,11 +7,17 @@ import '@/styles/kamo-icons.css';
 import '@/styles/partner-register.css';
 import LegalFooter from '@/components/LegalFooter';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
+import { referralShareUrl } from '@/lib/referral-link';
+import { buildReferralShareMessage, buildReferralShortMessage } from '@/lib/referral-message';
 
 export default function PartnerRegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+  // 登録完了画面に出す専用リンクと文面（メールと同じ内容をその場でも渡す）
+  const [issuedCode, setIssuedCode] = useState('');
+  const [registeredName, setRegisteredName] = useState('');
+  const [copied, setCopied] = useState('');
 
   // 流入元（UTM）をURLから読み取り、登録送信まで保持する
   // （スクロールや再描画で消えないよう sessionStorage に保存する）
@@ -26,6 +32,7 @@ export default function PartnerRegisterPage() {
     const formData = new FormData(e.currentTarget);
     const data: Record<string, string> = {};
     formData.forEach((v, k) => { data[k] = v as string; });
+    const name = (data.name || '').trim();
     // 流入元（UTM）を登録データに添付する。取れていなければ何も付かない（登録は必ず通す）
     Object.assign(data, getUtmPayload());
     try {
@@ -34,9 +41,15 @@ export default function PartnerRegisterPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      const result = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || '登録に失敗しました');
+        throw new Error(result.error || '登録に失敗しました');
+      }
+      // 専用リンク（/r/<code>）は発行されたコードから組み立てる。
+      // 取れなかった場合でも完了表示は出す（登録自体は成立しているため）
+      if (result.referral_code) {
+        setIssuedCode(result.referral_code);
+        setRegisteredName(name);
       }
       setSubmitted(true);
     } catch (err: unknown) {
@@ -141,10 +154,59 @@ export default function PartnerRegisterPage() {
             <p className="form-sub">登録は無料・即日で紹介コードを発行します。以下の情報をご入力ください。</p>
             <p className="form-note-top">※ 紹介料のお受け取りには、説明会への参加（紹介報酬規程の承諾）が必要です</p>
             {submitted ? (
-              <div style={{textAlign:'center',padding:'48px 24px'}}>
-                <div className="kamo-icon kamo-icon-check-lg" style={{width:'48px',height:'48px',marginBottom:'16px'}}></div>
+              <div style={{textAlign:'center',padding:'40px 24px'}}>
+                <div className="kamo-icon kamo-icon-check-lg" style={{width:'48px',height:'48px',margin:'0 auto 16px'}}></div>
                 <h3 style={{fontSize:'24px',fontWeight:900,marginBottom:'8px'}}>登録完了！</h3>
-                <p style={{color:'#666',fontSize:'15px'}}>紹介コードをメールで送信しました。ご確認ください。</p>
+                <p style={{color:'#666',fontSize:'15px'}}>紹介コードと専用リンクをメールで送信しました。ご確認ください。</p>
+
+                {issuedCode && (() => {
+                  // メールと同じ文面をその場でも渡す（メールを探さずに配れるように）
+                  const origin = typeof window !== 'undefined' ? window.location.origin : undefined;
+                  const shareUrl = referralShareUrl(issuedCode, origin);
+                  const message = buildReferralShareMessage(registeredName, issuedCode, origin);
+                  const shortMessage = buildReferralShortMessage(registeredName, issuedCode, origin);
+                  const copy = async (text: string, key: string) => {
+                    try {
+                      await navigator.clipboard.writeText(text);
+                      setCopied(key);
+                      setTimeout(() => setCopied(''), 2000);
+                    } catch {
+                      window.prompt('以下をコピーしてください', text);
+                    }
+                  };
+                  return (
+                    <div style={{textAlign:'left',marginTop:'24px'}}>
+                      <div style={{padding:'16px',background:'#F0FFF0',border:'1px solid #C8E6C9',borderRadius:'8px',marginBottom:'12px'}}>
+                        <p style={{fontSize:'12px',color:'#666',margin:'0 0 4px'}}>紹介コード</p>
+                        <p style={{fontSize:'22px',fontWeight:900,color:'#27AE60',fontFamily:'monospace',letterSpacing:'1px',margin:'0 0 12px'}}>{issuedCode}</p>
+                        <p style={{fontSize:'12px',color:'#666',margin:'0 0 4px'}}>あなた専用の紹介リンク（これを送るだけでOK）</p>
+                        <p style={{fontSize:'13px',wordBreak:'break-all',margin:'0 0 8px',fontWeight:700}}>{shareUrl}</p>
+                        <button type="button" onClick={() => copy(shareUrl, 'url')}
+                          style={{padding:'8px 14px',borderRadius:'6px',border:'1px solid #27AE60',background:'#fff',color:'#27AE60',fontWeight:700,fontSize:'13px',cursor:'pointer'}}>
+                          {copied === 'url' ? 'コピーしました' : 'リンクをコピー'}
+                        </button>
+                      </div>
+
+                      <div style={{padding:'16px',background:'#fafafa',border:'1px solid #eee',borderRadius:'8px',marginBottom:'12px'}}>
+                        <p style={{fontSize:'13px',fontWeight:700,margin:'0 0 6px'}}>そのまま送れる文面（メール・LINE向け）</p>
+                        <pre style={{margin:'0 0 8px',padding:'12px',background:'#fff',border:'1px solid #eee',borderRadius:'6px',fontSize:'12px',lineHeight:1.7,whiteSpace:'pre-wrap',wordBreak:'break-word',fontFamily:'inherit'}}>{message}</pre>
+                        <button type="button" onClick={() => copy(message, 'msg')}
+                          style={{padding:'8px 14px',borderRadius:'6px',border:'1px solid #27AE60',background:'#fff',color:'#27AE60',fontWeight:700,fontSize:'13px',cursor:'pointer'}}>
+                          {copied === 'msg' ? 'コピーしました' : '文面をコピー'}
+                        </button>
+                      </div>
+
+                      <div style={{padding:'16px',background:'#fafafa',border:'1px solid #eee',borderRadius:'8px'}}>
+                        <p style={{fontSize:'13px',fontWeight:700,margin:'0 0 6px'}}>短い文面（SNS・チャット向け）</p>
+                        <pre style={{margin:'0 0 8px',padding:'12px',background:'#fff',border:'1px solid #eee',borderRadius:'6px',fontSize:'12px',lineHeight:1.7,whiteSpace:'pre-wrap',wordBreak:'break-word',fontFamily:'inherit'}}>{shortMessage}</pre>
+                        <button type="button" onClick={() => copy(shortMessage, 'short')}
+                          style={{padding:'8px 14px',borderRadius:'6px',border:'1px solid #27AE60',background:'#fff',color:'#27AE60',fontWeight:700,fontSize:'13px',cursor:'pointer'}}>
+                          {copied === 'short' ? 'コピーしました' : '短い文面をコピー'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             ) : (
               <form onSubmit={handleSubmit}>

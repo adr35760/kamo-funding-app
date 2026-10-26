@@ -7,6 +7,7 @@ import { formatEventDateJa, eventCardParts, EventLike } from '@/lib/event-format
 import SiteHeader from '@/components/SiteHeader';
 import Image from 'next/image';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
+import { captureReferralCode, getReferralPayload } from '@/lib/referral-link';
 import LegalFooter from '@/components/LegalFooter';
 import { allSuccessCases, formatYen, projectUrl } from '@/lib/success-cases';
 import { CONSULT_URL, NUM_JISSEKI, NUM_TASSEI_RATE } from '@/lib/seminar-info-content';
@@ -55,7 +56,13 @@ const FAQS = [
 /** 説明会の日程から選ぶCTA（ヒーロー副ボタン・最後のCTAで共用） */
 const SCHEDULE_ANCHOR = '#schedule';
 
-export default function SeminarInfoClient({ initialEvents = [] }: { initialEvents?: EventLike[] }) {
+export default function SeminarInfoClient({
+  initialEvents = [],
+  initialReferralCode = '',
+}: {
+  initialEvents?: EventLike[];
+  initialReferralCode?: string;
+}) {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -104,6 +111,24 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
     captureUtm();
   }, []);
 
+  /**
+   * 紹介パートナーの専用リンク（/r/<code> → /seminar-info?ref=<code>）から来た場合の
+   * 紹介コード。フォームの hidden に入れ、申込時に registrations.referral_code へ保存する。
+   *
+   * 🔴 コードが無い・不正でも申込は必ず通す（紹介の計測は申込の前提条件ではない）。
+   *    リンクを踏んだ後にページ内を移動しても消えないよう、sessionStorage にも残す。
+   */
+  const [referralCode, setReferralCode] = useState<string>(initialReferralCode);
+
+  useEffect(() => {
+    // サーバがURLから読んだ値を初期値にしている。ここでは
+    // ①sessionStorage への保存（ページ内移動・別ページ経由でも紹介を消さない）
+    // ②以降の遷移で ref が変わったときの追随
+    // のために capture を呼ぶ。URL に ref が無ければ保存済みを返す。
+    const code = captureReferralCode() ?? '';
+    if (code) setReferralCode(code);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
@@ -113,6 +138,8 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
     formData.forEach((v, k) => { data[k] = v as string; });
     // 流入元（UTM）を申込データに添付する。取れていなければ何も付かない（申込は必ず通す）
     Object.assign(data, getUtmPayload());
+    // 紹介パートナーのコードも同様に添付する（無ければ何も付かない）
+    Object.assign(data, getReferralPayload());
     if (!data.event_id || data.event_id === '') delete data.event_id;
     try {
       const res = await fetch('/api/apply', {
@@ -355,6 +382,11 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
             ) : (
               <form onSubmit={handleSubmit}>
                 <input type="hidden" name="event_type" value="seminar_info" />
+                {/* 紹介パートナー専用リンク（/r/<code>）から来たときだけ値が入る。
+                    申込はこの値をサーバ側で registrations.referral_code に保存する。
+                    常に描画しておく（値の有無でDOMを作り分けると、水和のずれと
+                    「項目が無い＝壊れている」の切り分けづらさを招くため）。 */}
+                <input type="hidden" name="referral_code" value={referralCode} />
                 <div className="form-row">
                   <div className="form-group"><label>お名前 <span className="required">必須</span></label><input type="text" name="name" required placeholder="鴨頭 太郎" /></div>
                   <div className="form-group"><label>メールアドレス <span className="required">必須</span></label><input type="email" name="email" required placeholder="example@email.com" /></div>
@@ -398,6 +430,11 @@ export default function SeminarInfoClient({ initialEvents = [] }: { initialEvent
                 {error && <p style={{color:'#E60012',fontSize:'14px',marginBottom:'12px'}}>{error}</p>}
                 <button type="submit" className="form-submit" disabled={submitting} style={submitting ? {opacity:0.7} : {}}>{submitting ? '送信中...' : '申し込む →'}</button>
                 <p className="form-note">※ 申込後に確認メールが自動送信されます<br />※ 個人情報は本説明会の運営目的のみに使用します</p>
+                {referralCode && (
+                  <p className="form-note" style={{ marginTop: 8, color: '#2E7D32', fontWeight: 700 }}>
+                    ご紹介リンクからのお申し込みとして受け付けます
+                  </p>
+                )}
               </form>
             )}
           </div>

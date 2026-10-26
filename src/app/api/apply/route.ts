@@ -5,6 +5,7 @@ import { parseEmail } from '@/lib/email-address';
 import { formatEventDateJa } from '@/lib/event-format';
 import { isEventFinished } from '@/lib/event-visibility';
 import { normalizeUtmValue } from '@/lib/utm';
+import { isReferralCodeShape, normalizeReferralCode } from '@/lib/referral-link';
 import { logEmailResult } from '@/lib/email-log';
 
 /**
@@ -13,22 +14,50 @@ import { logEmailResult } from '@/lib/email-log';
  * Designer LPのフォームから申込を受け付けるエンドポイント。
  * フォームの action="/api/apply" に対応。
  * 
- * Body: { name, email, company, event_id, source, challenge }
+ * Body: { name, email, company, event_id, source, challenge, referral_code? }
  * Response: { success: true, registration_id: "..." }
  */
 /**
- * registrations に UTM列（utm_source / utm_medium / utm_campaign）が
- * 未追加かを判定する。PostgREST はスキーマキャッシュ由来の PGRST204、
- * 直接SQL経路では Postgres の 42703 を返すため両方を見る。
+ * registrations の**後付け列**が未追加かを判定し、落として再試行すべきキーを返す。
+ *
+ * 対象は2系統:
+ *  - UTM 3列（supabase/migration-utm-tracking.sql）
+ *  - referral_code（supabase/【紹介リンク】registrations_referral_code_これを実行してください.sql）
+ *
+ * 🔴 ここは実ユーザーの申込フロー。**列の有無で申込が落ちるのが最悪の事故**なので、
+ *    欠けている列だけを捨てて同じ行を入れ直す（申込は必ず成立させる）。
+ *    PostgREST は PGRST204、直接SQL経路では 42703（undefined_column）を返す。
  */
-function isMissingUtmColumn(error: { code?: string; message?: string }): boolean {
+type OptionalColumnKey = 'utm' | 'referral_code';
+
+function missingOptionalColumns(error: { code?: string; message?: string }): OptionalColumnKey[] {
   const msg = error.message || '';
-  return (
+  const isSchemaError =
     error.code === 'PGRST204' ||
     error.code === '42703' ||
-    (/utm_(source|medium|campaign)/.test(msg) &&
-      /column|could not find|does not exist/i.test(msg))
-  );
+    ((/column|could not find|does not exist/i.test(msg)) && /utm_|referral_code/i.test(msg));
+  if (!isSchemaError) return [];
+
+  const utmMissing = /utm_source|utm_medium|utm_campaign/.test(msg);
+  const referralMissing = /referral_code/.test(msg);
+  // 列名がメッセージから読めない環境もある。その場合は両方落として再試行する
+  if (utmMissing && !referralMissing) return ['utm'];
+  if (referralMissing && !utmMissing) return ['referral_code'];
+  return ['utm', 'referral_code'];
+}
+
+function dropOptionalColumns(
+  row: Record<string, unknown>,
+  keys: OptionalColumnKey[]
+): Record<string, unknown> {
+  const next = { ...row };
+  if (keys.includes('utm')) {
+    delete next.utm_source;
+    delete next.utm_medium;
+    delete next.utm_campaign;
+  }
+  if (keys.includes('referral_code')) delete next.referral_code;
+  return next;
 }
 
 export async function POST(request: NextRequest) {
@@ -45,6 +74,17 @@ export async function POST(request: NextRequest) {
       utm_medium: normalizeUtmValue(body.utm_medium),
       utm_campaign: normalizeUtmValue(body.utm_campaign),
     };
+
+    /**
+     * 紹介パートナーのコード（/r/<code> 経由）。
+     * 正規化して形が正しいものだけ保存する。無い・不正なら null（＝未紹介の申込）。
+     * 🔴 コードの有無や正否で申込を止めない。
+     */
+    const normalizedReferral = normalizeReferralCode(body.referral_code);
+    const referralCode = isReferralCodeShape(normalizedReferral) ? normalizedReferral : null;
+    if (normalizedReferral && !referralCode) {
+      console.warn('referral_code: 形式が不正なため保存しません', { raw: body.referral_code });
+    }
 
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json(
@@ -152,19 +192,31 @@ export async function POST(request: NextRequest) {
       status: 'registered',
     };
 
+    let insertPayload: Record<string, unknown> = {
+      ...baseRow,
+      ...utm,
+      ...(referralCode ? { referral_code: referralCode } : {}),
+    };
+
     let { data, error } = await supabaseAdmin
       .from('registrations')
-      .insert({ ...baseRow, ...utm })
+      .insert(insertPayload)
       .select('id')
       .single();
 
-    // 🔴 UTM列が未追加（マイグレーション未実行）の場合は、**UTMだけ捨てて申込を通す**。
-    // ここは実ユーザーの申込フロー。列の有無で申込が落ちるのが最悪の事故なので必ず救済する。
-    if (error && isMissingUtmColumn(error)) {
-      console.warn('registrations: UTM columns missing — inserting without UTM');
+    // 🔴 後付け列（UTM / referral_code）が未追加（マイグレーション未実行）の場合は、
+    //    **その列だけ捨てて申込を通す**。列の有無で申込が落ちるのが最悪の事故。
+    for (let attempt = 0; error && attempt < 2; attempt++) {
+      const dropKeys = missingOptionalColumns(error);
+      if (dropKeys.length === 0) break;
+      const next = dropOptionalColumns(insertPayload, dropKeys);
+      // 落とす列が実際に無ければ無限ループになるので抜ける
+      if (Object.keys(next).length === Object.keys(insertPayload).length) break;
+      console.warn(`registrations: 列が未追加（${dropKeys.join(', ')}）— その列を落として申込を通す`);
+      insertPayload = next;
       const retry = await supabaseAdmin
         .from('registrations')
-        .insert(baseRow)
+        .insert(insertPayload)
         .select('id')
         .single();
       data = retry.data;
@@ -229,6 +281,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       registration_id: data?.id,
+      // 受け取った紹介コードと、実際に保存できたか（列が未追加の間は false）。
+      // 管理画面の集計が「なぜ0件か」を切り分けるための情報で、申込の成否とは無関係。
+      referral_code: referralCode,
+      referral_code_saved: referralCode !== null && 'referral_code' in insertPayload,
       email_sent: emailResult.success,
       email_error: emailResult.success ? undefined : emailResult.error,
     });

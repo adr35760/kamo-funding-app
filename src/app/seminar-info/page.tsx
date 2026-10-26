@@ -3,6 +3,7 @@ import SeminarInfoClient from './SeminarInfoClient';
 import { fetchSeminarEvents } from '@/lib/fetch-seminar-events';
 import type { EventLike } from '@/lib/event-format';
 import { NUM_JISSEKI, NUM_TASSEI_RATE } from '@/lib/seminar-info-content';
+import { isReferralCodeShape, normalizeReferralCode } from '@/lib/referral-link';
 
 // 日程をサーバー側で取得して初期HTMLに含める。
 // これにより、申込フォームの選択肢が最初から埋まっている状態になる
@@ -34,8 +35,22 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function SeminarInfoPage() {
+export default async function SeminarInfoPage({
+  searchParams,
+}: {
+  searchParams?: { ref?: string | string[] };
+}) {
   // 掲載説明会は pillar=1
   const events = (await fetchSeminarEvents(1)) as unknown as EventLike[];
-  return <SeminarInfoClient initialEvents={events} />;
+
+  /**
+   * 紹介パートナー専用リンク（/r/<code>）から来たときの紹介コード。
+   * 🔴 サーバ側で読んで初期値として渡す。クライアントのJSだけで拾うと、
+   *    水和前の送信やJS無効時にコードが落ち、紹介が記録されない。
+   */
+  const rawRef = Array.isArray(searchParams?.ref) ? searchParams?.ref[0] : searchParams?.ref;
+  const normalizedRef = normalizeReferralCode(rawRef);
+  const referralCode = isReferralCodeShape(normalizedRef) ? normalizedRef : '';
+
+  return <SeminarInfoClient initialEvents={events} initialReferralCode={referralCode} />;
 }
