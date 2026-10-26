@@ -208,6 +208,13 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 340px) {
   .svc-cta .btn-primary { font-size: 14px; padding: 14px 12px; }
 }
+/* 320px級では実績4項目（2列）の数字が入りきらず横スクロールが出るため詰める（2026-10-26 PM実測: 320pxで+25px） */
+@media (max-width: 360px) {
+  .stats-inner { gap: 12px; }
+  .stat-item { padding: 0 4px; }
+  .stat-number { font-size: 32px; }
+  .stat-number .unit { font-size: 17px; }
+}
 
 /* スマホは表を「カード」に組み替える（横スクロールさせない） */
 @media (max-width: 640px) {
