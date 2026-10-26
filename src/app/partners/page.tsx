@@ -182,7 +182,7 @@ export default function PartnerRegisterPage() {
                         <p style={{fontSize:'12px',color:'#666',margin:'0 0 4px'}}>あなた専用の紹介リンク（これを送るだけでOK）</p>
                         <p style={{fontSize:'13px',wordBreak:'break-all',margin:'0 0 8px',fontWeight:700}}>{shareUrl}</p>
                         <button type="button" onClick={() => copy(shareUrl, 'url')}
-                          style={{padding:'8px 14px',borderRadius:'6px',border:'1px solid #27AE60',background:'#fff',color:'#27AE60',fontWeight:700,fontSize:'13px',cursor:'pointer'}}>
+                          style={{padding:'10px 14px',minHeight:'44px',borderRadius:'6px',border:'1px solid #27AE60',background:'#fff',color:'#27AE60',fontWeight:700,fontSize:'13px',cursor:'pointer'}}>
                           {copied === 'url' ? 'コピーしました' : 'リンクをコピー'}
                         </button>
                       </div>
@@ -191,7 +191,7 @@ export default function PartnerRegisterPage() {
                         <p style={{fontSize:'13px',fontWeight:700,margin:'0 0 6px'}}>そのまま送れる文面（メール・LINE向け）</p>
                         <pre style={{margin:'0 0 8px',padding:'12px',background:'#fff',border:'1px solid #eee',borderRadius:'6px',fontSize:'12px',lineHeight:1.7,whiteSpace:'pre-wrap',wordBreak:'break-word',fontFamily:'inherit'}}>{message}</pre>
                         <button type="button" onClick={() => copy(message, 'msg')}
-                          style={{padding:'8px 14px',borderRadius:'6px',border:'1px solid #27AE60',background:'#fff',color:'#27AE60',fontWeight:700,fontSize:'13px',cursor:'pointer'}}>
+                          style={{padding:'10px 14px',minHeight:'44px',borderRadius:'6px',border:'1px solid #27AE60',background:'#fff',color:'#27AE60',fontWeight:700,fontSize:'13px',cursor:'pointer'}}>
                           {copied === 'msg' ? 'コピーしました' : '文面をコピー'}
                         </button>
                       </div>
@@ -200,7 +200,7 @@ export default function PartnerRegisterPage() {
                         <p style={{fontSize:'13px',fontWeight:700,margin:'0 0 6px'}}>短い文面（SNS・チャット向け）</p>
                         <pre style={{margin:'0 0 8px',padding:'12px',background:'#fff',border:'1px solid #eee',borderRadius:'6px',fontSize:'12px',lineHeight:1.7,whiteSpace:'pre-wrap',wordBreak:'break-word',fontFamily:'inherit'}}>{shortMessage}</pre>
                         <button type="button" onClick={() => copy(shortMessage, 'short')}
-                          style={{padding:'8px 14px',borderRadius:'6px',border:'1px solid #27AE60',background:'#fff',color:'#27AE60',fontWeight:700,fontSize:'13px',cursor:'pointer'}}>
+                          style={{padding:'10px 14px',minHeight:'44px',borderRadius:'6px',border:'1px solid #27AE60',background:'#fff',color:'#27AE60',fontWeight:700,fontSize:'13px',cursor:'pointer'}}>
                           {copied === 'short' ? 'コピーしました' : '短い文面をコピー'}
                         </button>
                       </div>
