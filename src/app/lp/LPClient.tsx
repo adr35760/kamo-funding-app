@@ -7,6 +7,7 @@ import { formatEventDateJa, eventCardParts, cleanTitle, EventLike } from '@/lib/
 import SiteHeader from '@/components/SiteHeader';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
 import LegalFooter from '@/components/LegalFooter';
+import { NUM_JISSEKI } from '@/lib/seminar-info-content';
 
 interface EventOption extends EventLike {}
 
@@ -185,7 +186,7 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
               <h3>掲載説明会（月2回）</h3>
               <p>KAMOファンディングの掲載方法から成功のコツまで、参加費無料で学べます。</p>
               <ul>
-                <li>KAMOファンディングの特徴 — 総支援額16億円！達成率95%のノウハウの一端をご紹介</li>
+                <li>KAMOファンディングの特徴 — 総支援額{NUM_JISSEKI}！達成率95%のノウハウの一端をご紹介</li>
                 <li>クラウドファンディングの集める構造を理解する — クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</li>
                 <li>応援支援で高額支援を集めるノウハウを伝授 — スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</li>
               </ul>

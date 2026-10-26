@@ -18,6 +18,8 @@
  *
  * ■ 懇親会が別料金かは未確定のため、リアル回は料金の内訳を書かない方針。
  */
+import { NUM_JISSEKI } from './seminar-info-content';
+
 
 export type PendingValue =
   | { status: 'pending'; label?: string }
@@ -199,7 +201,7 @@ export function coreSpeakers(kamogashiraRole = '特別登壇'): Speaker[] {
     {
       role: 'メイン講師',
       name: '生島 正',
-      title: '総支援額16億円を生み出したクラファンの専門家',
+      title: `総支援額${NUM_JISSEKI}を生み出したクラファンの専門家`,
       image: '/speaker-ikushima.jpg',
     },
     { role: 'AI導入講師', name: '堺 彬', title: 'AI導入の専門家', image: '/speaker-sakai.jpg' },

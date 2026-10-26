@@ -7,8 +7,8 @@
  *    （本文側に数値を直接書かないこと）
  */
 
-/** 累計の支援実績（現在の本番表記に合わせた値） */
-export const NUM_JISSEKI = '16億円';
+/** 累計の支援実績（2026-10-25 t iku 確定＝切り上げ表記。実数は16億8,751万5,999円） */
+export const NUM_JISSEKI = '17億円';
 
 /** 達成率 */
 export const NUM_TASSEI_RATE = '95%';
