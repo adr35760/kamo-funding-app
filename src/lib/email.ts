@@ -1154,10 +1154,11 @@ export function surveyInviteHtml(params: {
       <div style="background: #f9f9f9; padding: 24px; border-radius: 0 0 8px 8px; border: 1px solid #eee;">
         <p>${safeName}様</p>
         <p>KAMOファンディング事務局です。<br />
-        先日は無料掲載説明会にご参加いただき、誠にありがとうございました。</p>
+        先日は無料掲載説明会にお申し込みいただき、誠にありがとうございました。<br />
+        当日ご参加いただけなかった方にもお送りしています。</p>
 
         <div style="margin-top: 16px; padding: 16px; background: #FFF5F5; border-radius: 8px; border: 1px solid #FFD6D6;">
-          <p style="margin: 0 0 4px; font-weight: 700; color: #E60012;">📅 ご参加いただいた回</p>
+          <p style="margin: 0 0 4px; font-weight: 700; color: #E60012;">📅 お申し込みいただいた回</p>
           <p style="margin: 0 0 8px; font-size: 18px; font-weight: 700;">${eventDateFullJa}</p>
           <p style="margin: 0; font-size: 13px; color: #666;">${escapeHtml(eventTitle)}</p>
         </div>
