@@ -127,10 +127,13 @@ export default function HomePage() {
             </table>
           </div>
           <p className="svc-note">
-            価格は目安です。④個別コンサル・⑤事務局代行の内容・お見積りは、まず無料の掲載説明会でご相談ください。
+            価格は目安です。④個別コンサル・⑤事務局代行の内容・お見積りは、まず無料の個別相談でご相談ください。
           </p>
+          {/* 2026-10-26: ヒーローと同じ主導線に揃える（ここが説明会のままだと主CTAが食い違う） */}
           <div className="svc-cta">
-            <a href="/seminar-info" className="btn-primary">まずは無料の掲載説明会へ →</a>
+            <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
+              まずは無料の個別相談へ →（{CONSULT_MINUTES}分）
+            </a>
           </div>
         </div>
       </section>
@@ -145,8 +148,8 @@ export default function HomePage() {
           <div className="links-grid">
             <a href="/seminar-info" className="link-card red">
               <div className="kamo-icon kamo-icon-flame lg"></div>
-              <h3>掲載説明会</h3>
-              <p>月2回・オンライン・無料。クラファンの使い方が学べる</p>
+              <h3>個別相談</h3>
+              <p>無料・{CONSULT_MINUTES}分。掲載できるか現実的に判定します</p>
             </a>
             <a href="/partners" className="link-card green">
               <div className="kamo-icon kamo-icon-handshake lg"></div>
