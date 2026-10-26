@@ -198,6 +198,12 @@ a { color: inherit; text-decoration: none; }
 .svc-table td.svc-price { text-align: right; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .svc-note { max-width: 920px; margin: 14px auto 0; font-size: 14px; color: #666; text-align: center; }
 .svc-cta { text-align: center; margin-top: 24px; }
+/* 下部の主CTA（まずは無料の個別相談へ →（45分））。
+   375pxでは19px・左右36pxのままだと「→（45分）」だけが2行目に落ちるため、
+   狭い画面では文字と余白を詰めて1行に収める（高さは48px以上を確保）。 */
+@media (max-width: 480px) {
+  .svc-cta .btn-primary { font-size: 15.5px; padding: 15px 18px; min-height: 48px; white-space: nowrap; }
+}
 
 /* スマホは表を「カード」に組み替える（横スクロールさせない） */
 @media (max-width: 640px) {
