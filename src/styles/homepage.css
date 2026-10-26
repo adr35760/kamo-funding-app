@@ -204,6 +204,10 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 480px) {
   .svc-cta .btn-primary { font-size: 15.5px; padding: 15px 18px; min-height: 48px; white-space: nowrap; }
 }
+/* 320px級（小型端末）では上記でも290px幅になり横スクロールが出るため、さらに詰める（2026-10-26 PM実測: 320pxで+25px） */
+@media (max-width: 340px) {
+  .svc-cta .btn-primary { font-size: 14px; padding: 14px 12px; }
+}
 
 /* スマホは表を「カード」に組み替える（横スクロールさせない） */
 @media (max-width: 640px) {
