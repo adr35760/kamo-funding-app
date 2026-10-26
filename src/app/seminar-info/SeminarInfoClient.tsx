@@ -10,7 +10,7 @@ import { captureUtm, getUtmPayload } from '@/lib/utm';
 import { captureReferralCode, getReferralPayload } from '@/lib/referral-link';
 import LegalFooter from '@/components/LegalFooter';
 import { allSuccessCases, formatYen, projectUrl } from '@/lib/success-cases';
-import { CONSULT_URL, NUM_JISSEKI, NUM_TASSEI_RATE } from '@/lib/seminar-info-content';
+import { CONSULT_URL, CONSULT_MINUTES, NUM_JISSEKI, NUM_TASSEI_RATE } from '@/lib/seminar-info-content';
 
 /**
  * ④実績セクションで引用する成功事例（/success と同じ既存データを読む）。
@@ -27,7 +27,7 @@ const FOR_YOU = [
   '掲載できるか現実的に知りたい',
 ];
 
-/** ③個別相談（60分）で分かること */
+/** ③個別相談（CONSULT_MINUTES分）で分かること */
 const CONSULT_GAINS = [
   { title: 'あなたのアイデアの勝ち筋', body: '誰に・何を・どう届けるか' },
   { title: '目標金額と期間の現実的な設計', body: '無理のない金額・期間の置き方' },
@@ -39,7 +39,7 @@ const CONSULT_GAINS = [
 const FLOW_STEPS = [
   { title: '予約', body: 'カレンダーから日時を選ぶ' },
   { title: '事前に3問', body: '事業・アイデア／目標金額／希望時期' },
-  { title: 'オンライン60分', body: 'Zoomで直接お話しします' },
+  { title: `オンライン${CONSULT_MINUTES}分`, body: 'Zoomで直接お話しします' },
 ];
 
 /** ⑥説明会はこんな方に */
@@ -50,7 +50,7 @@ const FAQS = [
   { q: '参加は無料ですか', a: '参加費は無料です。' },
   { q: '顔出しは不要ですか', a: '顔出しは不要です。' },
   { q: '掲載を決めていなくても大丈夫ですか', a: '情報収集だけでも歓迎です。' },
-  { q: '所要時間はどのくらいですか', a: '60分です。オンライン（Zoom）で行います。' },
+  { q: '所要時間はどのくらいですか', a: `${CONSULT_MINUTES}分です。オンライン（Zoom）で行います。` },
 ];
 
 /** 説明会の日程から選ぶCTA（ヒーロー副ボタン・最後のCTAで共用） */
@@ -172,16 +172,16 @@ export default function SeminarInfoClient({
       <section className="hero">
         <div className="container">
           <div className="hero-inner">
-            <div className="hero-badge"><span className="hero-badge-dot"></span>無料・60分・オンライン</div>
+            <div className="hero-badge"><span className="hero-badge-dot"></span>無料・{CONSULT_MINUTES}分・オンライン</div>
             <h1>
               実績{NUM_JISSEKI}・達成率{NUM_TASSEI_RATE}の私が、
               <br />
               あなたのアイデアと<span className="h1-keep">&quot;達成したいこと&quot;</span>を直接伺います
             </h1>
-            <p className="hero-lead">クラウドファンディングで、挑戦をかたちにする最初の60分。</p>
+            <p className="hero-lead">クラウドファンディングで、挑戦をかたちにする最初の{CONSULT_MINUTES}分。</p>
             <div className="hero-cta-row">
               <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="hero-cta hero-cta--main">
-                個別相談を予約する（無料・60分）
+                個別相談を予約する（無料・{CONSULT_MINUTES}分）
               </a>
               <a href={SCHEDULE_ANCHOR} className="hero-cta hero-cta--sub">説明会の日程を見る</a>
             </div>
@@ -205,10 +205,10 @@ export default function SeminarInfoClient({
         </div>
       </section>
 
-      {/* ===== ③ 個別相談（60分）で分かること ===== */}
+      {/* ===== ③ 個別相談（CONSULT_MINUTES分）で分かること ===== */}
       <section className="learn">
         <div className="container">
-          <div className="learn-title"><h2>個別相談（60分）で<span className="accent">分かること</span></h2></div>
+          <div className="learn-title"><h2>個別相談（{CONSULT_MINUTES}分）で<span className="accent">分かること</span></h2></div>
           <div className="learn-list">
             {CONSULT_GAINS.map(item => (
               <div className="learn-item" key={item.title}>
@@ -460,10 +460,10 @@ export default function SeminarInfoClient({
       <section className="cta-banner">
         <div className="container">
           <h2>まずは、無料の個別相談から。</h2>
-          <p>60分で、あなたのアイデアの勝ち筋と現実的な設計をお伝えします。<br />説明会の日程から選ぶこともできます。</p>
+          <p>{CONSULT_MINUTES}分で、あなたのアイデアの勝ち筋と現実的な設計をお伝えします。<br />説明会の日程から選ぶこともできます。</p>
           <div className="hero-cta-row">
             <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="hero-cta hero-cta--main">
-              個別相談を予約する（無料・60分）
+              個別相談を予約する（無料・{CONSULT_MINUTES}分）
             </a>
             <a href="#apply" className="hero-cta hero-cta--sub">説明会に申し込む</a>
           </div>

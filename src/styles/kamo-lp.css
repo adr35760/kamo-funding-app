@@ -185,6 +185,20 @@ img { max-width: 100%; height: auto; }
   background: var(--kamo-light-bg);
   transform: translateY(-2px);
 }
+/* 三番手の導線（開催日程を見る）。主CTAより弱く、高さ44px以上を確保する */
+.hero-cta-quiet {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 10px 18px; border-radius: 100px;
+  color: var(--kamo-gray, #555); font-weight: 700; font-size: 15px;
+  text-decoration: underline; text-underline-offset: 4px;
+}
+.hero-cta-quiet:hover { color: var(--kamo-red); }
+@media (max-width: 480px) {
+  .hero-cta-group > .btn-primary,
+  .hero-cta-group > .btn-secondary {
+    width: 100%; justify-content: center; min-height: 48px;
+  }
+}
 
 /* Hero visual — CSS/SVG flame */
 .hero-visual {

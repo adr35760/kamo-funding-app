@@ -7,7 +7,7 @@ import { formatEventDateJa, eventCardParts, cleanTitle, EventLike } from '@/lib/
 import SiteHeader from '@/components/SiteHeader';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
 import LegalFooter from '@/components/LegalFooter';
-import { NUM_JISSEKI } from '@/lib/seminar-info-content';
+import { NUM_JISSEKI, CONSULT_URL, CONSULT_MINUTES } from '@/lib/seminar-info-content';
 
 interface EventOption extends EventLike {}
 
@@ -104,7 +104,10 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
 
   return (
     <>
-      {/* ===== HEADER ===== */}
+      {/* ===== HEADER =====
+          ⚠️ ヘッダーCTAは説明会フォームのまま（2026-10-26 判断）。
+          /lp のPCヘッダーはナビ項目が多いため1280pxで既に横に溢れており、
+          文言を長くすると溢れが増える。主CTAの差し替えはヒーローで行う。 */}
       <SiteHeader
         cta={{ href: '#apply', label: 'お申込み' }}
         pageLinks={[
@@ -135,9 +138,14 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
                 説明会・セミナーで、掲載から成功までの全てが分かります。<br />
                 リアル交流会で挑戦者とのつながりを積極的におこないます！
               </p>
+              {/* 主導線（2026-10-26 t iku決定）: 個別相談が主・説明会申込と日程が二番手。
+                  URLと所要時間は seminar-info-content.ts の定数を共有する。 */}
               <div className="hero-cta-group">
-                <a href="#apply" className="btn-primary">説明会に申し込む →</a>
-                <a href="#schedule" className="btn-secondary">開催日程を見る</a>
+                <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                  個別相談を予約する（無料・{CONSULT_MINUTES}分）
+                </a>
+                <a href="#apply" className="btn-secondary">説明会に申し込む →</a>
+                <a href="#schedule" className="hero-cta-quiet">開催日程を見る</a>
               </div>
             </div>
             <div className="hero-visual">

@@ -77,7 +77,8 @@
     color: var(--kamo-white) !important; background: #1A2332;
   }
   .site-header-mobile { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-  .site-header-cta { padding: 8px 14px; font-size: 12.5px; }
+  /* 常時表示の主CTA。タップ領域44px以上を確保する（2026-10-26） */
+  .site-header-cta { padding: 8px 14px; font-size: 12.5px; min-height: 44px; display: inline-flex; align-items: center; }
 
   .site-header-toggle {
     width: 40px; height: 40px; flex-shrink: 0;

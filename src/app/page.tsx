@@ -4,6 +4,7 @@ import '@/styles/kamo-icons.css';
 import '@/styles/homepage.css';
 import SiteHeader from '@/components/SiteHeader';
 import LegalFooter from '@/components/LegalFooter';
+import { CONSULT_URL, CONSULT_MINUTES } from '@/lib/seminar-info-content';
 
 /**
  * 商品・サービスの全体像（2026-09-29 t iku指示）。
@@ -25,7 +26,11 @@ const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧'];
 export default function HomePage() {
   return (
     <>
-      <SiteHeader current="/" />
+      {/* ヘッダーの主CTAも個別相談に（トップの主導線を1本化）。日程確認はヒーロー内の三番手に残す */}
+      <SiteHeader
+        current="/"
+        cta={{ href: CONSULT_URL, label: '個別相談を予約', external: true }}
+      />
 
       {/* ===== HERO with Kamogashira Image ===== */}
       <section className="hero">
@@ -45,11 +50,20 @@ export default function HomePage() {
               <li>KAMOファンディングが<span className="red">伴走支援</span>します</li>
               <li>積極的に経営者と繋ぐ「交流会」も実施！</li>
             </ul>
+            {/* ===== 主導線（2026-10-26 t iku決定）=====
+                ① 個別相談（主）② 掲載申込（次）③ 日程確認（三番手・小さく残す）
+                カレンダーURLと所要時間は seminar-info-content.ts の定数を共有する。 */}
             <div className="hero-cta-group">
-              <a href="/seminar-info" className="btn-primary">掲載説明会に申し込む →</a>
-              <a href="/partner-session-announce" className="btn-secondary">パートナーシップ説明会</a>
+              <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                個別相談を予約する（無料・{CONSULT_MINUTES}分）
+              </a>
+              <a href="/apply-listing" className="btn-secondary">掲載を申し込む</a>
+              <a href="/lp" className="hero-cta-quiet">日程を確認する</a>
             </div>
             <div className="hero-cta-group hero-cta-seminars">
+              <a href="/partner-session-announce" className="btn-seminar btn-seminar-partner">
+                パートナーシップ説明会
+              </a>
               <a href="/ai-seminar" className="btn-seminar btn-seminar-online">
                 オンラインセミナーに申し込む
               </a>

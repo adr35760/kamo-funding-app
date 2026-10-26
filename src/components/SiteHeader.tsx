@@ -4,7 +4,9 @@ import { useState } from 'react';
 import '@/styles/site-header.css';
 
 const NAV_ITEMS = [
-  { href: '/seminar-info', label: '掲載説明会' },
+  // 2026-10-26: 主導線を個別相談へ切り替え（ラベルのみ変更・リンク先は /seminar-info のまま＝
+  // そのページは既に個別相談メインの構成）
+  { href: '/seminar-info', label: '個別相談' },
   { href: '/partner-session-announce', label: 'パートナーシップ' },
   { href: '/partners', label: 'パートナー登録' },
   { href: '/supporters', label: 'サポーター登録' },
