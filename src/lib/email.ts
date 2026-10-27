@@ -1248,3 +1248,108 @@ export async function sendSurveyInviteEmail(
     surveyInviteHtml({ name, eventTitle, eventDateFullJa, surveyUrl })
   );
 }
+
+// ===== トップページ（LP）相談フォーム — LP仕様書 v1.1 §10 =====
+//
+// 位置づけ:
+//  - 主要CV。①挑戦者（FV・最終CTA・追従CTA）と④出展企業（暫定）がここに集まる。
+//  - 2通セットで送る: 申込者への**サンキューメール**（即時）＋ 営業への**アラート**。
+//  - 営業アラートの宛先は既存の resolveAdminNotifyEmails() に合わせる
+//    （env ADMIN_NOTIFY_EMAIL 優先・未設定なら info@local-creation.com）。
+//  - 文面は仮置き。t ikuさんの確認後にこの関数の中だけを差し替える
+//    （PMが文面を持ち帰るので、HTMLは送信処理と分離しておく）。
+
+export interface ConsultMailInput {
+  name: string;
+  email: string;
+  phone: string;
+  category: string;
+  summary: string;
+  /** どのカードから来たか（1〜4）。未指定は null */
+  entrance: number | null;
+  /** 流入元（既定 'top-lp'） */
+  source: string;
+}
+
+const CONSULT_CONFIRMATION_SUBJECT = '【KAMOファンディング】無料相談のお申し込みを受け付けました';
+
+function consultSummaryHtml(summary: string): string {
+  return escapeHtml(summary).replace(/\r?\n/g, '<br />');
+}
+
+/** 申込者への自動返信（サンキューメール）本文 */
+export function consultConfirmationHtml(input: ConsultMailInput): string {
+  return `
+    <div style="font-family:'Noto Sans JP',sans-serif;line-height:1.75;color:#1c1f26;font-size:15px;">
+      <p>${escapeHtml(input.name)} 様</p>
+      <p>このたびはKAMOファンディングの無料相談にお申し込みいただき、ありがとうございます。<br />
+      下記の内容で受け付けました。担当者より、最短24時間以内にご連絡します。</p>
+
+      <div style="margin:20px 0;padding:16px;background:#eef3ff;border-radius:10px;">
+        <p style="margin:0 0 6px;">相談区分：<strong>${escapeHtml(input.category)}</strong></p>
+        <p style="margin:0;">ご相談内容：<br />${consultSummaryHtml(input.summary)}</p>
+      </div>
+
+      <p>本メールに心当たりがない場合は、お手数ですがこのメールを破棄してください。</p>
+      <p style="margin-top:24px;">—<br />KAMOファンディング</p>
+    </div>
+  `;
+}
+
+/** 申込者への自動返信を送る。例外は投げない */
+export async function sendConsultConfirmationEmail(input: ConsultMailInput): Promise<EmailResult> {
+  try {
+    return await sendEmail(input.email, CONSULT_CONFIRMATION_SUBJECT, consultConfirmationHtml(input));
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    console.error('LP相談の自動返信メール送信に失敗:', error);
+    return { success: false, error };
+  }
+}
+
+/** 営業アラートの件名（相談区分と氏名で仕分けできるようにする） */
+export function consultAdminNotificationSubject(input: ConsultMailInput): string {
+  return `【LP相談】${input.category}｜${input.name} 様`;
+}
+
+/**
+ * 営業アラート本文。
+ * 🔴 申込者の入力をそのまま載せる。ここに載せるのはフォームの入力だけ
+ *    （決済・口座情報などは扱わない＝このフォームには存在しない）。
+ */
+export function consultAdminNotificationHtml(input: ConsultMailInput, receivedAt: string): string {
+  return `
+    <div style="font-family:'Noto Sans JP',sans-serif;line-height:1.75;color:#1c1f26;font-size:15px;">
+      <p style="margin:0 0 12px;font-weight:700;">トップページの相談フォームから申し込みがありました。</p>
+      <table style="border-collapse:collapse;font-size:14px;">
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">氏名</th><td>${escapeHtml(input.name)}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">メール</th><td>${escapeHtml(input.email)}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">電話</th><td>${input.phone ? escapeHtml(input.phone) : '（未入力）'}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">相談区分</th><td>${escapeHtml(input.category)}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">流入</th><td>${escapeHtml(input.source)}${input.entrance ? `（カード${input.entrance}）` : ''}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">受信</th><td>${escapeHtml(receivedAt)}</td></tr>
+      </table>
+      <div style="margin:16px 0;padding:16px;background:#f3f5f9;border-radius:10px;">
+        ${consultSummaryHtml(input.summary)}
+      </div>
+    </div>
+  `;
+}
+
+/** 営業アラートを送る。宛先は既存の正規化を通す。例外は投げない */
+export async function sendConsultAdminNotification(
+  input: ConsultMailInput,
+  receivedAt: string
+): Promise<EmailResult> {
+  try {
+    return await sendEmail(
+      resolveAdminNotifyEmails(),
+      consultAdminNotificationSubject(input),
+      consultAdminNotificationHtml(input, receivedAt)
+    );
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    console.error('LP相談の営業アラート送信に失敗:', error);
+    return { success: false, error };
+  }
+}
