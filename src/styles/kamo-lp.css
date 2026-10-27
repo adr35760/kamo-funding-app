@@ -286,6 +286,14 @@ img { max-width: 100%; height: auto; }
   .stats-inner { grid-template-columns: repeat(2, 1fr); }
   .stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 16px; }
 }
+/* 320px級では実績4項目（2列）の数字が入り切らず横スクロールが出るため詰める
+   （2026-10-27 PM実測: 320pxで+9px。homepage.css と同じ調整を /lp にも適用） */
+@media (max-width: 360px) {
+  .stats-inner { gap: 12px; }
+  .stat-item { padding: 0 4px; }
+  .stat-number { font-size: 32px; }
+  .stat-number .unit { font-size: 17px; }
+}
 
 /* ===== SECTION COMMON ===== */
 .section { padding: 80px 0; }
