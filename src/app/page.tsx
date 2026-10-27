@@ -210,6 +210,9 @@ export default function HomePage() {
       <main>
         {/* ===== Z1 ファーストビュー ===== */}
         <section className="tlp-hero" aria-label="KAMOファンディング">
+          {/* 大見出しはKVに焼き込み済みでHTMLには出さない（§3.2）。
+              ただしページにh1が1つも無いとSEO・読み上げで不利なので、sr-onlyでh1を置く（PM 2026-10-27） */}
+          <h1 className="tlp-sr-only">挑戦を、加速させろ。クラファンのプロが伴走します</h1>
           <div className="tlp-hero-frame">
             {/* KVはLCP。寸法を明示してレイアウトシフトを防ぐ */}
             <img
