@@ -561,3 +561,58 @@ a { color: inherit; text-decoration: none; }
 .seminar-info-page .flow-title h2,
 .seminar-info-page .seminar-detail-title h2,
 .seminar-info-page .faq-title h2 { line-height: 1.5; }
+
+/* ==========================================================================
+   2026-10-27 説明会日程の公開停止（t iku決定 B＝申込があったときだけ開催）
+   - 公開日程が0件のとき「個別にご案内」へ差し替えるための表示
+   - フォームは出さない（空セレクト・送信500を作らない）
+   ========================================================================== */
+.seminar-schedule-note {
+  max-width: 720px;
+  margin: 24px auto 0;
+  padding: 22px 24px;
+  text-align: center;
+  background: var(--kamo-light-bg);
+  border: 2px solid var(--kamo-border);
+  border-radius: var(--radius);
+}
+.seminar-schedule-note p {
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--kamo-dark);
+  margin-bottom: 14px;
+  text-wrap: pretty;
+}
+/* inline-block: 中の nowrap した「（無料・45分）」がひとまとまりで折り返す
+   （inline-flex だとテキストが flex item になり「予約す｜る」で割れる） */
+.seminar-consult-cta {
+  display: inline-block;
+  text-align: center;
+  min-height: 52px;
+  padding: 14px 28px;
+  background: var(--kamo-red);
+  color: var(--kamo-white);
+  border-radius: 100px;
+  font-weight: 900;
+  font-size: 16px;
+  line-height: 1.4;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(230, 0, 18, 0.28);
+  transition: all 0.25s;
+}
+.seminar-consult-cta:hover {
+  background: var(--kamo-red-dark);
+  transform: translateY(-2px);
+}
+.seminar-no-schedule { text-align: center; padding: 12px 4px 4px; }
+.seminar-no-schedule p {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.8;
+  margin-bottom: 18px;
+  text-wrap: pretty;
+}
+@media (max-width: 768px) {
+  .seminar-schedule-note { padding: 18px 16px; }
+  .seminar-consult-cta { width: 100%; font-size: 15px; padding: 14px 18px; }
+}

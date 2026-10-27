@@ -58,9 +58,12 @@ const SCHEDULE_ANCHOR = '#schedule';
 
 export default function SeminarInfoClient({
   initialEvents = [],
+  eventsResolved = false,
   initialReferralCode = '',
 }: {
   initialEvents?: EventLike[];
+  /** サーバー側でDBを読めたか（true かつ 0件＝本当に公開日程が無い） */
+  eventsResolved?: boolean;
   initialReferralCode?: string;
 }) {
   const [submitting, setSubmitting] = useState(false);
@@ -70,10 +73,18 @@ export default function SeminarInfoClient({
   // 初期値は空にしてサーバー（/api/events）の結果だけを表示する
   // サーバー側で取得済みの日程を初期値にする（SSR時点でフォームに選択肢が入る）
   const [events, setEvents] = useState<Array<EventLike>>(initialEvents);
-  const [eventsLoaded, setEventsLoaded] = useState(initialEvents.length > 0);
+  // サーバーがDBを読めていれば「0件」も確定情報として扱う（＝フォームを出さない）。
+  // 読めていない場合だけクライアント取得に委ねる。
+  const [eventsLoaded, setEventsLoaded] = useState(eventsResolved || initialEvents.length > 0);
+  /**
+   * 2026-10-27 t iku決定（B＝申込があったときだけ開催）:
+   * 公開日程が0件のときは「説明会の日程は個別にご案内」に一本化する。
+   * 🔴 フォームは出さない（空のセレクト・送信時500を作らない）。
+   */
+  const noSchedule = eventsLoaded && events.length === 0;
 
   useEffect(() => {
-    if (initialEvents.length > 0) return; // サーバー取得済みなら再取得不要
+    if (eventsResolved || initialEvents.length > 0) return; // サーバー取得済みなら再取得不要
     fetch('/api/events')
       .then(res => res.ok ? res.json() : { events: [] })
       .then(data => {
@@ -82,7 +93,7 @@ export default function SeminarInfoClient({
       })
       .catch(() => {})
       .finally(() => setEventsLoaded(true));
-  }, [initialEvents.length]);
+  }, [initialEvents.length, eventsResolved]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -183,7 +194,9 @@ export default function SeminarInfoClient({
               <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="hero-cta hero-cta--main">
                 個別相談を予約する（無料・{CONSULT_MINUTES}分）
               </a>
-              <a href={SCHEDULE_ANCHOR} className="hero-cta hero-cta--sub">説明会の日程を見る</a>
+              <a href={noSchedule ? '#apply' : SCHEDULE_ANCHOR} className="hero-cta hero-cta--sub">
+                {noSchedule ? '説明会のご案内を見る' : '説明会の日程を見る'}
+              </a>
             </div>
             <p className="hero-note">オンライン（Zoom）／顔出し不要／無理な営業はしません</p>
           </div>
@@ -282,6 +295,21 @@ export default function SeminarInfoClient({
             ))}
           </ul>
 
+          {/* 公開日程が無いときの案内（B決定）。CTAは同じ枠内に置く */}
+          {noSchedule && (
+            <div className="seminar-schedule-note">
+              <p>開催日程は、ご希望に応じて設定します。まずは個別相談でご都合をお聞かせください。</p>
+              <a
+                href={CONSULT_URL}
+                className="seminar-consult-cta"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+              </a>
+            </div>
+          )}
+
           <div className="seminar-block">
             <h3 className="seminar-block-title">説明会で分かること</h3>
             <div className="learn-list">
@@ -325,6 +353,8 @@ export default function SeminarInfoClient({
             <figcaption className="hero-community-caption">オンラインで全国から参加できます</figcaption>
           </figure>
 
+          {/* 日程が0件のときは空の箱を出さない（上の案内に集約） */}
+          {!noSchedule && (
           <div id="schedule" className="schedule-block">
             <h3 className="seminar-block-title">説明会の開催日程</h3>
             <div className="schedule-list">
@@ -358,6 +388,7 @@ export default function SeminarInfoClient({
               })}
             </div>
           </div>
+          )}
 
           <div className="seminar-voicy">
             <p className="seminar-voicy-lead">音声配信メディア！Voicyでも、クラウドファンディング成功ノウハウを配信中！</p>
@@ -371,7 +402,22 @@ export default function SeminarInfoClient({
       <section className="form-section" id="apply">
         <div className="container">
           <div className="form-card">
-            <h2>無料<span className="accent">説明会</span>に申し込む</h2>
+            <h2>{noSchedule ? '説明会のご案内' : <>無料<span className="accent">説明会</span>に申し込む</>}</h2>
+            {noSchedule ? (
+              /* 🔴 日程0件のときはフォームを出さない（空セレクト・送信500を作らない） */
+              <div className="seminar-no-schedule">
+                <p>現在、説明会の日程は個別にご案内しています。</p>
+                <a
+                  href={CONSULT_URL}
+                  className="seminar-consult-cta"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+                </a>
+              </div>
+            ) : (
+            <>
             <p className="form-sub">以下の情報をご入力ください。確認メールが自動送信されます。</p>
             {submitted ? (
               <div style={{textAlign:'center',padding:'48px 24px'}}>
@@ -437,6 +483,8 @@ export default function SeminarInfoClient({
                 )}
               </form>
             )}
+            </>
+            )}
           </div>
         </div>
       </section>
@@ -460,12 +508,12 @@ export default function SeminarInfoClient({
       <section className="cta-banner">
         <div className="container">
           <h2>まずは、無料の個別相談から。</h2>
-          <p>{CONSULT_MINUTES}分で、あなたのアイデアの勝ち筋と現実的な設計をお伝えします。<br />説明会の日程から選ぶこともできます。</p>
+          <p>{CONSULT_MINUTES}分で、あなたのアイデアの勝ち筋と現実的な設計をお伝えします。<br />{noSchedule ? '説明会についても、個別にご案内します。' : '説明会の日程から選ぶこともできます。'}</p>
           <div className="hero-cta-row">
             <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="hero-cta hero-cta--main">
               個別相談を予約する（無料・{CONSULT_MINUTES}分）
             </a>
-            <a href="#apply" className="hero-cta hero-cta--sub">説明会に申し込む</a>
+            <a href="#apply" className="hero-cta hero-cta--sub">{noSchedule ? '説明会のご案内を見る' : '説明会に申し込む'}</a>
           </div>
         </div>
       </section>

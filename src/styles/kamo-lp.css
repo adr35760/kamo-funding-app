@@ -630,3 +630,30 @@ img { max-width: 100%; height: auto; }
 @media (max-width: 768px) {
   .nowrap-pc { white-space: normal; }
 }
+
+/* ==========================================================================
+   2026-10-27 説明会日程の公開停止（B決定）に伴う差し替え用CTA
+   .btn-primary は inline-flex のため、狭い枠で「予約す｜る」と割れる。
+   ここは inline-block にして nowrap した「（無料・45分）」単位で折り返す。
+   ========================================================================== */
+.lp-consult-cta {
+  display: inline-block;
+  text-align: center;
+  background: var(--kamo-red);
+  color: var(--kamo-white);
+  padding: 16px 28px;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.4;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(230, 0, 18, 0.3);
+}
+.lp-consult-cta:hover {
+  background: var(--kamo-red-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(230, 0, 18, 0.4);
+}
+@media (max-width: 768px) {
+  .lp-consult-cta { font-size: 15px; padding: 14px 18px; }
+}

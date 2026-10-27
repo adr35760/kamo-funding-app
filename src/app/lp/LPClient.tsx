@@ -11,20 +11,33 @@ import { NUM_JISSEKI, CONSULT_URL, CONSULT_MINUTES } from '@/lib/seminar-info-co
 
 interface EventOption extends EventLike {}
 
-export default function LPClient({ initialEvents = [] }: { initialEvents?: EventOption[] }) {
+export default function LPClient({
+  initialEvents = [],
+  eventsResolved = false,
+}: {
+  initialEvents?: EventOption[];
+  /** サーバー側でDBを読めたか（true かつ 0件＝本当に公開日程が無い） */
+  eventsResolved?: boolean;
+}) {
   // サーバー側で取得済みの日程を初期値にする（SSR時点でフォームに選択肢が入る）
   const [events, setEvents] = useState<EventOption[]>(initialEvents);
-  const [eventsLoaded, setEventsLoaded] = useState(initialEvents.length > 0);
+  const [eventsLoaded, setEventsLoaded] = useState(eventsResolved || initialEvents.length > 0);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
   // 説明会（pillar=1）イベントのみ表示用にフィルタ
   const infoEvents = events.filter(e => !e.pillar || e.pillar === 1);
+  /**
+   * 2026-10-27 t iku決定（B＝申込があったときだけ開催）:
+   * 公開日程が0件のときは「説明会の日程は個別にご案内」に差し替える。
+   * 🔴 空のセレクト・送信時500を作らないため、フォーム自体を出さない。
+   */
+  const noSchedule = eventsLoaded && infoEvents.length === 0;
 
   // 動的にイベント一覧を取得（EngineerのAPIから）
   useEffect(() => {
-    if (initialEvents.length > 0) return; // サーバー取得済みなら再取得不要
+    if (eventsResolved || initialEvents.length > 0) return; // サーバー取得済みなら再取得不要
     fetch('/api/events')
       .then(res => res.ok ? res.json() : [])
       .then(data => {
@@ -36,7 +49,7 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
         setEvents([]);
       })
       .finally(() => setEventsLoaded(true));
-  }, [initialEvents.length]);
+  }, [initialEvents.length, eventsResolved]);
 
   // ヘッダースクロール効果
   useEffect(() => {
@@ -144,7 +157,7 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
                 <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
                   個別相談を予約する（無料・{CONSULT_MINUTES}分）
                 </a>
-                <a href="#apply" className="btn-secondary">説明会に申し込む →</a>
+                <a href="#apply" className="btn-secondary">{noSchedule ? '説明会のご案内を見る →' : '説明会に申し込む →'}</a>
                 <a href="#schedule" className="hero-cta-quiet">開催日程を見る</a>
               </div>
             </div>
@@ -243,7 +256,9 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
           <div className="section-title">
             <span className="label">SCHEDULE</span>
             <h2>開催<span className="accent">日程</span></h2>
-            <p>各回定員になり次第締切となります。お早めにお申込みください。</p>
+            <p>{noSchedule
+              ? '日程は、ご希望に応じて設定します。まずは個別相談でご都合をお聞かせください。'
+              : '各回定員になり次第締切となります。お早めにお申込みください。'}</p>
           </div>
           <div className="schedule-list">
             {infoEvents.length > 0 ? (
@@ -275,8 +290,11 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
               })
             ) : eventsLoaded ? (
               <div style={{ textAlign: 'center', padding: '40px 20px', background: '#FFF5F5', borderRadius: '16px', border: '2px solid #FFE0E0' }}>
-                <p style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>現在募集中の日程はありません</p>
-                <p style={{ fontSize: '15px', color: '#666' }}>次回日程は近日公開します。公開までお待ちください。</p>
+                <p style={{ fontSize: '18px', fontWeight: 700, marginBottom: '10px' }}>現在、説明会の日程は個別にご案内しています。</p>
+                <p style={{ fontSize: '15px', color: '#666', marginBottom: '18px' }}>ご希望に応じて日程を設定します。まずは個別相談でご都合をお聞かせください。</p>
+                <a href={CONSULT_URL} className="lp-consult-cta" target="_blank" rel="noopener noreferrer">
+                  個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+                </a>
               </div>
             ) : (
               <></>
@@ -289,7 +307,19 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
       <section className="form-section" id="apply">
         <div className="container">
           <div className="form-card">
-            <h2>説明会に<span className="accent">申し込む</span></h2>
+            <h2>{noSchedule ? '説明会のご案内' : <>説明会に<span className="accent">申し込む</span></>}</h2>
+            {noSchedule ? (
+              /* 🔴 日程0件のときはフォームを出さない（空セレクト・送信500を作らない） */
+              <div style={{ textAlign: 'center', padding: '8px 4px' }}>
+                <p style={{ fontSize: '16px', fontWeight: 700, marginBottom: '18px' }}>
+                  現在、説明会の日程は個別にご案内しています。
+                </p>
+                <a href={CONSULT_URL} className="lp-consult-cta" target="_blank" rel="noopener noreferrer">
+                  個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+                </a>
+              </div>
+            ) : (
+            <>
             <p className="form-sub">以下の情報をご入力ください。確認メールが自動送信されます。</p>
 
             {submitted ? (
@@ -367,6 +397,8 @@ export default function LPClient({ initialEvents = [] }: { initialEvents?: Event
                   ※ 個人情報は本説明会の運営目的のみに使用します
                 </p>
               </form>
+            )}
+            </>
             )}
           </div>
         </div>

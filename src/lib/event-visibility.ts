@@ -70,3 +70,26 @@ export function filterApplicableEvents<T extends EventTimeLike>(
 ): T[] {
   return events.filter(e => isEventOpenForApplication(e, now));
 }
+
+/* ==========================================================================
+   公開ページに出さないイベント種別（2026-10-27 t iku決定）
+   ─ 掲載説明会は「B＝申込があったときだけ開催」に決定したため、公開サイトから
+     info_session の日程を下げる。**DB（events）の行・status・capacity は変更しない**
+     ＝公開側の表示だけを落とす。管理画面（/api/admin/events）はこの関数を通さないので
+     従来どおり全件見える。
+   ─ 有料セミナー（seminar）・アワード/懇親会（networking）は対象外＝そのまま表示する。
+   ─ 説明会の申込は「個別相談でご案内」に一本化する（各ページのフォーム側で処理）。
+   ========================================================================== */
+
+/** 公開側で非表示にする種別。ここに足せば全公開ページ・/api/events に一括で効く */
+const PUBLIC_HIDDEN_EVENT_TYPES: readonly string[] = ['info_session'];
+
+/** この種別を公開ページに出さないか（type 未設定は「不明」なので出さない判断はしない） */
+export function isEventHiddenInPublic(ev: { type?: string | null }): boolean {
+  return typeof ev.type === 'string' && PUBLIC_HIDDEN_EVENT_TYPES.includes(ev.type);
+}
+
+/** 公開用に種別で絞り込む（DBは触らない） */
+export function filterPublicEventTypes<T extends { type?: string | null }>(events: T[]): T[] {
+  return events.filter(e => !isEventHiddenInPublic(e));
+}

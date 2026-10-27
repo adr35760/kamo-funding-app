@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
-import { filterVisibleEvents, isEventFinished } from '@/lib/event-visibility';
+import { filterVisibleEvents, isEventFinished, filterPublicEventTypes } from '@/lib/event-visibility';
 
 /**
  * GET /api/events
@@ -36,10 +36,15 @@ export async function GET() {
         .order('event_date', { ascending: true });
 
       if (!error && data) {
+        // 2026-10-27 t iku決定: 公開側は info_session（掲載説明会）を出さない。
+        // DBの行・status は変更せず、この公開APIの返却だけを絞る（/admin は別APIで全件）。
+        const publicRows = filterPublicEventTypes(
+          data as unknown as Array<{ type?: string | null }>
+        );
         // サーバー時刻（JST基準の絶対時刻比較）で開催終了済みを除外する。
         // 'mark_done' モードでは除外せず finished フラグで区別する。
         const visible = filterVisibleEvents(
-          data as unknown as Array<{ event_date: string; duration_minutes?: number | null }>
+          publicRows as unknown as Array<{ event_date: string; duration_minutes?: number | null }>
         ) as unknown as Array<Record<string, unknown>>;
         events = visible.map((e: Record<string, unknown>) => ({
           id: e.id as string,

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import SeminarInfoClient from './SeminarInfoClient';
-import { fetchSeminarEvents } from '@/lib/fetch-seminar-events';
+import { fetchSeminarEventState } from '@/lib/fetch-seminar-events';
 import type { EventLike } from '@/lib/event-format';
 import { NUM_JISSEKI, NUM_TASSEI_RATE, CONSULT_MINUTES } from '@/lib/seminar-info-content';
 import { isReferralCodeShape, normalizeReferralCode } from '@/lib/referral-link';
@@ -18,7 +18,7 @@ export const revalidate = 60;
 const TITLE = `個別相談（無料・${CONSULT_MINUTES}分）｜KAMOファンディングの掲載相談`;
 const DESCRIPTION =
   `クラウドファンディングで、挑戦をかたちにする最初の${CONSULT_MINUTES}分。実績${NUM_JISSEKI}・達成率${NUM_TASSEI_RATE}の担当者が、` +
-  'アイデア・目標金額・スケジュールを直接伺います。掲載説明会の日程・お申し込みもご案内しています。';
+  'アイデア・目標金額・スケジュールを直接伺います。掲載説明会については個別にご案内しています。';
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -40,8 +40,11 @@ export default async function SeminarInfoPage({
 }: {
   searchParams?: { ref?: string | string[] };
 }) {
-  // 掲載説明会は pillar=1
-  const events = (await fetchSeminarEvents(1)) as unknown as EventLike[];
+  // 掲載説明会は pillar=1。
+  // 2026-10-27 t iku決定（B＝申込があったときだけ開催）により、公開側では
+  // info_session を出さない（filter は fetch-seminar-events 側）。DBは不変。
+  // resolved=false は「取得失敗」なので、0件（＝個別相談へ差し替え）と区別して渡す。
+  const { events, resolved } = await fetchSeminarEventState(1);
 
   /**
    * 紹介パートナー専用リンク（/r/<code>）から来たときの紹介コード。
@@ -52,5 +55,11 @@ export default async function SeminarInfoPage({
   const normalizedRef = normalizeReferralCode(rawRef);
   const referralCode = isReferralCodeShape(normalizedRef) ? normalizedRef : '';
 
-  return <SeminarInfoClient initialEvents={events} initialReferralCode={referralCode} />;
+  return (
+    <SeminarInfoClient
+      initialEvents={events as unknown as EventLike[]}
+      eventsResolved={resolved}
+      initialReferralCode={referralCode}
+    />
+  );
 }
