@@ -1,0 +1,695 @@
+/**
+ * トップページ（/）— LP実装仕様書 v1.1
+ *
+ * 🔴 このファイルのスタイルは .tlp-page 配下にだけ効かせる。
+ *    既存サイト（赤×金）とは別系統の青系トークン（§8）なので、
+ *    globals.css の :root は触らない（SiteHeader / LegalFooter が参照している）。
+ *
+ * トークン（§8）:
+ *   ①#2563eb/#eef3ff/#1e3a8a  ②#16a34a/#e9f9ef/#166534
+ *   ③#d97706/#fdf3e0/#92400e  ④#7c3aed/#f3efff/#5b21b6
+ *   主要CTA #2456d6 / 文字 #1c1f26・補助 #5b6270・注記 #8a90a0
+ *   角丸 カード10px・CTA8px / セクション間 96px（SP 64px）
+ *   タイポ h2 20px・h3 16px・600、本文 15px/1.75
+ */
+
+.tlp-page {
+  /* 入り口カラー（§8） */
+  --entrance-1: #2563eb;
+  --entrance-1-bg: #eef3ff;
+  --entrance-1-text: #1e3a8a;
+  --entrance-2: #16a34a;
+  --entrance-2-bg: #e9f9ef;
+  --entrance-2-text: #166534;
+  --entrance-3: #d97706;
+  --entrance-3-bg: #fdf3e0;
+  --entrance-3-text: #92400e;
+  --entrance-4: #7c3aed;
+  --entrance-4-bg: #f3efff;
+  --entrance-4-text: #5b21b6;
+
+  --cta-primary: #2456d6;
+  --cta-primary-dark: #1c46b8;
+
+  --text: #1c1f26;
+  --text-sub: #5b6270;
+  --text-note: #8a90a0;
+  --line: #e6e9f0;
+
+  --radius-card: 10px;
+  --radius-cta: 8px;
+  --space-section: 96px;
+
+  background: #fff;
+  color: var(--text);
+  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+  overflow-x: clip;
+}
+
+/* globals.css の a { color: #E60012 } をこのページ内で打ち消す */
+.tlp-page a {
+  color: var(--cta-primary);
+  text-decoration: none;
+}
+
+.tlp-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---- 見出し・本文（§8） ---- */
+.tlp-h2 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+.tlp-h3 {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--text);
+}
+.tlp-body {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-sub);
+}
+
+.tlp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- ボタン（CTA radius 8px） ---- */
+.tlp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 28px;
+  border: 0;
+  border-radius: var(--radius-cta);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.tlp-btn-primary {
+  background: var(--cta-primary);
+  color: #fff !important;
+}
+.tlp-btn-primary:hover {
+  background: var(--cta-primary-dark);
+}
+.tlp-btn-lg {
+  min-height: 56px;
+  padding: 16px 40px;
+  font-size: 17px;
+}
+.tlp-submit {
+  width: 100%;
+  margin-top: 8px;
+}
+.tlp-submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+/* ===== Z1 ファーストビュー ===== */
+.tlp-hero {
+  padding: 0;
+  background: #0b1a33;
+}
+.tlp-hero-frame {
+  position: relative;
+  max-width: 1280px;
+  margin: 0 auto;
+  line-height: 0;
+}
+.tlp-hero-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+/* PC: 画像はそのまま（トリミングしない）。コピー帯はKV下段の空いた部分に重ねる */
+.tlp-hero-copy {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  max-width: 48%;
+  padding: 0 40px 40px;
+  line-height: 1.75;
+}
+.tlp-hero-lead {
+  margin-bottom: 20px;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.7;
+  text-shadow: 0 1px 12px rgba(6, 16, 38, 0.6);
+}
+.tlp-hero-note {
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 13px;
+}
+
+/* ===== Z2 共感 ===== */
+.tlp-empathy {
+  padding: var(--space-section) 0 0;
+  text-align: center;
+}
+.tlp-empathy .tlp-h2 {
+  margin-bottom: 20px;
+}
+.tlp-empathy .tlp-body {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: left;
+}
+.tlp-empathy-lead {
+  max-width: 760px;
+  margin: 28px auto 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ===== Z3 分岐ハブ ===== */
+.tlp-hub {
+  padding: var(--space-section) 0 0;
+}
+.tlp-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.tlp-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  color: var(--text) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+.tlp-card:hover {
+  border-color: #c9d3e8;
+  box-shadow: 0 10px 30px rgba(20, 32, 64, 0.12);
+  transform: translateY(-2px);
+}
+.tlp-card:focus-visible {
+  outline: 3px solid var(--cta-primary);
+  outline-offset: 2px;
+}
+.tlp-card-media {
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: #eef1f6;
+  overflow: hidden;
+}
+/* ④は3:2原稿。16:9に中央トリミングする（§5.1） */
+.tlp-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.tlp-card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  flex: 1;
+  padding: 20px;
+}
+.tlp-card-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--e-bg);
+  color: var(--e-text);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+.tlp-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--text);
+}
+.tlp-card-text {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-sub);
+}
+.tlp-card-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 6px;
+  padding: 10px 20px;
+  border-radius: var(--radius-cta);
+  background: var(--e);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  transition: filter 0.2s ease;
+}
+.tlp-card:hover .tlp-card-cta {
+  filter: brightness(0.92);
+}
+.tlp-card-note {
+  font-size: 13px;
+  color: var(--text-note);
+  line-height: 1.6;
+}
+.tlp-card-footnote {
+  font-size: 12px;
+  color: var(--text-note);
+  line-height: 1.6;
+}
+
+.tlp-card-1 {
+  --e: var(--entrance-1);
+  --e-bg: var(--entrance-1-bg);
+  --e-text: var(--entrance-1-text);
+}
+.tlp-card-2 {
+  --e: var(--entrance-2);
+  --e-bg: var(--entrance-2-bg);
+  --e-text: var(--entrance-2-text);
+}
+.tlp-card-3 {
+  --e: var(--entrance-3);
+  --e-bg: var(--entrance-3-bg);
+  --e-text: var(--entrance-3-text);
+}
+.tlp-card-4 {
+  --e: var(--entrance-4);
+  --e-bg: var(--entrance-4-bg);
+  --e-text: var(--entrance-4-text);
+}
+
+/* ===== Z4 信頼性 ===== */
+.tlp-trust {
+  padding: var(--space-section) 0 0;
+}
+.tlp-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  padding: 32px 24px;
+  background: #f6f8fc;
+  border-radius: var(--radius-card);
+  text-align: center;
+}
+.tlp-trust-item {
+  min-width: 0;
+}
+.tlp-trust-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  word-break: break-word;
+}
+.tlp-trust-value-pending {
+  font-size: 20px;
+  color: var(--text-note);
+}
+.tlp-trust-label {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-sub);
+  line-height: 1.6;
+}
+.tlp-trust-source {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-note);
+}
+
+/* ===== Z5 最終CTA ===== */
+.tlp-final {
+  padding: var(--space-section) 0 0;
+  text-align: center;
+}
+.tlp-final-note {
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--text-sub);
+}
+
+/* ===== 相談フォーム（§10） ===== */
+.tlp-form-section {
+  padding: var(--space-section) 0;
+  scroll-margin-top: 76px;
+}
+.tlp-form-section .tlp-h2 {
+  text-align: center;
+}
+.tlp-form-lead {
+  max-width: 640px;
+  margin: 12px auto 28px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-sub);
+}
+.tlp-form {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  box-shadow: 0 4px 18px rgba(20, 32, 64, 0.05);
+}
+.tlp-field {
+  margin-bottom: 20px;
+}
+.tlp-fieldset {
+  min-width: 0;
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+}
+.tlp-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.tlp-required {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: #fdecec;
+  color: #b4211b;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.8;
+  vertical-align: middle;
+}
+.tlp-input {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid #ccd3e0;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px; /* iOSの自動ズーム回避 */
+  line-height: 1.6;
+}
+.tlp-input:focus {
+  outline: none;
+  border-color: var(--cta-primary);
+  box-shadow: 0 0 0 3px rgba(36, 86, 214, 0.16);
+}
+.tlp-textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+.tlp-counter {
+  margin-top: 4px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--text-note);
+}
+.tlp-radios {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.tlp-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid #ccd3e0;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.tlp-radio input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--cta-primary);
+  flex-shrink: 0;
+}
+.tlp-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 4px 0 20px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-sub);
+}
+.tlp-consent input {
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  accent-color: var(--cta-primary);
+  flex-shrink: 0;
+}
+.tlp-consent a {
+  color: var(--cta-primary);
+  text-decoration: underline;
+}
+.tlp-form-errors {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border: 1px solid #f3c9c6;
+  border-radius: 8px;
+  background: #fdf3f2;
+  color: #b4211b;
+  font-size: 14px;
+}
+.tlp-form-errors ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.tlp-form-done {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px;
+  border: 1px solid #cfe3d4;
+  border-radius: var(--radius-card);
+  background: #f3fbf5;
+  text-align: center;
+}
+.tlp-form-done .tlp-h3 {
+  margin-bottom: 10px;
+}
+
+/* ===== フッター ===== */
+.tlp-footer {
+  border-top: 1px solid var(--line);
+  background: #fff;
+  padding: 28px 0 32px;
+}
+.tlp-footer-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-sub);
+}
+.tlp-footer-copy {
+  margin-bottom: 4px;
+}
+.tlp-admin-link {
+  font-size: 12px;
+  color: var(--text-note) !important;
+}
+.tlp-footer .legal-footer-links {
+  padding: 10px 0 0;
+  color: var(--text-note);
+}
+
+/* ===== Z6 追従CTA ===== */
+.tlp-follow {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 60;
+}
+.tlp-follow-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 14px 26px;
+  border-radius: 999px;
+  background: var(--cta-primary);
+  color: #fff !important;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 10px 26px rgba(36, 86, 214, 0.36);
+}
+.tlp-follow-link:hover {
+  background: var(--cta-primary-dark);
+}
+.tlp-follow-sp {
+  display: none;
+}
+
+/* FOUC防止のフェード。reduced-motion ではアニメーションしない */
+@media (prefers-reduced-motion: no-preference) {
+  .tlp-follow {
+    animation: tlp-fade-in 0.3s ease-out both;
+  }
+}
+@keyframes tlp-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== タブレット（768–1023）: 2×2のまま余白縮小（§9） ===== */
+@media (max-width: 1023px) {
+  .tlp-page {
+    --space-section: 72px;
+  }
+  .tlp-inner {
+    padding: 0 20px;
+  }
+  .tlp-hero-copy {
+    max-width: 56%;
+    padding: 0 28px 28px;
+  }
+  .tlp-hero-lead {
+    font-size: 16px;
+  }
+  .tlp-cards {
+    gap: 18px;
+  }
+  .tlp-card-body {
+    padding: 16px;
+  }
+  .tlp-trust-grid {
+    gap: 18px;
+    padding: 24px 16px;
+  }
+  .tlp-trust-value {
+    font-size: 24px;
+  }
+}
+
+/* ===== SP（≤767）: 1列・画像上部トリミングなし・コピー帯は下段（§9） ===== */
+@media (max-width: 767px) {
+  .tlp-page {
+    --space-section: 64px;
+    /* 下端固定バーのぶん、ページ末尾に余白を確保する */
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+  .tlp-inner {
+    padding: 0 16px;
+  }
+  .tlp-hero {
+    background: #fff;
+  }
+  .tlp-hero-frame {
+    max-width: none;
+    line-height: 1.75;
+  }
+  .tlp-hero-copy {
+    position: static;
+    max-width: none;
+    padding: 20px 16px 4px;
+  }
+  .tlp-hero-lead {
+    color: var(--text);
+    font-size: 16px;
+    text-shadow: none;
+  }
+  .tlp-hero-note {
+    color: var(--text-sub);
+  }
+  .tlp-hub {
+    padding-top: var(--space-section);
+  }
+  .tlp-cards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+  }
+  .tlp-trust-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    padding: 24px 16px;
+  }
+  .tlp-trust-value {
+    font-size: 26px;
+  }
+  .tlp-form {
+    padding: 20px 16px;
+  }
+  .tlp-radios {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tlp-btn {
+    width: 100%;
+    padding: 14px 20px;
+  }
+  .tlp-btn-lg {
+    font-size: 16px;
+    padding: 16px 20px;
+  }
+  /* Z6: 下端固定バー（safe-area対応） */
+  .tlp-follow {
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+  .tlp-follow-link {
+    width: 100%;
+    min-height: 56px;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -6px 20px rgba(20, 32, 64, 0.18);
+  }
+  .tlp-follow-pc {
+    display: none;
+  }
+  .tlp-follow-sp {
+    display: inline;
+  }
+}
