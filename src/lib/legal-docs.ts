@@ -1,3 +1,5 @@
+import { SITE_ORIGIN } from '@/lib/site-url';
+
 /**
  * 法務ページ4点の原稿（利用規約・プライバシーポリシー・特定商取引法に基づく表記・
  * キャンセルポリシー）。
@@ -93,7 +95,7 @@ info@local-creation.com
 
 ## ホームページURL
 
-https://kamo-funding-app.vercel.app/
+${SITE_ORIGIN}/
 
 ## 販売価格
 
