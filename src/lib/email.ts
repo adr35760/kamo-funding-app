@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { normalizeEmail, isValidEmail } from '@/lib/email-address';
+import { SITE_ORIGIN } from '@/lib/site-url';
 import { referralTermsHtml } from '@/lib/referral-terms';
 import { referralShareUrl, siteOrigin } from '@/lib/referral-link';
 import { buildReferralShareMessage, buildReferralShortMessage } from '@/lib/referral-message';
@@ -372,7 +373,7 @@ export function applyConfirmationHtml({
             : '当日、指定の日時までにZoomへアクセスしてください。'}</p>
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
-          https://kamo-funding-app.vercel.app/
+          ${SITE_ORIGIN}/
         </p>
       </div>
     </div>
@@ -432,7 +433,7 @@ export async function sendZoomChangeNoticeEmail(
 
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
-          https://kamo-funding-app.vercel.app/
+          ${SITE_ORIGIN}/
         </p>
       </div>
     </div>
@@ -472,7 +473,7 @@ export async function sendReminderEmail(
         <p style="margin-top: 20px;">それでは、お会いできるのを楽しみにしています！</p>
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
-          https://kamo-funding-app.vercel.app/
+          ${SITE_ORIGIN}/
         </p>
       </div>
     </div>
@@ -604,7 +605,7 @@ export async function sendSupporterConfirmationEmail(
         <p style="margin-top: 16px;">※説明会参加が必須です。開催日程をチェックしてください！</p>
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
-          https://kamo-funding-app.vercel.app/
+          ${SITE_ORIGIN}/
         </p>
       </div>
     </div>
@@ -654,7 +655,7 @@ export async function sendPartnerSessionConfirmationEmail(
         </p>
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
-          https://kamo-funding-app.vercel.app/
+          ${SITE_ORIGIN}/
         </p>
       </div>
     </div>
@@ -697,7 +698,7 @@ export async function sendReferralRegistrationEmail(
         ${referralTermsHtml()}
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
-          https://kamo-funding-app.vercel.app/
+          ${SITE_ORIGIN}/
         </p>
       </div>
     </div>
@@ -803,7 +804,7 @@ export async function sendPartnerSessionAdminNotification(
           ${row('質問・メッセージ', (info.message || '').replace(/\n/g, '<br />'))}
         </table>
         <p style="margin: 18px 0 0;">
-          <a href="https://kamo-funding-app.vercel.app/admin"
+          <a href="${SITE_ORIGIN}/admin"
              style="display:inline-block; background:#0B1D3A; color:#fff; padding:12px 24px; border-radius:6px; font-weight:700; font-size:14px; text-decoration:none;">
             管理画面で確認する →
           </a>
@@ -1130,8 +1131,8 @@ export function seminarInviteHtml(params: {
 
         <p style="margin-top: 16px;">
           お申し込みはこちらから承っております。<br />
-          <a href="https://kamo-funding-app.vercel.app/seminar-info"
-             style="color: #E60012; font-weight: 700; word-break: break-all;">https://kamo-funding-app.vercel.app/seminar-info</a>
+          <a href="${SITE_ORIGIN}/seminar-info"
+             style="color: #E60012; font-weight: 700; word-break: break-all;">${SITE_ORIGIN}/seminar-info</a>
         </p>
 
         <p style="margin-top: 16px; padding: 16px; background: #FFFDF0; border: 1px solid #F2E6B8; border-radius: 8px; font-size: 14px;">
@@ -1144,7 +1145,7 @@ export function seminarInviteHtml(params: {
 
         <p style="margin-top: 20px; font-size: 12px; color: #999;">
           KAMO FUNDING — 共犯者を集め、夢を叶える場所<br />
-          https://kamo-funding-app.vercel.app/
+          ${SITE_ORIGIN}/
         </p>
       </div>
     </div>

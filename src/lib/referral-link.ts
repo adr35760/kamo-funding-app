@@ -20,6 +20,8 @@
  */
 
 /** 1コードあたりの保存上限（悪意ある長文を弾く） */
+import { SITE_ORIGIN } from '@/lib/site-url';
+
 export const REFERRAL_CODE_MAX_LENGTH = 32;
 
 /** 正規化後のコードの形（パートナー登録APIが発行する KAMO-XXXXXX を含む） */
@@ -58,7 +60,7 @@ export function isReferralCodeShape(code: string | null): code is string {
 
 /** サイトのオリジン（末尾スラッシュ無し）。メールと管理画面で同じ値を使う */
 export function siteOrigin(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || 'https://kamo-funding-app.vercel.app').replace(/\/+$/, '');
+  return (process.env.NEXT_PUBLIC_SITE_URL || SITE_ORIGIN).replace(/\/+$/, '');
 }
 
 /** パートナーが配る共有リンク（`/r/<code>`） */
