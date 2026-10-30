@@ -6,7 +6,7 @@
  * - 旧ドメイン（kamo-funding-app.vercel.app）は Vercel 側で残すので、
  *   切り替え後も古いリンクは切れない。
  */
-export const SITE_URL = 'https://kamo-funding-app.vercel.app';
+export const SITE_URL = 'https://crowdfunding.co.jp';
 
 /** 末尾スラッシュ無しのサイトURL（テンプレート用） */
 export const SITE_ORIGIN = SITE_URL.replace(/\/+$/, '');
