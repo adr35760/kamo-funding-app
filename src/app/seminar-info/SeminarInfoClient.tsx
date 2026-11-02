@@ -198,7 +198,7 @@ export default function SeminarInfoClient({
                 {noSchedule ? '説明会のご案内を見る' : '説明会の日程を見る'}
               </a>
             </div>
-            <p className="hero-note">オンライン（Zoom）／顔出し不要／無理な営業はしません</p>
+            <p className="hero-note">オンライン（Zoom）で開催／顔出し推奨</p>
           </div>
         </div>
       </section>
