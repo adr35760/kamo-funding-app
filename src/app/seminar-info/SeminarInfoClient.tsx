@@ -282,6 +282,12 @@ export default function SeminarInfoClient({
               </li>
             ))}
           </ol>
+
+          {/* 2026-11-02 t iku指示: 個別相談の流れの下に予約バナー */}
+          <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="seminar-flow-banner">
+            <span className="seminar-flow-banner-text">無料の個別相談を予約する</span>
+            <span className="seminar-flow-banner-note">無料・{CONSULT_MINUTES}分・オンライン</span>
+          </a>
         </div>
       </section>
 

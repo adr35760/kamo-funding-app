@@ -494,6 +494,20 @@ a { color: inherit; text-decoration: none; }
 }
 .flow-step h3 { font-size: 17px; font-weight: 900; margin-bottom: 4px; }
 .flow-step p { font-size: 14px; color: var(--kamo-gray); line-height: 1.7; }
+
+/* 2026-11-02 t iku指示: 個別相談の流れの下に置く予約バナー */
+.seminar-flow-banner {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  max-width: 520px; min-height: 72px; margin: 32px auto 0; padding: 14px 24px;
+  background: var(--kamo-red); color: var(--kamo-white); text-decoration: none;
+  border-radius: 999px; text-align: center;
+  box-shadow: 0 8px 24px rgba(230, 0, 18, 0.28);
+  transition: background .2s ease, transform .2s ease;
+}
+.seminar-flow-banner-text { font-size: clamp(16px, 4.2vw, 20px); font-weight: 800; line-height: 1.4; }
+.seminar-flow-banner-note { font-size: 12px; font-weight: 700; opacity: 0.9; }
+.seminar-flow-banner:hover { background: var(--kamo-red-dark); color: var(--kamo-white); transform: translateY(-2px); }
+
 @media (max-width: 768px) {
   .flow-list { grid-template-columns: 1fr; }
   .flow-step { padding: 20px 18px; }
