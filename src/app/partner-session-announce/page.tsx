@@ -64,12 +64,12 @@ export default function PartnerSessionAnnouncePage() {
             <h1 className="hero-h1-lead"><span className="gold">挑戦者</span>をあなたのスキルで<br className="br-sp" /><span className="gold">ステージアップ！</span><br />KAMOファンディング<br />パートナーシップ個別説明会（1対1）</h1>
             <p className="hero-sub">紹介するだけ、伴走する、がっつり稼ぐ — あなたの関わり方に合わせた3つのプログラム。<br />どれからでも始められる、KAMOファンディングのパートナーシップ制度。</p>
             <a href="#apply" className="hero-cta">無料で申し込む →</a>
-            <div className="hero-meta">
-              <div className="hero-meta-item"><span className="kamo-icon kamo-icon-clock sm"></span> 目安60分</div>
-              <div className="hero-meta-item"><span className="kamo-icon kamo-icon-monitor sm"></span> オンライン</div>
-              <div className="hero-meta-item"><span className="kamo-icon kamo-icon-yen sm"></span> 参加費¥0</div>
-              <div className="hero-meta-item"><span className="kamo-icon kamo-icon-target sm"></span> 3プログラム一堂に</div>
-            </div>
+            <dl className="hero-spec">
+              <div><dt>形式</dt><dd>オンライン（Zoom）</dd></div>
+              <div><dt>所要時間</dt><dd>60分</dd></div>
+              <div><dt>参加費</dt><dd>¥0</dd></div>
+              <div><dt>内容</dt><dd>3プログラム一堂に</dd></div>
+            </dl>
           </div>
         </div>
       </section>
@@ -93,8 +93,9 @@ export default function PartnerSessionAnnouncePage() {
       <section className="programs" id="programs">
         <div className="container">
           <div className="programs-title">
+            <p className="sec-eyebrow">01 — PROGRAM</p>
             <h2>3つの<span className="accent">プログラム</span></h2>
-            <p>参入ハードルに合わせて選べる3つのパートナータイプ。</p>
+            <p className="sec-lead">参入ハードルに合わせて選べる3つのパートナータイプ。</p>
           </div>
           <div className="programs-grid">
             <div className="program-card green">
@@ -124,7 +125,7 @@ export default function PartnerSessionAnnouncePage() {
 
       <section className="comparison" id="comparison">
         <div className="container">
-          <div className="comparison-title"><h2>3プログラム<span className="accent">比較表</span></h2></div>
+          <div className="comparison-title"><p className="sec-eyebrow">02 — COMPARISON</p><h2>3プログラム<span className="accent">比較表</span></h2></div>
           <div className="table-wrap">
             <table className="ctable">
               <thead>
@@ -144,7 +145,7 @@ export default function PartnerSessionAnnouncePage() {
 
       <section className="schedule" id="schedule">
         <div className="container">
-          <div className="schedule-title"><h2>個別説明会<span className="accent">（1対1）</span></h2></div>
+          <div className="schedule-title"><p className="sec-eyebrow">03 — SCHEDULE</p><h2>個別説明会<span className="accent">（1対1）</span></h2></div>
           <div className="session-card">
             <div className="session-card-icon"><span className="kamo-icon kamo-icon-calendar"></span></div>
             <p className="session-card-title">ご希望の日時をお知らせください。</p>
@@ -171,6 +172,7 @@ export default function PartnerSessionAnnouncePage() {
       <section className="form-section" id="apply">
         <div className="container">
           <div className="form-card">
+            <p className="sec-eyebrow">04 — ENTRY</p>
             <h2>パートナーシップ<span className="accent">個別説明会</span>に申し込む</h2>
             <p className="form-sub">1対1の個別説明会（目安60分・オンライン／Zoom・無料）です。ご希望の日時をお知らせください。担当者より個別に日程調整のご連絡をします。</p>
             {submitted ? (
@@ -215,6 +217,9 @@ export default function PartnerSessionAnnouncePage() {
       </section>
 
       <footer className="footer"><div className="container">&copy; 2026 KAMO FUNDING. All rights reserved.<LegalFooter /></div></footer>
+
+      {/* スマホのみ：スクロール中も申込ボタンに届く追従バー */}
+      <div className="sticky-cta"><a href="#apply">無料で申し込む →</a></div>
     </>
   );
 }

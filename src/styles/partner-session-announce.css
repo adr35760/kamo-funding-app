@@ -172,7 +172,7 @@ body { font-size: 17px; line-height: 1.9; }
 .hero { padding: 128px 0 72px; }
 .hero-badge { font-size: 14.5px; font-weight: 700; padding: 8px 20px; margin-bottom: 26px; }
 .hero h1 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.42; letter-spacing: -0.01em; margin-bottom: 24px; }
-.hero-sub { font-size: 19px; line-height: 1.9; max-width: 760px; opacity: 0.95; margin-bottom: 34px; text-wrap: balance; }
+.hero-sub { font-size: 19px; line-height: 1.9; max-width: 880px; opacity: 0.95; margin-bottom: 34px; text-wrap: pretty; }
 .hero-cta { font-size: 19px; padding: 20px 44px; }
 .hero-meta { gap: 12px 28px; margin-top: 34px; }
 .hero-meta-item {
@@ -310,3 +310,132 @@ body { font-size: 17px; line-height: 1.9; }
   .form-sub { font-size: 15px; }
   .form-group label { font-size: 15px; }
 }
+
+/* ==========================================================================
+   2026-11-02 v2「機能的に・もっと大きく」— 情報設計を揃える第2段
+   ・セクション番号（01/02/03/04）と区切り線
+   · ヒーローは「仕様表」、カードは仕様行、表は固定ヘッダー＋左端固定
+   ========================================================================== */
+body { font-size: 18px; }
+
+/* --- セクション見出しの共通形 ---- */
+.programs-title, .comparison-title, .schedule-title, .form-card { text-align: center; }
+.sec-eyebrow {
+  font-family: var(--font-en);
+  font-size: 13px; font-weight: 800; letter-spacing: 0.18em;
+  color: var(--kamo-red); text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.sec-eyebrow::after {
+  content: ''; display: block; width: 40px; height: 3px;
+  background: var(--kamo-red); border-radius: 2px; margin: 10px auto 0; opacity: 0.35;
+}
+.sec-lead { font-size: 18px; color: var(--kamo-gray); margin-top: 10px; line-height: 1.8; }
+
+/* --- ヒーローの仕様表 --- */
+.hero-spec {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  max-width: 860px; margin: 36px auto 0;
+  border: 1px solid rgba(255, 255, 255, 0.32); border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08); overflow: hidden;
+}
+.hero-spec > div { padding: 14px 10px; text-align: center; border-right: 1px solid rgba(255, 255, 255, 0.18); }
+.hero-spec > div:last-child { border-right: 0; }
+.hero-spec dt { font-size: 12.5px; font-weight: 700; letter-spacing: 0.08em; opacity: 0.75; margin-bottom: 4px; }
+.hero-spec dd { font-size: 18px; font-weight: 900; line-height: 1.4; }
+@media (max-width: 768px) {
+  .hero-spec { grid-template-columns: repeat(2, 1fr); margin-top: 28px; }
+  .hero-spec > div { padding: 12px 8px; }
+  .hero-spec > div:nth-child(2) { border-right: 0; }
+  .hero-spec > div:nth-child(1), .hero-spec > div:nth-child(2) { border-bottom: 1px solid rgba(255,255,255,0.18); }
+  .hero-spec dd { font-size: 16.5px; }
+}
+
+/* --- プログラムカードを「仕様カード」に --- */
+.program-card {
+  border-radius: 14px; border-width: 1px; border-left-width: 6px;
+  box-shadow: 0 2px 10px rgba(26, 26, 26, 0.05);
+}
+.program-card::before { display: none; }
+.program-card.green { border-left-color: var(--partner-green); }
+.program-card.red { border-left-color: var(--kamo-red); }
+.program-card.gold { border-left-color: var(--kamo-gold); }
+.program-card .num { background: none; padding: 0; border-radius: 0; font-size: 12.5px; margin-bottom: 8px; }
+.program-card h3 { font-size: 22px; margin-bottom: 14px; }
+.program-card .reward {
+  font-size: 18px; padding: 12px 0 14px; margin-bottom: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08); border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.program-card .reward::before {
+  content: '報酬'; display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.1em;
+  color: var(--kamo-gray); margin-bottom: 4px;
+}
+.program-card p { font-size: 16px; line-height: 1.85; margin-top: 14px; }
+.program-card .barrier { font-size: 13px; margin-top: 16px; }
+
+/* --- 比較表：ヘッダー固定・左端固定・大きめ --- */
+.table-wrap { overflow-x: auto; }
+.ctable { min-width: 880px; table-layout: fixed; }
+.ctable th, .ctable td { font-size: 16px; padding: 16px 18px; line-height: 1.8; }
+.ctable th { font-size: 15px; letter-spacing: 0.04em; }
+.ctable td:first-child, .ctable th:first-child {
+  position: sticky; left: 0; z-index: 2;
+  background: #FBF7F7; box-shadow: 1px 0 0 var(--kamo-border);
+}
+.ctable th:first-child { background: var(--kamo-dark); color: var(--kamo-white); }
+.ctable tbody tr:nth-child(even) td:first-child { background: #F6EFEF; }
+.ctable td:first-child { font-size: 15.5px; }
+
+/* --- 日程カードを仕様パネルに --- */
+.session-card { border-radius: 14px; border: 1px solid var(--kamo-border); box-shadow: 0 2px 10px rgba(26, 26, 26, 0.04); }
+.session-card-title { font-size: 24px; }
+.session-card-body { font-size: 17px; }
+.session-card-points { gap: 8px; }
+.session-card-points li { font-size: 16px; padding: 9px 20px; }
+
+/* --- フォームを機能的な2カラムに（大きめ） --- */
+.form-card { border-radius: 14px; }
+.form-sub { font-size: 16.5px; text-align: left; }
+.form-group label { font-size: 16px; }
+.form-group input, .form-group select, .form-group textarea { font-size: 17px; }
+.form-submit { font-size: 19px; border-radius: 10px; }
+.form-note { font-size: 14px; text-align: left; }
+
+/* --- スマホ追従CTA --- */
+.sticky-cta { display: none; }
+@media (max-width: 768px) {
+  .sticky-cta {
+    display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 90;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(255, 255, 255, 0.96); border-top: 1px solid var(--kamo-border);
+    backdrop-filter: blur(8px);
+  }
+  .sticky-cta a {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 56px; background: var(--kamo-red); color: var(--kamo-white);
+    border-radius: 100px; font-size: 18px; font-weight: 900;
+    box-shadow: 0 6px 18px rgba(230, 0, 18, 0.24);
+  }
+  .footer { padding-bottom: 92px; }
+  body { font-size: 17px; }
+  .sec-lead { font-size: 16.5px; }
+  .program-card h3 { font-size: 20px; }
+  .program-card p { font-size: 15.5px; }
+  .ctable th, .ctable td { font-size: 15px; padding: 14px 14px; }
+  .session-card-title { font-size: 21px; }
+}
+
+/* 第2段の微調整（長い見出し・但し書きの折り返し） */
+.program-card h3 { font-size: 20px; line-height: 1.5; }
+.program-card .reward > span { font-size: 12.5px; white-space: nowrap; }
+@media (max-width: 768px) {
+  .program-card h3 { font-size: 19px; }
+  .program-card .reward span { white-space: normal; }
+}
+
+/* 日本語の語中改行を減らす（対応ブラウザのみ） */
+.program-card .reward, .program-card p, .session-card-body, .sec-lead { word-break: auto-phrase; }
+
+/* 比較表は横幅を広く使う（列が潰れて改行しすぎるのを防ぐ） */
+.comparison .container { max-width: 1010px; }
+@media (max-width: 1049px) { .comparison .container { max-width: 920px; } }
