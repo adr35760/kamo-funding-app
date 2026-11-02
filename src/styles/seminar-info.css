@@ -660,3 +660,151 @@ a { color: inherit; text-decoration: none; }
   .seminar-schedule-note { padding: 18px 16px; }
   .seminar-consult-cta { width: 100%; font-size: 15px; padding: 14px 18px; }
 }
+
+/* =========================================================
+   2026-11-03 t iku 指示「機能的で文字を大きく、枠をオシャレに、
+   点滅・強調・デザインを入れて」— デザイン強化レイヤー
+   （既存ルールは壊さず、上書きのみ）
+   ========================================================= */
+
+/* --- 1. 文字を全体的に大きく --- */
+.seminar-info-page { font-size: 17px; }
+.seminar-info-page p { font-size: 16.5px; line-height: 1.9; }
+.seminar-info-page .container p { font-size: 16.5px; }
+
+/* --- 2. 見出し：大きく＋金の下線＋ほのかな光 --- */
+.seminar-info-page h2 {
+  font-size: clamp(23px, 3.6vw, 36px);
+  text-wrap: balance;
+  word-break: auto-phrase;      /* 「（45分）」の途中で折らない */
+  line-break: strict;
+  font-weight: 900;
+  letter-spacing: .01em;
+  line-height: 1.5;
+  position: relative;
+  padding-bottom: 14px;
+}
+.seminar-info-page h2::after {
+  content: '';
+  position: absolute;
+  left: 50%; bottom: 0;
+  transform: translateX(-50%);
+  width: 84px; height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--kamo-red), var(--kamo-gold));
+  box-shadow: 0 2px 10px rgba(212, 160, 23, .35);
+  animation: siGlow 3.2s ease-in-out infinite;
+}
+.seminar-info-page h3 {
+  font-size: clamp(19px, 2.4vw, 22px);
+  font-weight: 900;
+}
+
+/* --- 3. カードの枠をおしゃれに（二重枠＋やわらかい影＋角のアクセント） --- */
+.seminar-info-page .for-you-card,
+.seminar-info-page .learn-item,
+.seminar-info-page .flow-step,
+.seminar-info-page .result-card,
+.seminar-info-page .faq-item {
+  position: relative;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFF8F8 100%);
+  border: 2px solid rgba(230, 0, 18, .14);
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(26, 26, 26, .07), inset 0 0 0 4px #fff;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.seminar-info-page .for-you-card:hover,
+.seminar-info-page .learn-item:hover,
+.seminar-info-page .flow-step:hover,
+.seminar-info-page .result-card:hover,
+.seminar-info-page .faq-item:hover {
+  transform: translateY(-3px);
+  border-color: rgba(230, 0, 18, .35);
+  box-shadow: 0 16px 34px rgba(230, 0, 18, .14), inset 0 0 0 4px #fff;
+}
+/* 左上の金のアクセント */
+.seminar-info-page .for-you-card::before,
+.seminar-info-page .learn-item::before,
+.seminar-info-page .flow-step::before,
+.seminar-info-page .result-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 18px;
+  width: 44px; height: 5px;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(90deg, var(--kamo-gold), var(--kamo-gold-light));
+}
+
+/* --- 4. 数字・キーワードの強調 --- */
+.seminar-info-page .results-num,
+.seminar-info-page .result-card-raised,
+.seminar-info-page .result-card-rate {
+  background: linear-gradient(180deg, #E60012 0%, #B8000E 60%, #D4A017 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 900;
+  letter-spacing: .01em;
+}
+.seminar-info-page .accent { font-weight: 900; position: relative; }
+.seminar-info-page .accent::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -2px;
+  height: 8px;
+  background: linear-gradient(90deg, rgba(212,160,23,.35), rgba(230,0,18,.18));
+  border-radius: 4px;
+  z-index: -1;
+}
+
+/* --- 5. 動き（点滅・光・浮き上がり） --- */
+@keyframes siPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(230, 0, 18, .45), 0 8px 24px rgba(230,0,18,.30); }
+  50%      { box-shadow: 0 0 0 14px rgba(230, 0, 18, 0), 0 12px 30px rgba(230,0,18,.35); }
+}
+@keyframes siGlow {
+  0%, 100% { opacity: .85; transform: translateX(-50%) scaleX(1); }
+  50%      { opacity: 1;   transform: translateX(-50%) scaleX(1.15); }
+}
+@keyframes siBlink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .35; }
+}
+
+/* ヒーローの主CTAをやわらかく点滅 */
+.seminar-info-page .hero-cta--main {
+  animation: siPulse 2.6s ease-in-out infinite;
+  font-size: clamp(18px, 2.4vw, 21px);
+  padding: 20px 44px;
+}
+.seminar-info-page .hero-cta--sub { font-size: clamp(15px, 2vw, 18px); }
+
+/* 「無料」「締切」などの強調タグは点滅 */
+.seminar-info-page .hero-badge {
+  font-size: 15px;
+  padding: 8px 20px;
+  border-width: 2px;
+}
+.seminar-info-page .hero-badge-dot { animation: siBlink 1.6s ease-in-out infinite; }
+
+/* 追従CTA・申込ボタンは常時ゆっくり明滅 */
+.seminar-info-page .seminar-consult-cta,
+.seminar-info-page .form-submit {
+  animation: siPulse 3.2s ease-in-out infinite;
+  font-size: 17px;
+}
+
+/* 本文のリード文を読みやすく */
+.seminar-info-page .hero-lead, .seminar-info-page .hero-note { font-size: 17px; line-height: 1.9; }
+
+/* スマホは行間と余白を確保 */
+@media (max-width: 768px) {
+  .seminar-info-page p, .seminar-info-page .container p { font-size: 16px; line-height: 1.85; }
+  .seminar-info-page h2 { padding-bottom: 12px; }
+}
+
+/* 動きを減らす設定の端末では止める（アクセシビリティ） */
+@media (prefers-reduced-motion: reduce) {
+  .seminar-info-page *,
+  .seminar-info-page h2::after { animation: none !important; }
+}
