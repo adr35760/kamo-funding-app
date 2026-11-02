@@ -161,3 +161,145 @@ a { color: inherit; text-decoration: none; }
   .hero-h1-lead { font-size: clamp(24px, 6.4vw, 32px); line-height: 1.4; }
   .br-sp { display: inline; } /* スマホでは「ステージアップ！」を改行して収める */
 }
+
+/* ==========================================================================
+   2026-11-02 t iku指示「全体的に文字を大きく読みやすいように、デザインも」
+   — 1段落ちの読み物として読めるサイズに底上げし、各ブロックに軽い装飾を入れる
+   ========================================================================== */
+body { font-size: 17px; line-height: 1.9; }
+
+/* ヒーロー */
+.hero { padding: 128px 0 72px; }
+.hero-badge { font-size: 14.5px; font-weight: 700; padding: 8px 20px; margin-bottom: 26px; }
+.hero h1 { font-size: clamp(30px, 4.2vw, 44px); line-height: 1.42; letter-spacing: -0.01em; margin-bottom: 24px; }
+.hero-sub { font-size: 19px; line-height: 1.9; max-width: 760px; opacity: 0.95; margin-bottom: 34px; }
+.hero-cta { font-size: 19px; padding: 20px 44px; }
+.hero-meta { gap: 12px 28px; margin-top: 34px; }
+.hero-meta-item {
+  font-size: 16px; font-weight: 700;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 100px; padding: 8px 16px;
+}
+
+/* セクション見出しの共通サイズ */
+.programs-title h2, .comparison-title h2, .schedule-title h2, .cta-banner h2, .form-card h2 {
+  font-size: clamp(26px, 3.2vw, 36px); line-height: 1.5; letter-spacing: -0.01em;
+}
+
+/* 3つのプログラム */
+.programs { padding: 72px 0; }
+.programs-title { margin-bottom: 44px; }
+.programs-title p { font-size: 17px; color: var(--kamo-gray); margin-top: 10px; }
+.programs-grid { gap: 20px; }
+.program-card {
+  border-radius: 20px; padding: 30px 26px 28px; background: var(--kamo-white);
+  box-shadow: 0 8px 26px rgba(26, 26, 26, 0.07); border-width: 1px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  overflow: hidden;
+}
+.program-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: currentColor; }
+.program-card:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(26, 26, 26, 0.12); }
+.program-card.green { color: var(--partner-green); background: #F7FDF8; }
+.program-card.red { color: var(--kamo-red); background: #FFF8F8; }
+.program-card.gold { color: var(--kamo-gold); background: #FFFCF3; }
+.program-card .num {
+  display: inline-block; font-size: 12px; letter-spacing: 0.12em;
+  background: rgba(0, 0, 0, 0.04); border-radius: 100px; padding: 3px 12px; margin-bottom: 12px;
+}
+.program-card h3 { font-size: 21px; line-height: 1.5; color: var(--kamo-dark); margin-bottom: 10px; }
+.program-card .reward { font-size: 19px; line-height: 1.6; margin-bottom: 12px; }
+.program-card p { font-size: 15.5px; line-height: 1.85; color: #4A4A4A; }
+.program-card .barrier { font-size: 13px; font-weight: 800; padding: 5px 14px; margin-top: 14px; }
+
+/* 比較表 */
+.comparison { padding: 72px 0; }
+.comparison-title { margin-bottom: 36px; }
+.ctable th, .ctable td { font-size: 15.5px; padding: 16px 20px; line-height: 1.8; }
+.ctable th { font-size: 15.5px; letter-spacing: 0.01em; }
+.ctable th:first-child { width: 150px; }
+.ctable tbody tr:nth-child(even) { background: #FFFCFC; }
+.ctable tbody tr:hover { background: var(--kamo-light-bg); }
+.ctable td:first-child { background: #FBF7F7; font-weight: 700; white-space: nowrap; }
+
+/* 個別説明会（1対1） */
+.schedule { padding: 72px 0; }
+.schedule-title { margin-bottom: 34px; }
+.session-card {
+  max-width: 660px; margin: 0 auto; text-align: center;
+  background: var(--kamo-white); border: 1px solid var(--kamo-border);
+  border-radius: 24px; padding: 38px 32px 34px;
+  box-shadow: 0 12px 34px rgba(230, 0, 18, 0.09);
+}
+.session-card-icon {
+  width: 64px; height: 64px; margin: 0 auto 18px; border-radius: 50%;
+  background: var(--kamo-light-bg); display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 8px rgba(230, 0, 18, 0.05);
+}
+.session-card-icon .kamo-icon { width: 32px; height: 32px; background-size: 26px 26px; }
+.session-card-title { font-size: clamp(20px, 2.6vw, 24px); font-weight: 900; line-height: 1.5; margin-bottom: 10px; }
+.session-card-body { font-size: 16.5px; color: var(--kamo-gray); line-height: 1.9; }
+.session-card-points {
+  list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+  margin: 22px 0 26px;
+}
+.session-card-points li {
+  font-size: 15px; font-weight: 700; color: var(--kamo-dark);
+  background: var(--kamo-light-bg); border-radius: 100px; padding: 8px 18px;
+}
+.session-card-points strong { color: var(--kamo-red); }
+.session-card-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 56px; width: min(100%, 360px);
+  background: var(--kamo-red); color: var(--kamo-white);
+  border-radius: 100px; font-size: 18px; font-weight: 900;
+  box-shadow: 0 8px 22px rgba(230, 0, 18, 0.28);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.session-card-cta:hover { background: var(--kamo-red-dark); transform: translateY(-2px); }
+.session-note { text-align: center; font-size: 15px; color: var(--kamo-gray); margin-top: 20px; }
+
+/* CTAバナー */
+.cta-banner { padding: 72px 0; }
+.cta-banner h2 { margin-bottom: 14px; }
+.cta-banner p { font-size: 17.5px; line-height: 1.85; margin-bottom: 28px; }
+.cta-banner .hero-cta { font-size: 19px; padding: 20px 44px; }
+
+/* 申込フォーム */
+.form-section { padding: 72px 0 88px; }
+.form-card { padding: 44px 40px; max-width: 600px; }
+.form-sub { font-size: 16px; line-height: 1.9; margin-bottom: 30px; }
+.form-group { margin-bottom: 20px; }
+.form-group label { font-size: 15.5px; margin-bottom: 8px; }
+.form-group label .required { font-size: 12.5px; }
+.form-group input, .form-group select, .form-group textarea { font-size: 16.5px; padding: 14px 16px; }
+.form-group input[type="datetime-local"] { font-size: 16.5px; min-height: 52px; }
+.form-submit { font-size: 18px; padding: 18px; min-height: 58px; }
+.form-note { font-size: 13.5px; line-height: 1.8; }
+.footer { font-size: 13px; }
+
+/* 固定ヘッダー分のアンカー余白 */
+#programs, #comparison, #schedule, #apply { scroll-margin-top: 92px; }
+
+/* スマホ */
+@media (max-width: 768px) {
+  body { font-size: 16px; }
+  .hero { padding: 108px 0 56px; }
+  .hero h1 { font-size: clamp(26px, 7vw, 34px); line-height: 1.45; }
+  .hero-sub { font-size: 16.5px; line-height: 1.9; }
+  .hero-cta { font-size: 17px; padding: 17px 30px; }
+  .hero-meta-item { font-size: 14px; padding: 7px 13px; }
+  .program-card { padding: 26px 20px 24px; }
+  .program-card h3 { font-size: 19px; }
+  .program-card .reward { font-size: 17.5px; }
+  .program-card p { font-size: 15px; }
+  .ctable th, .ctable td { font-size: 14.5px; padding: 14px 14px; }
+  .session-card { padding: 30px 20px 28px; }
+  .session-card-body { font-size: 15.5px; }
+  .session-card-points li { font-size: 14px; padding: 7px 14px; }
+  .session-card-cta { font-size: 17px; min-height: 54px; }
+  .cta-banner p { font-size: 16px; }
+  .form-card { padding: 30px 20px; }
+  .form-sub { font-size: 15px; }
+  .form-group label { font-size: 15px; }
+}

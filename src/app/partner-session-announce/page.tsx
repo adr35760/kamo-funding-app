@@ -90,7 +90,7 @@ export default function PartnerSessionAnnouncePage() {
         </div>
       </section>
 
-      <section className="programs">
+      <section className="programs" id="programs">
         <div className="container">
           <div className="programs-title">
             <h2>3つの<span className="accent">プログラム</span></h2>
@@ -100,7 +100,7 @@ export default function PartnerSessionAnnouncePage() {
             <div className="program-card green">
               <div className="num">PROGRAM A</div>
               <h3>紹介パートナー</h3>
-              <div className="reward">対象額の2%<span style={{display:'block',fontSize:'12px',fontWeight:400,opacity:0.85,marginTop:'4px'}}>対象額＝総支援金額ー手数料ー消費税<br />募集終了時に明細発行・翌々月末入金</span></div>
+              <div className="reward">対象額の2%<span style={{display:'block',fontSize:'13px',fontWeight:400,opacity:0.9,marginTop:'6px',lineHeight:1.7}}>対象額＝総支援金額ー手数料ー消費税<br />募集終了時に明細発行・翌々月末入金</span></div>
               <p>クラファン掲載候補を紹介するだけ。ネットワークを活かす。</p>
               <span className="barrier barrier-low">登録のみ・無料</span>
             </div>
@@ -122,7 +122,7 @@ export default function PartnerSessionAnnouncePage() {
         </div>
       </section>
 
-      <section className="comparison">
+      <section className="comparison" id="comparison">
         <div className="container">
           <div className="comparison-title"><h2>3プログラム<span className="accent">比較表</span></h2></div>
           <div className="table-wrap">
@@ -132,7 +132,7 @@ export default function PartnerSessionAnnouncePage() {
               </thead>
               <tbody>
                 <tr><td><strong>役割</strong></td><td>掲載候補を紹介</td><td>企画〜支援フルサポート</td><td>PR・集客支援</td></tr>
-                <tr><td><strong>報酬</strong></td><td>対象額の2%<span style={{display:'block',fontSize:'11px',color:'#666'}}>総支援金額ー手数料ー消費税</span></td><td>KAMO手数料20%＋コンサル</td><td>コミュニティ特典＋成果報酬</td></tr>
+                <tr><td><strong>報酬</strong></td><td>対象額の2%<span style={{display:'block',fontSize:'12.5px',color:'#666',marginTop:'2px'}}>総支援金額ー手数料ー消費税</span></td><td>KAMO手数料20%＋コンサル</td><td>コミュニティ特典＋成果報酬</td></tr>
                 <tr><td><strong>ハードル</strong></td><td>登録のみ（無料）</td><td>養成講座（¥128,000）</td><td>個別説明会</td></tr>
                 <tr><td><strong>想定月収</strong></td><td>数千円〜数十万円</td><td>10万〜50万+</td><td>特典メイン</td></tr>
                 <tr><td><strong>こんな方に</strong></td><td>紹介で副収入</td><td>がっつり稼ぎたい専門家</td><td>PR・事務局でプロジェクトを伴走サポート。成果報酬あり。※SNS発信、スケジュール管理、裏方業務得意な方！求む！</td></tr>
@@ -145,15 +145,18 @@ export default function PartnerSessionAnnouncePage() {
       <section className="schedule" id="schedule">
         <div className="container">
           <div className="schedule-title"><h2>個別説明会<span className="accent">（1対1）</span></h2></div>
-          <div style={{maxWidth:'640px',margin:'0 auto',background:'#fff',border:'2px solid #FFE0E0',borderRadius:'16px',padding:'28px 24px',textAlign:'center'}}>
-            <p style={{fontSize:'18px',fontWeight:900,marginBottom:'12px'}}>ご希望の日時をお知らせください。</p>
-            <p style={{fontSize:'15px',color:'#666',lineHeight:1.9}}>
-              担当者より個別に日程調整のご連絡をします。<br />
-              <strong style={{color:'#E60012'}}>所要時間の目安：60分／オンライン（Zoom）</strong>
-            </p>
-            <a href="#apply" className="hero-cta" style={{display:'inline-block',marginTop:'20px'}}>希望日時を送る →</a>
+          <div className="session-card">
+            <div className="session-card-icon"><span className="kamo-icon kamo-icon-calendar"></span></div>
+            <p className="session-card-title">ご希望の日時をお知らせください。</p>
+            <p className="session-card-body">担当者より個別に日程調整のご連絡をします。</p>
+            <ul className="session-card-points">
+              <li>所要時間の目安 <strong>60分</strong></li>
+              <li>オンライン（Zoom）</li>
+              <li>参加費 <strong>¥0</strong></li>
+            </ul>
+            <a href="#apply" className="session-card-cta">希望日時を送る →</a>
           </div>
-          <p style={{textAlign:'center',fontSize:'14px',color:'#666',marginTop:'20px'}}>※ お申込み後、ご希望日時を確認のうえ担当者よりご連絡します</p>
+          <p className="session-note">※ お申込み後、ご希望日時を確認のうえ担当者よりご連絡します</p>
         </div>
       </section>
 
@@ -174,7 +177,7 @@ export default function PartnerSessionAnnouncePage() {
               <div style={{textAlign:'center',padding:'48px 24px'}}>
                 <div className="kamo-icon kamo-icon-check-lg" style={{width:'48px',height:'48px',marginBottom:'16px'}}></div>
                 <h3 style={{fontSize:'24px',fontWeight:900,marginBottom:'8px'}}>申込完了！</h3>
-                <p style={{color:'#666',fontSize:'15px'}}>確認メールを送信しました。ご希望日時を確認のうえ、担当者より日程確定のご連絡をします。</p>
+                <p style={{color:'#666',fontSize:'16px'}}>確認メールを送信しました。ご希望日時を確認のうえ、担当者より日程確定のご連絡をします。</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
@@ -199,7 +202,7 @@ export default function PartnerSessionAnnouncePage() {
                 <div className="form-row">
                   <div className="form-group"><label>ご希望日時：第1希望 <span className="required">必須</span></label><input type="datetime-local" name="preferred_slot_1" required step={1800} min={slotRange.min || undefined} max={slotRange.max || undefined} /></div>
                   <div className="form-group"><label>ご希望日時：第2希望</label><input type="datetime-local" name="preferred_slot_2" step={1800} min={slotRange.min || undefined} max={slotRange.max || undefined} /></div>
-                  <p style={{ gridColumn: '1 / -1', fontSize: '13px', color: '#666', margin: '-4px 0 8px' }}>※ 翌日以降の日時をカレンダーからお選びください（30分刻み）。<strong>10:00〜21:00</strong> の間でご希望いただけると調整がスムーズです。</p>
+                  <p style={{ gridColumn: '1 / -1', fontSize: '14px', color: '#666', margin: '-4px 0 8px', lineHeight: '1.7' }}>※ 翌日以降の日時をカレンダーからお選びください（30分刻み）。<strong>10:00〜21:00</strong> の間でご希望いただけると調整がスムーズです。</p>
                 </div>
                 <div className="form-group"><label>質問・メッセージ（任意）</label><textarea name="message" placeholder="個別説明会で聞きたいこと等があれば"></textarea></div>
                 {error && <p style={{color:'#E60012',fontSize:'14px',marginBottom:'12px'}}>{error}</p>}
