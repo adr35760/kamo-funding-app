@@ -5,7 +5,6 @@ import '@/styles/kamo-icons.css';
 import '@/styles/seminar-info.css';
 import { formatEventDateJa, eventCardParts, EventLike } from '@/lib/event-format';
 import SiteHeader from '@/components/SiteHeader';
-import Image from 'next/image';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
 import { captureReferralCode, getReferralPayload } from '@/lib/referral-link';
 import LegalFooter from '@/components/LegalFooter';
@@ -322,18 +321,6 @@ export default function SeminarInfoClient({
             </div>
           </div>
 
-          <figure className="hero-community seminar-photo">
-            <Image
-              src="/seminar-community.jpg"
-              alt="KAMOファンディング掲載説明会の参加者"
-              width={1400}
-              height={1055}
-              sizes="(max-width: 768px) 100vw, 720px"
-              className="hero-community-image"
-            />
-            <figcaption className="hero-community-caption">オンラインで全国から参加できます</figcaption>
-          </figure>
-
           {/* 日程が0件のときは空の箱を出さない（上の案内に集約） */}
           {!noSchedule && (
           <div id="schedule" className="schedule-block">
@@ -373,7 +360,6 @@ export default function SeminarInfoClient({
 
           <div className="seminar-voicy">
             <p className="seminar-voicy-lead">音声配信メディア！Voicyでも、クラウドファンディング成功ノウハウを配信中！</p>
-            <img src="/voicy-banner.png" alt="Voicy — クラウドファンディング成功ノウハウ配信中" style={{ maxWidth: '400px', width: '100%', height: 'auto', borderRadius: '12px' }} />
             <a href="https://r.voicy.jp/GZV0X8DWjVW" target="_blank" rel="noopener noreferrer" className="seminar-voicy-btn">Voicyはこちら →</a>
           </div>
         </div>
