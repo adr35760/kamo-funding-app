@@ -298,6 +298,15 @@ export default function SeminarInfoClient({
       {/* ===== ⑥ 説明会はこんな方に（既存コンテンツの集約＋日程＋申込） ===== */}
       <section className="seminar-detail">
         <div className="container">
+          {/* 2026-11-03 t iku指示: 個別相談の予約と掲載の申込は別の手続きなので、間に区切りを入れる */}
+          <div className="seminar-divider" role="separator" aria-label="ここからは別のお申し込みです">
+            <span className="seminar-divider-line" aria-hidden="true" />
+            <span className="seminar-divider-label">ここからは別のお申し込み</span>
+            <span className="seminar-divider-line" aria-hidden="true" />
+          </div>
+          <p className="seminar-divider-note">
+            上は<strong>個別相談のご予約</strong>、ここからは<strong>掲載のお申し込み</strong>です。
+          </p>
           {/* 2026-11-02 t iku指示: 説明会を経ずに掲載を希望する人向けの導線を、見出しの上に置く */}
           <a href="/apply-listing" className="seminar-listing-banner">
             <span>直接、掲載に進みたい方は！</span>
