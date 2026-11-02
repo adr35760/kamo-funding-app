@@ -693,3 +693,69 @@
     display: inline;
   }
 }
+
+/* ==========================================================================
+   2026-11-03 t iku指示「写真は元のまま、文字だけ大きく」
+   — KV（文字焼き込み）は触らず、HTMLで重ねている文字だけを拡大する。
+     画像内の副題（y≈600-650/941）と重ならないよう、コピー帯は下寄せのまま
+     余白と行間で高さを調整している。
+   ========================================================================== */
+.tlp-hero-copy {
+  padding: 0 40px 26px;
+  max-width: 50%;
+}
+.tlp-hero-lead {
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 14px rgba(0, 8, 24, 0.75);
+}
+.tlp-hero-note {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.92);
+}
+.tlp-hero-copy .tlp-btn {
+  min-height: 56px;
+  padding: 16px 30px;
+  font-size: 18px;
+}
+
+/* タブレット */
+@media (max-width: 1023px) {
+  .tlp-hero-copy { max-width: 58%; padding: 0 26px 20px; }
+  .tlp-hero-lead { font-size: 18px; line-height: 1.6; }
+  .tlp-hero-note { font-size: 14px; }
+  .tlp-hero-copy .tlp-btn { min-height: 52px; font-size: 17px; padding: 14px 26px; }
+}
+
+/* スマホ（画像の下に文字が並ぶ。画像内の文字と重ならない） */
+@media (max-width: 767px) {
+  .tlp-hero-copy { max-width: none; padding: 22px 18px 6px; }
+  .tlp-hero-lead { font-size: 19px; line-height: 1.75; font-weight: 800; color: var(--text); text-shadow: none; margin-bottom: 18px; }
+  .tlp-hero-note { font-size: 14.5px; color: var(--text-sub); text-shadow: none; }
+  .tlp-hero-copy .tlp-btn { width: 100%; min-height: 56px; font-size: 17px; }
+}
+
+/* 文字を大きくすると画像内の副題と重なるため、コピー帯を横並びにして高さを抑える */
+@media (min-width: 768px) {
+  .tlp-hero-copy {
+    display: flex; flex-wrap: wrap; align-items: center;
+    column-gap: 18px; row-gap: 12px;
+    max-width: 56%;
+    padding: 0 40px 20px;
+  }
+  .tlp-hero-lead { flex: 1 0 100%; margin-bottom: 0; font-size: 21px; line-height: 1.5; }
+  .tlp-hero-copy .tlp-btn { flex: 0 0 auto; min-height: 54px; font-size: 18px; padding: 15px 28px; }
+  .tlp-hero-note { flex: 1 1 auto; margin-top: 0; font-size: 15px; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .tlp-hero-copy { max-width: 62%; column-gap: 14px; padding: 0 24px 16px; }
+  .tlp-hero-lead { font-size: 18px; }
+  .tlp-hero-copy .tlp-btn { min-height: 50px; font-size: 16.5px; padding: 13px 22px; }
+  .tlp-hero-note { font-size: 13.5px; }
+}
