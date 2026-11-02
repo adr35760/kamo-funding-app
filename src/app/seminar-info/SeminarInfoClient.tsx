@@ -288,7 +288,12 @@ export default function SeminarInfoClient({
       {/* ===== ⑥ 説明会はこんな方に（既存コンテンツの集約＋日程＋申込） ===== */}
       <section className="seminar-detail">
         <div className="container">
-          <div className="seminar-detail-title"><h2>説明会は<span className="accent">こんな方に</span></h2></div>
+          {/* 2026-11-02 t iku指示: 説明会を経ずに掲載を希望する人向けの導線を、見出しの上に置く */}
+          <a href="/apply-listing" className="seminar-listing-banner">
+            <span>直接、掲載に進みたい方は！</span>
+            <span className="seminar-listing-banner-cta">こちらに！</span>
+          </a>
+          <div className="seminar-detail-title"><h2>掲載説明会は<span className="accent">こんな方に！</span></h2></div>
           <ul className="seminar-for-you">
             {SEMINAR_FOR_YOU.map(item => (
               <li key={item}>{item}</li>

@@ -501,6 +501,19 @@ a { color: inherit; text-decoration: none; }
 
 /* ---- ⑥ 説明会はこんな方に（既存コンテンツの集約） ---- */
 .seminar-detail { padding: 64px 0; background: #FAFAFA; border-top: 1px solid #EEE; border-bottom: 1px solid #EEE; }
+.seminar-listing-banner {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px;
+  max-width: 720px; min-height: 56px; margin: 0 auto 24px; padding: 12px 20px;
+  background: var(--kamo-red); color: #fff; text-decoration: none;
+  border-radius: 12px; font-weight: 800; font-size: clamp(15px, 2vw, 18px);
+  line-height: 1.4; text-align: center;
+  box-shadow: 0 6px 18px rgba(230, 0, 18, 0.25);
+}
+.seminar-listing-banner-cta {
+  background: #fff; color: var(--kamo-red); padding: 4px 14px; border-radius: 999px;
+  white-space: nowrap; font-size: clamp(14px, 1.8vw, 17px);
+}
+.seminar-listing-banner:hover { background: var(--kamo-red-dark); color: #fff; }
 .seminar-detail-title { text-align: center; margin-bottom: 24px; }
 .seminar-detail-title h2 { font-size: clamp(24px, 3.2vw, 34px); font-weight: 900; line-height: 1.5; }
 .seminar-detail-title h2 .accent { color: var(--kamo-red); }
