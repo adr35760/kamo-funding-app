@@ -30,12 +30,14 @@ const FOR_YOU = [
   '紹介制度について聞きたい',
 ];
 
-/** ③個別相談（CONSULT_MINUTES分）で分かること */
+/** ③個別相談（CONSULT_MINUTES分）で明確になること（左3・右3の6項目） */
 const CONSULT_GAINS = [
-  { title: 'あなたのアイデアの勝ち筋', body: '誰に・何を・どう届けるか' },
-  { title: '目標金額と期間の現実的な設計', body: '無理のない金額・期間の置き方' },
-  { title: '掲載までに必要な準備と順番', body: '何を先にやるか' },
-  { title: '費用とスケジュールの概算', body: 'かかる費用と時期の目安' },
+  { title: 'あなたのアイデアの勝ち筋', body: '誰に・何を・どう届け・どう集めるのかを明確にします' },
+  { title: '企画主旨・目標金額と期間の現実的な設計', body: '300万以上集まってるPJの傾向から案だします' },
+  { title: '掲載までと期間終了までの必要な準備と費用概算', body: 'どんなタスクで何をしないといけないのか？' },
+  { title: 'クラファンアドバイザーでの稼ぎ方', body: 'コンサルタントのなり方' },
+  { title: 'タイアップ・協業・勉強会依頼について', body: '簡単な座組を提案します。コミュニティ主催者大歓迎' },
+  { title: '紹介・お仕事依頼について', body: '挑戦する人のサポートで収入を得たい方話しましょう' },
 ];
 
 /** ⑤個別相談の流れ（3ステップ） */
@@ -224,7 +226,7 @@ export default function SeminarInfoClient({
       {/* ===== ③ 個別相談（CONSULT_MINUTES分）で分かること ===== */}
       <section className="learn">
         <div className="container">
-          <div className="learn-title"><h2>個別相談（{CONSULT_MINUTES}分）で<span className="accent">分かること</span></h2></div>
+          <div className="learn-title"><h2>個別相談{CONSULT_MINUTES}分で<span className="accent">明確になること</span></h2></div>
           <div className="learn-list">
             {CONSULT_GAINS.map(item => (
               <div className="learn-item" key={item.title}>

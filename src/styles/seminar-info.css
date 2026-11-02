@@ -839,3 +839,15 @@ a { color: inherit; text-decoration: none; }
   .seminar-info-page .seminar-divider-label { font-size: 12px; padding: 6px 14px; letter-spacing: .04em; }
   .seminar-info-page .seminar-divider-note { font-size: 12.5px; margin-bottom: 22px; }
 }
+
+/* ===== 2026-11-03 t iku指示: 「個別相談45分で明確になること」を左3・右3の2列に ===== */
+.seminar-info-page .learn-list {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px; max-width: 980px; margin: 0 auto; align-items: stretch;
+}
+.seminar-info-page .learn-item { height: 100%; min-width: 0; }
+.seminar-info-page .learn-item h4,
+.seminar-info-page .learn-item p { overflow-wrap: break-word; word-break: auto-phrase; line-break: strict; }
+@media (max-width: 768px) {
+  .seminar-info-page .learn-list { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+}
