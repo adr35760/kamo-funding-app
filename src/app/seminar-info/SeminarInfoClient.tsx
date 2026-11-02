@@ -41,9 +41,6 @@ const FLOW_STEPS = [
   { title: `オンライン${CONSULT_MINUTES}分`, body: 'Zoomで直接お話しします' },
 ];
 
-/** ⑥説明会はこんな方に */
-const SEMINAR_FOR_YOU = ['まず全体像を聞きたい', '他の事例も聞きたい', '日程が合う'];
-
 /** ⑦よくある質問 */
 const FAQS = [
   { q: '参加は無料ですか', a: '参加費は無料です。' },
@@ -284,84 +281,6 @@ export default function SeminarInfoClient({
               </li>
             ))}
           </ol>
-        </div>
-      </section>
-
-      {/* ===== ⑥ 説明会はこんな方に（既存コンテンツの集約＋日程＋申込） ===== */}
-      <section className="seminar-detail">
-        <div className="container">
-          <div className="seminar-detail-title"><h2>説明会は<span className="accent">こんな方に</span></h2></div>
-          <ul className="seminar-for-you">
-            {SEMINAR_FOR_YOU.map(item => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-
-          {/* 公開日程が無いときの案内（B決定）。CTAは同じ枠内に置く */}
-          {noSchedule && (
-            <div className="seminar-schedule-note">
-              <p>開催日程は、ご希望に応じて設定します。まずは個別相談でご都合をお聞かせください。</p>
-              <a
-                href={CONSULT_URL}
-                className="seminar-consult-cta"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
-              </a>
-            </div>
-          )}
-
-          <div className="seminar-block">
-            <h3 className="seminar-block-title">説明会で分かること</h3>
-            <div className="learn-list">
-              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>KAMOファンディングの特徴</h4><p>総支援額{NUM_JISSEKI}！達成率{NUM_TASSEI_RATE}のノウハウの一端をご紹介</p></div></div>
-              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>クラウドファンディングの集める構造を理解する</h4><p>クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</p></div></div>
-              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>応援支援で高額支援を集めるノウハウを伝授</h4><p>スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</p></div></div>
-            </div>
-          </div>
-
-          {/* 日程が0件のときは空の箱を出さない（上の案内に集約） */}
-          {!noSchedule && (
-          <div id="schedule" className="schedule-block">
-            <h3 className="seminar-block-title">説明会の開催日程</h3>
-            <div className="schedule-list">
-              {eventsLoaded && events.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px 20px', background: '#FFF5F5', borderRadius: '16px', border: '2px solid #FFE0E0' }}>
-                  <p style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>現在募集中の日程はありません</p>
-                  <p style={{ fontSize: '15px', color: '#666' }}>次回日程は近日公開します。公開までお待ちください。</p>
-                </div>
-              )}
-              {events.map(ev => {
-                const p = eventCardParts(ev.event_date, ev.duration_minutes);
-                return (
-                  <div className="schedule-item" key={ev.id}>
-                    <div className="schedule-date">
-                      <div className="date-main">
-                        <span className="date-month">{p.month}</span>
-                        <span className="date-day">{p.day}</span>
-                        <span className="date-weekday">{p.weekdayKakko}</span>
-                      </div>
-                      <div className="schedule-time">{p.timeRange}</div>
-                    </div>
-                    <div className="schedule-info">
-                      <h4>{ev.title}</h4>
-                      <p>オンライン（Zoom） | 参加費無料</p>
-                    </div>
-                    <div className="schedule-status" style={ev.finished
-                      ? { background: '#9E9E9E', color: '#fff' }
-                      : { background: '#E60012', color: '#fff' }}>{ev.finished ? '終了' : '募集中'}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          )}
-
-          <div className="seminar-voicy">
-            <p className="seminar-voicy-lead">音声配信メディア！Voicyでも、クラウドファンディング成功ノウハウを配信中！</p>
-            <a href="https://r.voicy.jp/GZV0X8DWjVW" target="_blank" rel="noopener noreferrer" className="seminar-voicy-btn">Voicyはこちら →</a>
-          </div>
         </div>
       </section>
 
