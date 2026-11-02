@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { nextInfoSessionLabel } from '@/lib/info-sessions';
 import '@/styles/site-header.css';
 
 interface NavItem { href: string; label: string; banner?: boolean }
@@ -67,6 +68,9 @@ interface SiteHeaderProps {
  */
 export default function SiteHeader({ current, cta, pageLinks }: SiteHeaderProps) {
   const [open, setOpen] = useState(false);
+  // SSRとクライアントで日付がズレないよう、マウント後に計算する
+  const [nextSession, setNextSession] = useState<string | null>(null);
+  useEffect(() => { setNextSession(nextInfoSessionLabel()); }, []);
   const actionCta = cta ?? DEFAULT_CTA;
   const extras = pageLinks ?? [];
 
@@ -89,7 +93,14 @@ export default function SiteHeader({ current, cta, pageLinks }: SiteHeaderProps)
                 href={item.href}
                 className={[current === item.href ? 'is-current' : '', item.banner ? 'is-banner' : ''].filter(Boolean).join(' ') || undefined}
               >
-                {item.label}
+                {item.banner ? (
+                  <>
+                    <span className="is-banner-label">{item.label}</span>
+                    {nextSession && <span className="is-banner-date">次回 {nextSession}</span>}
+                  </>
+                ) : (
+                  item.label
+                )}
               </a>
             ))}
             <a href={SECONDARY_CTA.href} className="site-header-cta-secondary">{SECONDARY_CTA.label}</a>
@@ -154,7 +165,14 @@ export default function SiteHeader({ current, cta, pageLinks }: SiteHeaderProps)
                 className={[current === item.href ? 'is-current' : '', item.banner ? 'is-banner' : ''].filter(Boolean).join(' ') || undefined}
                 onClick={() => setOpen(false)}
               >
-                {item.label}
+                {item.banner ? (
+                  <>
+                    <span className="is-banner-label">{item.label}</span>
+                    {nextSession && <span className="is-banner-date">次回 {nextSession}</span>}
+                  </>
+                ) : (
+                  item.label
+                )}
               </a>
             ))}
           </nav>
