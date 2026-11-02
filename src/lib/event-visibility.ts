@@ -82,7 +82,13 @@ export function filterApplicableEvents<T extends EventTimeLike>(
    ========================================================================== */
 
 /** 公開側で非表示にする種別。ここに足せば全公開ページ・/api/events に一括で効く */
-const PUBLIC_HIDDEN_EVENT_TYPES: readonly string[] = ['info_session'];
+/**
+ * 公開ページに出さない種別。
+ * 2026-10-27: t iku 指示（開催は申込があったときだけ）で info_session を非表示にしていたが、
+ * 2026-11-02 t iku 指示（「掲載説明会がごっそり消えてます。復活してほしい」）で **解除**。
+ * 再度隠す場合はここに 'info_session' を戻すだけでよい（DBは触らない）。
+ */
+const PUBLIC_HIDDEN_EVENT_TYPES: readonly string[] = [];
 
 /** この種別を公開ページに出さないか（type 未設定は「不明」なので出さない判断はしない） */
 export function isEventHiddenInPublic(ev: { type?: string | null }): boolean {

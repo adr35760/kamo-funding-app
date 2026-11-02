@@ -119,3 +119,40 @@
 
   .site-header-spacer { height: 47px; }
 }
+
+/* ===== 掲載説明会バナー（2026-11-02 t iku 指示：個別相談とパートナーシップの間） ===== */
+.site-header-nav a.is-banner {
+  background: var(--kamo-red);
+  color: #fff !important;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(230, 0, 18, 0.28);
+  display: inline-block;
+  line-height: 1.1;
+}
+.site-header-nav a.is-banner:hover {
+  background: var(--kamo-red-dark);
+  color: #fff !important;
+}
+
+/* スマホのドロワーでは横幅いっぱいの帯にする */
+.site-header-drawer a.is-banner {
+  background: var(--kamo-red);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 8px;
+  text-align: center;
+  padding: 12px 16px;
+  margin: 4px 0 8px;
+}
+
+/* 1024px前後でナビがはみ出さないよう、狭いPC幅では間隔と文字を詰める
+   （2026-11-02 掲載説明会バナー追加に伴う調整） */
+@media (min-width: 769px) and (max-width: 1279px) {
+  .site-header-nav { gap: 10px; }
+  .site-header-nav a { font-size: 12px; }
+  .site-header-nav a.is-banner { padding: 6px 10px; }
+  .site-header-cta, .site-header-cta-apply, .site-header-cta-secondary { padding-left: 10px; padding-right: 10px; }
+  .site-header-inner { gap: 10px; }
+}
