@@ -5,6 +5,7 @@ import '@/styles/kamo-icons.css';
 import '@/styles/seminar-info.css';
 import { formatEventDateJa, eventCardParts, EventLike } from '@/lib/event-format';
 import SiteHeader from '@/components/SiteHeader';
+import Image from 'next/image';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
 import { captureReferralCode, getReferralPayload } from '@/lib/referral-link';
 import LegalFooter from '@/components/LegalFooter';
@@ -40,6 +41,9 @@ const FLOW_STEPS = [
   { title: '事前に3問', body: '事業・アイデア／目標金額／希望時期' },
   { title: `オンライン${CONSULT_MINUTES}分`, body: 'Zoomで直接お話しします' },
 ];
+
+/** ⑥説明会はこんな方に */
+const SEMINAR_FOR_YOU = ['まず全体像を聞きたい', '他の事例も聞きたい', '日程が合う'];
 
 /** ⑦よくある質問 */
 const FAQS = [
@@ -77,10 +81,7 @@ export default function SeminarInfoClient({
    * 公開日程が0件のときは「説明会の日程は個別にご案内」に一本化する。
    * 🔴 フォームは出さない（空のセレクト・送信時500を作らない）。
    */
-  // 🔴 2026-11-02 t iku 指示: このページは「個別相談専用LP」。
-  //   掲載説明会の日程・申込フォームは出さない（説明会は /lp 側で案内する）。
-  //   日程を戻すときは下の1行を eventsLoaded && events.length === 0 に戻す。
-  const noSchedule = true;
+  const noSchedule = eventsLoaded && events.length === 0;
 
   useEffect(() => {
     if (eventsResolved || initialEvents.length > 0) return; // サーバー取得済みなら再取得不要
@@ -281,6 +282,119 @@ export default function SeminarInfoClient({
               </li>
             ))}
           </ol>
+        </div>
+      </section>
+
+      {/* ===== ⑥ 説明会はこんな方に（既存コンテンツの集約＋日程＋申込） ===== */}
+      <section className="seminar-detail">
+        <div className="container">
+          <div className="seminar-detail-title"><h2>説明会は<span className="accent">こんな方に</span></h2></div>
+          <ul className="seminar-for-you">
+            {SEMINAR_FOR_YOU.map(item => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+
+          {/* 公開日程が無いときの案内（B決定）。CTAは同じ枠内に置く */}
+          {noSchedule && (
+            <div className="seminar-schedule-note">
+              <p>開催日程は、ご希望に応じて設定します。まずは個別相談でご都合をお聞かせください。</p>
+              <a
+                href={CONSULT_URL}
+                className="seminar-consult-cta"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+              </a>
+            </div>
+          )}
+
+          <div className="seminar-block">
+            <h3 className="seminar-block-title">説明会で分かること</h3>
+            <div className="learn-list">
+              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>KAMOファンディングの特徴</h4><p>総支援額{NUM_JISSEKI}！達成率{NUM_TASSEI_RATE}のノウハウの一端をご紹介</p></div></div>
+              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>クラウドファンディングの集める構造を理解する</h4><p>クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</p></div></div>
+              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>応援支援で高額支援を集めるノウハウを伝授</h4><p>スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</p></div></div>
+            </div>
+          </div>
+
+          <div className="seminar-ai">
+            <div className="ai-card">
+              <div className="ai-card-text">
+                <h2>AIで<span className="gold">クラファンページ</span>が作れる</h2>
+                <p>説明会では、KAMOファンディング独自のツールの体験案内を行います！<br />瞬時でクラファンページが作成できます！</p>
+              </div>
+              <div className="ai-card-visual">
+                <div style={{width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', flexShrink: '0'}}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="4" y="8" width="16" height="12" rx="2" />
+                    <path d="M12 4V8" />
+                    <circle cx="9" cy="14" r="1" />
+                    <circle cx="15" cy="14" r="1" />
+                    <path d="M12 2V4" />
+                  </svg>
+                </div>
+                <h3>AIクラファンページ<br />作成ツール</h3>
+                <p>参加者のみ！体験がその場でできます！</p>
+              </div>
+            </div>
+          </div>
+
+          <figure className="hero-community seminar-photo">
+            <Image
+              src="/seminar-community.jpg"
+              alt="KAMOファンディング掲載説明会の参加者"
+              width={1400}
+              height={1055}
+              sizes="(max-width: 768px) 100vw, 720px"
+              className="hero-community-image"
+            />
+            <figcaption className="hero-community-caption">オンラインで全国から参加できます</figcaption>
+          </figure>
+
+          {/* 日程が0件のときは空の箱を出さない（上の案内に集約） */}
+          {!noSchedule && (
+          <div id="schedule" className="schedule-block">
+            <h3 className="seminar-block-title">説明会の開催日程</h3>
+            <div className="schedule-list">
+              {eventsLoaded && events.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '40px 20px', background: '#FFF5F5', borderRadius: '16px', border: '2px solid #FFE0E0' }}>
+                  <p style={{ fontSize: '18px', fontWeight: 700, marginBottom: '6px' }}>現在募集中の日程はありません</p>
+                  <p style={{ fontSize: '15px', color: '#666' }}>次回日程は近日公開します。公開までお待ちください。</p>
+                </div>
+              )}
+              {events.map(ev => {
+                const p = eventCardParts(ev.event_date, ev.duration_minutes);
+                return (
+                  <div className="schedule-item" key={ev.id}>
+                    <div className="schedule-date">
+                      <div className="date-main">
+                        <span className="date-month">{p.month}</span>
+                        <span className="date-day">{p.day}</span>
+                        <span className="date-weekday">{p.weekdayKakko}</span>
+                      </div>
+                      <div className="schedule-time">{p.timeRange}</div>
+                    </div>
+                    <div className="schedule-info">
+                      <h4>{ev.title}</h4>
+                      <p>オンライン（Zoom） | 参加費無料</p>
+                    </div>
+                    <div className="schedule-status" style={ev.finished
+                      ? { background: '#9E9E9E', color: '#fff' }
+                      : { background: '#E60012', color: '#fff' }}>{ev.finished ? '終了' : '募集中'}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          )}
+
+          <div className="seminar-voicy">
+            <p className="seminar-voicy-lead">音声配信メディア！Voicyでも、クラウドファンディング成功ノウハウを配信中！</p>
+            <img src="/voicy-banner.png" alt="Voicy — クラウドファンディング成功ノウハウ配信中" style={{ maxWidth: '400px', width: '100%', height: 'auto', borderRadius: '12px' }} />
+            <a href="https://r.voicy.jp/GZV0X8DWjVW" target="_blank" rel="noopener noreferrer" className="seminar-voicy-btn">Voicyはこちら →</a>
+          </div>
         </div>
       </section>
 
