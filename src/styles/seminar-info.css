@@ -483,30 +483,47 @@ a { color: inherit; text-decoration: none; }
   max-width: 840px; margin: 0 auto;
 }
 .flow-step {
-  background: var(--kamo-white); border: 2px solid var(--kamo-border);
-  border-radius: var(--radius-lg); padding: 24px 20px; text-align: center;
+  background: var(--kamo-white); border: 1px solid #F3DCDD;
+  border-radius: 20px; padding: 30px 22px 28px; text-align: center;
+  box-shadow: 0 6px 20px rgba(190, 40, 50, 0.06);
+  transition: box-shadow .2s ease, transform .2s ease;
 }
+.flow-step:hover { box-shadow: 0 12px 28px rgba(190, 40, 50, 0.12); transform: translateY(-3px); }
 .flow-num {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 40px; height: 40px; border-radius: 50%;
+  width: 46px; height: 46px; border-radius: 50%;
   background: var(--kamo-red); color: var(--kamo-white);
-  font-family: var(--font-en); font-weight: 900; font-size: 18px; margin-bottom: 10px;
+  font-family: var(--font-en); font-weight: 900; font-size: 20px; margin-bottom: 14px;
+  box-shadow: 0 0 0 6px rgba(230, 0, 18, 0.08);
 }
-.flow-step h3 { font-size: 17px; font-weight: 900; margin-bottom: 4px; }
-.flow-step p { font-size: 14px; color: var(--kamo-gray); line-height: 1.7; }
+.flow-step h3 { font-size: 18px; font-weight: 900; letter-spacing: .02em; margin-bottom: 8px; }
+.flow-step p { font-size: 14px; color: #555; line-height: 1.9; }
+/* 「／」の位置だけで折り返す（「時／期」のような1文字割れを防ぐ） */
+.flow-body-seg { white-space: nowrap; }
 
 /* 2026-11-02 t iku指示: 個別相談の流れの下に置く予約バナー */
 .seminar-flow-banner {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  max-width: 520px; min-height: 72px; margin: 32px auto 0; padding: 14px 24px;
-  background: var(--kamo-red); color: var(--kamo-white); text-decoration: none;
-  border-radius: 999px; text-align: center;
-  box-shadow: 0 8px 24px rgba(230, 0, 18, 0.28);
-  transition: background .2s ease, transform .2s ease;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  width: min(100%, 560px); min-height: 88px; margin: 36px auto 0; padding: 18px 28px;
+  background: linear-gradient(135deg, #EB0013 0%, #C1000E 100%);
+  color: var(--kamo-white); text-decoration: none; text-align: center;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.4), 0 12px 30px rgba(230, 0, 18, 0.26);
+  transition: transform .2s ease, box-shadow .2s ease;
 }
-.seminar-flow-banner-text { font-size: clamp(16px, 4.2vw, 20px); font-weight: 800; line-height: 1.4; }
-.seminar-flow-banner-note { font-size: 12px; font-weight: 700; opacity: 0.9; }
-.seminar-flow-banner:hover { background: var(--kamo-red-dark); color: var(--kamo-white); transform: translateY(-2px); }
+.seminar-flow-banner-text {
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  font-size: clamp(17px, 4.6vw, 21px); font-weight: 900; letter-spacing: .02em; line-height: 1.4;
+}
+.seminar-flow-banner-arrow {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18); font-size: 15px; font-weight: 900;
+  transition: transform .2s ease;
+}
+.seminar-flow-banner-note { font-size: 12px; font-weight: 700; letter-spacing: .06em; opacity: 0.88; }
+.seminar-flow-banner:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.55), 0 16px 34px rgba(230, 0, 18, 0.32); }
+.seminar-flow-banner:hover .seminar-flow-banner-arrow { transform: translateX(3px); }
 
 @media (max-width: 768px) {
   .flow-list { grid-template-columns: 1fr; }

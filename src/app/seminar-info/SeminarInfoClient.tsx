@@ -278,14 +278,18 @@ export default function SeminarInfoClient({
               <li className="flow-step" key={step.title}>
                 <span className="flow-num">{i + 1}</span>
                 <h3>{step.title}</h3>
-                <p>{step.body}</p>
+                <p>
+                  {step.body.split('／').map((seg, si, arr) => (
+                    <span key={si}><span className="flow-body-seg">{seg}</span>{si < arr.length - 1 ? '／' : ''}</span>
+                  ))}
+                </p>
               </li>
             ))}
           </ol>
 
           {/* 2026-11-02 t iku指示: 個別相談の流れの下に予約バナー */}
           <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="seminar-flow-banner">
-            <span className="seminar-flow-banner-text">無料の個別相談を予約する</span>
+            <span className="seminar-flow-banner-text">無料の個別相談を予約する<span className="seminar-flow-banner-arrow">→</span></span>
             <span className="seminar-flow-banner-note">無料・{CONSULT_MINUTES}分・オンライン</span>
           </a>
         </div>
