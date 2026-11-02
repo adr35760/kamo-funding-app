@@ -210,12 +210,19 @@ body { font-size: 17px; line-height: 1.9; }
 .program-card h3 { font-size: 21px; line-height: 1.5; color: var(--kamo-dark); margin-bottom: 10px; }
 .program-card .reward { font-size: 19px; line-height: 1.6; margin-bottom: 12px; }
 .program-card p { font-size: 15.5px; line-height: 1.85; color: #4A4A4A; }
-.program-card .barrier { font-size: 13px; font-weight: 800; padding: 5px 14px; margin-top: 14px; }
+.program-card { display: flex; flex-direction: column; }
+.program-card .barrier { font-size: 13px; font-weight: 800; padding: 5px 14px; margin-top: auto; align-self: flex-start; }
 
 /* 比較表 */
 .comparison { padding: 72px 0; }
 .comparison-title { margin-bottom: 36px; }
-.ctable th, .ctable td { font-size: 15.5px; padding: 16px 20px; line-height: 1.8; }
+.ctable { min-width: 820px; table-layout: fixed; }
+.ctable th, .ctable td { font-size: 15.5px; padding: 16px 20px; line-height: 1.8; vertical-align: top; }
+.ctable th { white-space: nowrap; }
+.ctable th:first-child, .ctable td:first-child { width: 18%; }
+.ctable th:nth-child(2), .ctable td:nth-child(2) { width: 24%; }
+.ctable th:nth-child(3), .ctable td:nth-child(3) { width: 27%; }
+.ctable th:nth-child(4), .ctable td:nth-child(4) { width: 31%; }
 .ctable th { font-size: 15.5px; letter-spacing: 0.01em; }
 .ctable th:first-child { width: 150px; }
 .ctable tbody tr:nth-child(even) { background: #FFFCFC; }
