@@ -81,7 +81,10 @@ export default function SeminarInfoClient({
    * 公開日程が0件のときは「説明会の日程は個別にご案内」に一本化する。
    * 🔴 フォームは出さない（空のセレクト・送信時500を作らない）。
    */
-  const noSchedule = eventsLoaded && events.length === 0;
+  // 🔴 2026-11-02 t iku 指示: このページは「個別相談専用LP」。
+  //   掲載説明会の日程・申込フォームは出さない（説明会は /lp 側で案内する）。
+  //   日程を戻すときは下の1行を eventsLoaded && events.length === 0 に戻す。
+  const noSchedule = true;
 
   useEffect(() => {
     if (eventsResolved || initialEvents.length > 0) return; // サーバー取得済みなら再取得不要
@@ -316,28 +319,6 @@ export default function SeminarInfoClient({
               <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>KAMOファンディングの特徴</h4><p>総支援額{NUM_JISSEKI}！達成率{NUM_TASSEI_RATE}のノウハウの一端をご紹介</p></div></div>
               <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>クラウドファンディングの集める構造を理解する</h4><p>クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</p></div></div>
               <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>応援支援で高額支援を集めるノウハウを伝授</h4><p>スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</p></div></div>
-            </div>
-          </div>
-
-          <div className="seminar-ai">
-            <div className="ai-card">
-              <div className="ai-card-text">
-                <h2>AIで<span className="gold">クラファンページ</span>が作れる</h2>
-                <p>説明会では、KAMOファンディング独自のツールの体験案内を行います！<br />瞬時でクラファンページが作成できます！</p>
-              </div>
-              <div className="ai-card-visual">
-                <div style={{width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', flexShrink: '0'}}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="4" y="8" width="16" height="12" rx="2" />
-                    <path d="M12 4V8" />
-                    <circle cx="9" cy="14" r="1" />
-                    <circle cx="15" cy="14" r="1" />
-                    <path d="M12 2V4" />
-                  </svg>
-                </div>
-                <h3>AIクラファンページ<br />作成ツール</h3>
-                <p>参加者のみ！体験がその場でできます！</p>
-              </div>
             </div>
           </div>
 

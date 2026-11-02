@@ -11,7 +11,7 @@ const NAV_ITEMS: NavItem[] = [
   // そのページは既に個別相談メインの構成）
   { href: '/seminar-info', label: '個別相談' },
   // 2026-11-02 t iku 指示: 「個別相談」と「パートナーシップ」の間に掲載説明会のバナーを置く
-  { href: '/seminar-info#schedule', label: '掲載説明会', banner: true },
+  { href: '/lp', label: '掲載説明会', banner: true },
   { href: '/partner-session-announce', label: 'パートナーシップ' },
   { href: '/partners', label: 'パートナー登録' },
   { href: '/supporters', label: 'サポーター登録' },
