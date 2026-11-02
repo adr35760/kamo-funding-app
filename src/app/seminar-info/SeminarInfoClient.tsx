@@ -38,7 +38,7 @@ const CONSULT_GAINS = [
 /** ⑤個別相談の流れ（3ステップ） */
 const FLOW_STEPS = [
   { title: '予約', body: 'カレンダーから日時を選ぶ' },
-  { title: '事前に3問', body: '事業・アイデア／目標金額／希望時期' },
+  { title: '当日伺うこと！', body: '実施アイディア／集めたい金額／時期など' },
   { title: `オンライン${CONSULT_MINUTES}分`, body: 'Zoomで直接お話しします' },
 ];
 
