@@ -20,11 +20,14 @@ import { CONSULT_URL, CONSULT_MINUTES, NUM_JISSEKI, NUM_TASSEI_RATE } from '@/li
 const FEATURED_SLUGS = ['nakajima01', 'ooshimakeisuke01', 'takibinokai'];
 
 /** ②こんな方へ */
+// 2026-11-03 t iku指示: 相談ニーズが伝わる6項目に差し替え
 const FOR_YOU = [
-  'アイデアはあるが形にできていない',
-  '何から手を付けていいか分からない',
-  '過去に挑戦したが目標に届かなかった',
-  '掲載できるか現実的に知りたい',
+  'アイデアを実現したい',
+  '資金が現実的に集まるのか聞きたい',
+  'クラファンのコンサルになりたい',
+  '協業やタイアップの申し出',
+  'セミナーや勉強会を依頼したい',
+  '紹介制度について聞きたい',
 ];
 
 /** ③個別相談（CONSULT_MINUTES分）で分かること */
