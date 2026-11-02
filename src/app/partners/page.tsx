@@ -132,6 +132,7 @@ export default function PartnerRegisterPage() {
       {/* ④ 2種類のパートナー */}
       <section className="partner-section" id="types">
         <div className="container">
+          <p className="sec-eyebrow">01 — PARTNER TYPE</p>
           <h2 className="partner-section-title">2種類のパートナー</h2>
           <div className="partner-cards">
             <article className="partner-card">
@@ -209,6 +210,7 @@ export default function PartnerRegisterPage() {
       {/* ⑤ メリット3つ */}
       <section className="partner-section is-light">
         <div className="container">
+          <p className="sec-eyebrow">02 — BENEFIT</p>
           <h2 className="partner-section-title">パートナーになるメリット</h2>
           <div className="partner-merit-grid">
             <div className="partner-merit-card">
@@ -242,6 +244,7 @@ export default function PartnerRegisterPage() {
       {/* ⑥ 向いている方 */}
       <section className="partner-section">
         <div className="container">
+          <p className="sec-eyebrow">03 — FOR YOU</p>
           <h2 className="partner-section-title">向いている方</h2>
           <div className="partner-fit-grid">
             <div className="partner-fit-card">
@@ -267,6 +270,7 @@ export default function PartnerRegisterPage() {
       {/* ⑦ 流れ */}
       <section className="partner-section is-light">
         <div className="container">
+          <p className="sec-eyebrow">04 — FLOW</p>
           <h2 className="partner-section-title">ご登録から報酬までの流れ</h2>
           <div className="partner-flow">
             <div className="partner-flow-row">
@@ -299,6 +303,7 @@ export default function PartnerRegisterPage() {
       <section className="form-section" id="register">
         <div className="container">
           <div className="form-card">
+            <p className="sec-eyebrow">05 — ENTRY</p>
             <h2>紹介<span className="green">パートナー登録</span></h2>
             <p className="form-sub">登録は無料・即日で紹介コードを発行します。以下の情報をご入力ください。</p>
             <p className="form-note-top">※ 紹介料のお受け取りには、説明会への参加（紹介報酬規程の承諾）が必要です</p>

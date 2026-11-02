@@ -476,3 +476,132 @@ a { color: inherit; text-decoration: none; }
   /* 縦積みのときは矢印を下向きに（行末に宙ぶらりんの → を残さない） */
   .partner-flow-arrow { align-self: center; transform: rotate(90deg); font-size: 13px; line-height: 1; }
 }
+
+/* ==========================================================================
+   2026-11-03 t iku指示「全体的に機能的な感じでデザインしなおして、大きく見やすく
+   ／ボタンがスライド・点滅するなど動きも」
+   — 文字サイズの底上げ＋セクション見出しの統一＋CTAの動き
+   ========================================================================== */
+body { font-size: 18px; line-height: 1.9; }
+
+/* セクション見出しの番号ラベル */
+.sec-eyebrow {
+  font-family: var(--font-en);
+  font-size: 13px; font-weight: 800; letter-spacing: 0.18em;
+  color: var(--kamo-red); text-transform: uppercase; text-align: center;
+  margin-bottom: 10px;
+}
+.sec-eyebrow::after {
+  content: ''; display: block; width: 40px; height: 3px; margin: 10px auto 0;
+  background: var(--kamo-red); border-radius: 2px; opacity: 0.35;
+}
+
+/* ヒーロー */
+.partner-hero { padding: 76px 0 64px; }
+.partner-hero-badge { font-size: 14.5px; padding: 8px 20px; }
+.partner-hero h1 { font-size: clamp(26px, 3.6vw, 42px); line-height: 1.45; margin-bottom: 20px; }
+.partner-hero-lead { font-size: 18.5px; line-height: 1.95; max-width: 760px; }
+.partner-cta-main, .partner-cta-sub { min-height: 58px; font-size: 18px; padding: 17px 34px; }
+
+/* 見出し・本文 */
+.partner-section { padding: 72px 0; }
+.partner-section-title { font-size: clamp(24px, 2.9vw, 32px); line-height: 1.55; margin-bottom: 22px; }
+.partner-section-title.is-body { font-size: clamp(18px, 2.1vw, 23px); }
+.partner-lead-text { font-size: 18px; line-height: 2; max-width: 820px; }
+
+/* 2種類のカード */
+.partner-card { border-radius: 16px; padding: 32px 30px; box-shadow: 0 6px 24px rgba(26, 26, 26, 0.07); }
+.partner-card-kind { font-size: 23px; margin-bottom: 20px; }
+.partner-card-row { grid-template-columns: 84px 1fr; gap: 14px; padding: 14px 0; }
+.partner-card-row dt { font-size: 13.5px; }
+.partner-card-row dd { font-size: 17px; line-height: 1.85; }
+.partner-reward-label { font-size: 13.5px; }
+.partner-reward-extra { font-size: 15px; }
+.partner-note { font-size: 13.5px; line-height: 1.8; }
+.partner-card-cta { min-height: 58px; font-size: 17px; border-radius: 100px; }
+
+/* メリット・向いている方・流れ */
+.partner-merit-card { border-radius: 14px; padding: 26px 24px; }
+.partner-merit-card h3 { font-size: 18.5px; line-height: 1.6; margin-bottom: 10px; }
+.partner-merit-card p { font-size: 16px; line-height: 1.85; }
+.partner-fit-card { border-radius: 16px; padding: 28px 30px; }
+.partner-fit-card h3 { font-size: 21px; margin-bottom: 16px; }
+.partner-fit-list li { font-size: 16.5px; line-height: 1.9; margin-bottom: 10px; }
+
+/* フォーム */
+.form-card { border-radius: 16px; padding: 44px 40px; }
+.form-card h2 { font-size: clamp(24px, 2.6vw, 30px); }
+.form-sub { font-size: 17px; line-height: 1.9; }
+.form-group label { font-size: 16px; }
+.form-group input, .form-group select, .form-group textarea { font-size: 17px; padding: 14px 16px; }
+.form-submit { font-size: 19px; min-height: 60px; border-radius: 12px; }
+.form-note { font-size: 13.5px; line-height: 1.8; }
+
+/* ---- ボタンの動き ---------------------------------------------- */
+@keyframes cta-breathe {
+  0%, 100% { box-shadow: 0 6px 22px rgba(0, 0, 0, 0.22), 0 0 0 0 rgba(255, 255, 255, 0.45); }
+  50%      { box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28), 0 0 0 10px rgba(255, 255, 255, 0.12); }
+}
+@keyframes cta-glow {
+  0%, 100% { box-shadow: 0 6px 18px rgba(39, 174, 96, 0.35), 0 0 0 0 rgba(39, 174, 96, 0.35); }
+  50%      { box-shadow: 0 8px 22px rgba(39, 174, 96, 0.45), 0 0 0 8px rgba(39, 174, 96, 0.10); }
+}
+@keyframes shine-sweep {
+  from { transform: translateX(-130%) skewX(-18deg); }
+  to   { transform: translateX(130%) skewX(-18deg); }
+}
+
+/* ヒーロー主CTA：ゆっくり呼吸するように光る */
+.partner-cta-main { position: relative; overflow: hidden; animation: cta-breathe 3.2s ease-in-out infinite; }
+.partner-cta-main:hover { transform: translateY(-3px) scale(1.02); }
+
+/* カードCTA・送信ボタン：ホバーで光が走る＋浮く */
+.partner-card-cta, .form-submit { position: relative; overflow: hidden; }
+.partner-card-cta::after, .form-submit::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 45%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.55) 50%, transparent 100%);
+  transform: translateX(-130%) skewX(-18deg); pointer-events: none;
+}
+.partner-card-cta:hover::after, .form-submit:hover::after { animation: shine-sweep 0.75s ease; }
+.partner-card-cta:hover, .form-submit:hover { transform: translateY(-2px); }
+
+/* 紹介パートナーCTA（緑）は常時ほんのり点滅 */
+.partner-card-cta { animation: cta-glow 2.8s ease-in-out infinite; }
+.partner-card-cta.is-support { animation: none; }
+
+/* 追従CTAのボタン */
+.sticky-cta-btn { min-height: 52px; font-size: 17px; box-shadow: 0 6px 18px rgba(39, 174, 96, 0.3); animation: cta-glow 2.8s ease-in-out infinite; }
+
+/* 動きを減らす設定の人には止める */
+@media (prefers-reduced-motion: reduce) {
+  .partner-cta-main, .partner-card-cta, .sticky-cta-btn { animation: none; }
+  .partner-card-cta:hover::after, .form-submit:hover::after { animation: none; }
+}
+
+@media (max-width: 768px) {
+  body { font-size: 17px; }
+  .partner-hero { padding: 64px 0 52px; }
+  .partner-hero-lead { font-size: 16.5px; }
+  .partner-cta-main, .partner-cta-sub { font-size: 16.5px; min-height: 54px; padding: 15px 22px; width: 100%; }
+  .partner-card { padding: 26px 22px; }
+  .partner-card-kind { font-size: 21px; }
+  .partner-card-row dd { font-size: 16px; }
+  .partner-card-row { grid-template-columns: 70px 1fr; }
+  .partner-lead-text { font-size: 16.5px; }
+  .partner-merit-card h3 { font-size: 17px; }
+  .partner-merit-card p { font-size: 15.5px; }
+  .partner-fit-list li { font-size: 16px; }
+  .form-card { padding: 30px 20px; }
+}
+
+/* 仕上げ：フローの文字を大きく、和文の語中改行を抑える、既存パートナー導線も大きく */
+.partner-flow-step { font-size: 15.5px; padding: 9px 16px; }
+.partner-flow-step::before { width: 22px; height: 22px; font-size: 12px; }
+.partner-flow-arrow { font-size: 15px; }
+.partner-flow-kind { font-size: 15px; }
+.existing-partner-btn { font-size: 18px; }
+.partner-card-row dd, .partner-merit-card p, .partner-fit-list li, .partner-lead-text, .partner-note { word-break: auto-phrase; }
+@media (max-width: 768px) {
+  .partner-flow-step { font-size: 14.5px; padding: 8px 13px; }
+  .existing-partner-btn { font-size: 17px; }
+}
