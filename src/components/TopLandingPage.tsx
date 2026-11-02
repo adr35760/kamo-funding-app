@@ -228,6 +228,7 @@ export default function TopLandingPage() {
               fetchPriority="high"
             />
             <div className="tlp-hero-copy">
+              <p className="tlp-hero-sub">{LP_HERO.sub}</p>
               <p className="tlp-hero-lead">
                 {LP_HERO.lead[0]}
                 <br />
