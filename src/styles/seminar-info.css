@@ -862,3 +862,22 @@ a { color: inherit; text-decoration: none; }
   .seminar-info-page .seminar-block .learn-item h4 { font-size: 18.5px; }
   .seminar-info-page .seminar-block .learn-item p { font-size: 16px; }
 }
+
+/* 2026-11-03 t iku指示: 「進め方」と「特別オファー」を別枠に。2列のまま、オファー枠は横幅いっぱい */
+.seminar-info-page .seminar-block .learn-item.learn-item-offer {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, #FFFDF7 0%, #FFF6E2 100%);
+  border-color: rgba(198, 155, 60, .42);
+}
+.seminar-info-page .seminar-block .learn-item.learn-item-offer::before {
+  background: linear-gradient(90deg, #D9A62E, #F0C766);
+}
+/* 見出しだけの枠は中身の高さに合わせる（大きな空き箱に見えないように） */
+.seminar-info-page .seminar-block .learn-list { align-items: start; }
+.seminar-info-page .seminar-block .learn-item { height: auto; }
+.seminar-info-page .seminar-block .learn-item.learn-item-solo { align-items: center; }
+.seminar-info-page .seminar-block .learn-item.learn-item-solo h4 { margin-bottom: 0; }
+@media (max-width: 768px) {
+  /* スマホで見出しが複数行になるとアイコンが宙に浮くため、上揃えに戻す */
+  .seminar-info-page .seminar-block .learn-item.learn-item-solo { align-items: flex-start; }
+}
