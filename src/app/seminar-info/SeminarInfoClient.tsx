@@ -345,6 +345,8 @@ export default function SeminarInfoClient({
               <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>KAMOファンディングの特徴</h4><p>総支援額{NUM_JISSEKI}！達成率{NUM_TASSEI_RATE}のノウハウの一端をご紹介</p></div></div>
               <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>クラウドファンディングの集める構造を理解する</h4><p>クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</p></div></div>
               <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>応援支援で高額支援を集めるノウハウを伝授</h4><p>スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</p></div></div>
+              {/* 2026-11-03 t iku指示: 4枠目を追加 */}
+              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>掲載に関しての進め方</h4><p>達成率{NUM_TASSEI_RATE}個別伴走支援サポートの特別オファー</p></div></div>
             </div>
           </div>
 
