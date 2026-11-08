@@ -159,7 +159,8 @@ export const LP_CARDS: LpCard[] = [
   {
     id: 4,
     badge: '④',
-    image: '/lp/card4.jpg',
+    // 2026-11-08 t iku指示: ④はFOEX公式のバナー画像に差し替え
+    image: '/lp/card4-expo.jpg',
     heading: 'スタートアップEXPOに出展したい',
     body:
       '製品を届けたい決裁者が、会場に集まる。出展概要・ブース構成・費用をまとめた資料を無料でお届けします。',

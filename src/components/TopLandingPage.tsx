@@ -309,8 +309,8 @@ export default function TopLandingPage() {
                       className="tlp-card-img"
                       src={card.image}
                       alt=""
-                      width={card.id === 4 ? 1536 : 1672}
-                      height={card.id === 4 ? 1024 : 941}
+                      width={card.id === 4 ? 1376 : 1672}
+                      height={card.id === 4 ? 768 : 941}
                       loading="lazy"
                     />
                   </span>
