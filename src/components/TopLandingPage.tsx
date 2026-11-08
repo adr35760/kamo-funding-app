@@ -298,6 +298,10 @@ export default function TopLandingPage() {
                   className={`tlp-card tlp-card-${card.id}`}
                   href={card.href}
                   onClick={onCardClick(card)}
+                  // 外部サイト（④スタートアップEXPO）は別タブで開く
+                  {...(card.href.startsWith('http')
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
                   data-entrance={card.id}
                 >
                   <span className="tlp-card-media">

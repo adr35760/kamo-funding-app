@@ -163,11 +163,10 @@ export const LP_CARDS: LpCard[] = [
     heading: 'スタートアップEXPOに出展したい',
     body:
       '製品を届けたい決裁者が、会場に集まる。出展概要・ブース構成・費用をまとめた資料を無料でお届けします。',
-    cta: '出展について相談する',
-    // TODO(t iku確定待ち): 本来は資料DL＋メルマガ登録。資料PDF未受領のため暫定で相談フォーム（区分=EXPO）。
-    note: '資料はPDFでお届けします',
-    href: '#consult',
-    consult: CONSULT_CATEGORIES[3],
+    cta: 'スタートアップEXPOを見る',
+    // 2026-11-08 t iku指示: ④は公式サイト（FOEX STARTUP）へ直接送る。
+    note: '公式サイトが開きます',
+    href: 'https://foex.online/startup/',
   },
 ];
 
