@@ -21,12 +21,12 @@ import { NUM_TASSEI_RATE } from '@/lib/seminar-info-content';
 const RAISED_LABEL = formatManYen(CUMULATIVE_RAISED_ALL);
 
 /** タブタイトル・検索結果・SNS共有で同じ文言を使う（1箇所で管理） */
-const LP_TITLE = 'KAMOファンディング｜クラファン無料相談・挑戦を加速させる伴走支援';
+const LP_TITLE = 'KAMOファンディング｜クラファンから、その先の事業成長へ';
 // 検索結果で切れない長さ（約100字）に収める
 const LP_DESCRIPTION =
-  `クラファンに挑戦したい・挑戦者を紹介したい・アドバイザーとして働きたい・EXPOに出展したい——` +
-  `4つの入り口から無料相談を受け付けています。累計調達額${RAISED_LABEL}・平均達成率${NUM_TASSEI_RATE}。` +
-  `相談無料・最短24時間返信。`;
+  `新しい商品やサービスを、クラウドファンディングで最初のお客様へ。` +
+  `企画づくりから先行販売、ファンづくりまで、KAMOファンディングが伴走します。` +
+  `累計調達額${RAISED_LABEL}・平均達成率${NUM_TASSEI_RATE}。相談無料・最短24時間返信。`;
 
 export const metadata: Metadata = {
   title: LP_TITLE,

@@ -16,7 +16,7 @@
 export type TrackParams = Record<string, string | number | boolean | undefined | null>;
 
 /** cta_click の位置（§11 position） */
-export type CtaPosition = 'fv' | 'hub' | 'footer' | 'follow';
+export type CtaPosition = 'fv' | 'steps' | 'hub' | 'footer' | 'follow';
 
 declare global {
   interface Window {

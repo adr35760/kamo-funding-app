@@ -12,6 +12,7 @@ import {
   LP_FOLLOW,
   LP_FORM,
   LP_HERO,
+  LP_STEPS,
   LP_TRUST,
   type LpCard,
 } from '@/lib/top-lp-content';
@@ -109,6 +110,14 @@ export default function TopLandingPage() {
     (e: React.MouseEvent<HTMLAnchorElement>) => {
       e.preventDefault();
       goConsult(1, 'fv');
+    },
+    [goConsult]
+  );
+
+  const onStepsCta = useCallback(
+    (e: React.MouseEvent<HTMLAnchorElement>) => {
+      e.preventDefault();
+      goConsult(1, 'steps');
     },
     [goConsult]
   );
@@ -212,48 +221,75 @@ export default function TopLandingPage() {
       />
 
       <main>
-        {/* ===== Z1 ファーストビュー ===== */}
+        {/* ===== Z1 ファーストビュー =====
+            2026-11-08 t iku指示（新事業方針）: メインコピー・サブコピー・説明文・
+            主CTA（無料相談フォーム）・補助CTA（掲載説明会）をHTMLで表示する。
+            写真はKVの右側（文字が焼き込まれていない範囲）を切り出した kv-hero.jpg。 */}
         <section className="tlp-hero" aria-label="KAMOファンディング">
-          {/* 大見出しはKVに焼き込み済みでHTMLには出さない（§3.2）。
-              ただしページにh1が1つも無いとSEO・読み上げで不利なので、sr-onlyでh1を置く（PM 2026-10-27） */}
-          <h1 className="tlp-sr-only">挑戦を、加速させろ。クラファンのプロが伴走します</h1>
-          <div className="tlp-hero-frame">
-            {/* KVはLCP。寸法を明示してレイアウトシフトを防ぐ */}
-            <img
-              className="tlp-hero-img"
-              src={LP_HERO.image}
-              alt={LP_HERO.imageAlt}
-              width={2560}
-              height={1440}
-              fetchPriority="high"
-            />
-            <div className="tlp-hero-copy">
-              <p className="tlp-hero-lead">
-                {LP_HERO.lead[0]}
-                <br />
-                {LP_HERO.lead[1]}
-              </p>
-              <a className="tlp-btn tlp-btn-primary" href="#consult" onClick={onHeroCta}>
-                {LP_HERO.cta}
-              </a>
+          <div className="tlp-hero-inner">
+            <div className="tlp-hero-text">
+              <h1 className="tlp-hero-title">{LP_HERO.title}</h1>
+              <p className="tlp-hero-sub">{LP_HERO.sub}</p>
+              <p className="tlp-hero-desc">{LP_HERO.description}</p>
+              <div className="tlp-hero-actions">
+                <a className="tlp-btn tlp-btn-primary tlp-hero-cta" href="#consult" onClick={onHeroCta}>
+                  {LP_HERO.cta}
+                </a>
+                <a className="tlp-btn tlp-btn-ghost tlp-hero-sub-cta" href={LP_HERO.subCtaHref}>
+                  {LP_HERO.subCta}
+                </a>
+              </div>
               {/* TODO(t iku確認中: 「最短24時間返信」は運用約束。文言は仕様書§3.2のまま／PM 2026-10-27) */}
               <p className="tlp-hero-note">{LP_HERO.note}</p>
+            </div>
+            <div className="tlp-hero-visual">
+              {/* LCP。寸法を明示してレイアウトシフトを防ぐ */}
+              <img
+                className="tlp-hero-img"
+                src={LP_HERO.image}
+                alt={LP_HERO.imageAlt}
+                width={1360}
+                height={1440}
+                fetchPriority="high"
+              />
             </div>
           </div>
         </section>
 
-        {/* ===== Z2 共感 ===== */}
-        <section className="tlp-empathy">
+        {/* ===== Z1.5 3ステップ（クラファン→商品化→メンター支援） ===== */}
+        <section className="tlp-steps" aria-label="クラファンから、その先の事業成長へ">
           <div className="tlp-inner">
-            <h2 className="tlp-h2">{LP_EMPATHY.heading}</h2>
-            <p className="tlp-body">{LP_EMPATHY.body}</p>
-            <p className="tlp-empathy-lead">{LP_EMPATHY.lead}</p>
+            <h2 className="tlp-steps-title">{LP_STEPS.heading}</h2>
+            <div className="tlp-steps-grid">
+              {LP_STEPS.items.map((step) => (
+                <div className={`tlp-step${step.future ? ' is-future' : ''}`} key={step.no}>
+                  <span className="tlp-step-no" aria-hidden="true">
+                    {step.no}
+                  </span>
+                  {step.future ? <span className="tlp-step-tag">{LP_STEPS.futureTag}</span> : null}
+                  <h3 className="tlp-step-title">{step.title}</h3>
+                  <p className="tlp-step-body">{step.body}</p>
+                </div>
+              ))}
+            </div>
+            <p className="tlp-steps-note">{LP_STEPS.note}</p>
+            <div className="tlp-steps-cta">
+              <a className="tlp-btn tlp-btn-primary tlp-btn-lg" href="#consult" onClick={onStepsCta}>
+                {LP_STEPS.cta}
+              </a>
+            </div>
           </div>
         </section>
 
-        {/* ===== Z3 分岐ハブ（2×2） ===== */}
+        {/* ===== Z2 共感＋Z3 分岐ハブ（2×2） =====
+            共感の見出しは4つの入り口の導入として、カードの直前に置く */}
         <section className="tlp-hub" id="hub">
           <div className="tlp-inner">
+            <div className="tlp-hub-lead">
+              <h2 className="tlp-h2">{LP_EMPATHY.heading}</h2>
+              <p className="tlp-body">{LP_EMPATHY.body}</p>
+              <p className="tlp-empathy-lead">{LP_EMPATHY.lead}</p>
+            </div>
             <h2 className="tlp-sr-only">4つの入り口</h2>
             <div className="tlp-cards">
               {LP_CARDS.map((card) => (
@@ -293,10 +329,6 @@ export default function TopLandingPage() {
           <div className="tlp-inner">
             <h2 className="tlp-sr-only">実績</h2>
             <div className="tlp-trust-grid">
-              <div className="tlp-trust-item">
-                <div className="tlp-trust-value tlp-trust-value-pending">{LP_TRUST.projectsLabel}</div>
-                <div className="tlp-trust-label">{LP_TRUST.projectsNote}</div>
-              </div>
               <div className="tlp-trust-item">
                 <div className="tlp-trust-value">{LP_TRUST.rateLabel}</div>
                 <div className="tlp-trust-label">{LP_TRUST.rateNote}</div>
