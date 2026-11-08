@@ -401,6 +401,9 @@
   font-size: 15px;
   line-height: 1.75;
   color: var(--text-sub);
+  /* 2026-11-08: 「スケジュール」等が語中で割れないように文節単位で折り返す */
+  word-break: auto-phrase;
+  line-break: strict;
 }
 .tlp-card-cta {
   display: inline-flex;
