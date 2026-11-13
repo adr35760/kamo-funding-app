@@ -231,8 +231,8 @@ export default function TopLandingPage() {
               className="tlp-hero-img"
               src={LP_HERO.image}
               alt=""
-              width={1360}
-              height={1440}
+              width={1336}
+              height={752}
               fetchPriority="high"
             />
           </div>
