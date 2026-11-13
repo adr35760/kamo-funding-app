@@ -130,48 +130,77 @@
 }
 
 /* ===== Z1 ファーストビュー =====
-   2026-11-08 t iku指示（新事業方針）: コピーをHTMLで主役にする。
-   写真はKV右側（文字の焼き込みが無い範囲）を切り出した kv-hero.jpg を配置する。 */
+   2026-11-13 t iku指示: KV型のレイアウトに戻す（写真を全面に敷き、左に紺グラデ＋左寄せコピー）。
+   文字は画像に焼き込まずHTMLで表示する（コピー差し替え・読み上げ・SEOのため）。 */
 .tlp-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   padding: 0;
   background: #0b1a33;
-  background: radial-gradient(120% 130% at 88% 15%, #16305c 0%, #0b1a33 58%, #081327 100%);
   color: #fff;
 }
+/* 写真は右半分に置き、左は紺ベタ＋継ぎ目のグラデでなじませる（KVの構成を再現） */
+.tlp-hero-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 52%;
+  z-index: 0;
+}
+.tlp-hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, #0b1a33 0%, rgba(11, 26, 51, 0.55) 18%, rgba(11, 26, 51, 0) 42%),
+    linear-gradient(0deg, rgba(8, 19, 39, 0.45) 0%, rgba(8, 19, 39, 0) 38%);
+}
+.tlp-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 18%;
+  display: block;
+}
 .tlp-hero-inner {
-  display: grid;
-  grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
+  position: relative;
+  z-index: 1;
+  display: flex;
   align-items: center;
-  gap: 40px;
   max-width: 1200px;
+  min-height: 640px;
   margin: 0 auto;
-  padding: 56px 24px 0;
+  padding: 132px 24px 72px;
 }
 .tlp-hero-text {
   min-width: 0;
-  padding-bottom: 56px;
+  max-width: 640px;
 }
 .tlp-hero-title {
-  font-size: 46px;
+  font-size: 56px;
   font-weight: 800;
-  line-height: 1.22;
+  line-height: 1.2;
   letter-spacing: 0.02em;
   color: #fff;
+  text-shadow: 0 2px 24px rgba(6, 16, 38, 0.45);
 }
 .tlp-hero-sub {
-  margin-top: 16px;
+  margin-top: 18px;
   font-size: 22px;
   font-weight: 700;
   line-height: 1.55;
-  color: #cfe0ff;
+  color: #dfe9ff;
   text-wrap: balance;
+  text-shadow: 0 1px 14px rgba(6, 16, 38, 0.5);
 }
 .tlp-hero-desc {
   max-width: 34em;
   margin-top: 18px;
   font-size: 15px;
   line-height: 1.95;
-  color: rgba(255, 255, 255, 0.86);
+  color: rgba(255, 255, 255, 0.88);
 }
 .tlp-hero-actions {
   display: flex;
@@ -200,35 +229,7 @@
 .tlp-hero-note {
   margin-top: 12px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
-}
-.tlp-hero-visual {
-  position: relative;
-  align-self: stretch;
-  min-width: 0;
-  min-height: 520px;
-  border-radius: 18px 18px 0 0;
-  overflow: hidden;
-}
-/* 画像の左端（KVの紺背景が残る部分）をヒーロー背景になじませる */
-.tlp-hero-visual::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-  width: 14%;
-  background: linear-gradient(90deg, #0b1a33 0%, rgba(11, 26, 51, 0) 100%);
-}
-.tlp-hero-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 32%;
-  display: block;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 /* ===== Z1.5 3ステップ（クラファン→商品化→メンター支援） =====
@@ -733,15 +734,14 @@
     padding: 0 20px;
   }
   .tlp-hero-inner {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-    gap: 24px;
-    padding: 40px 20px 0;
+    min-height: 560px;
+    padding: 112px 20px 56px;
   }
   .tlp-hero-text {
-    padding-bottom: 40px;
+    max-width: 520px;
   }
   .tlp-hero-title {
-    font-size: 38px;
+    font-size: 44px;
   }
   .tlp-hero-sub {
     font-size: 19px;
@@ -758,9 +758,6 @@
     min-height: 54px;
     padding: 14px 20px;
     font-size: 14.5px;
-  }
-  .tlp-hero-visual {
-    min-height: 440px;
   }
   .tlp-steps-title {
     font-size: 24px;
@@ -794,12 +791,25 @@
     padding: 0 16px;
   }
   .tlp-hero-inner {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 22px;
-    padding: 28px 16px 0;
+    display: block;
+    min-height: 0;
+    padding: 92px 16px 34px;
   }
   .tlp-hero-text {
-    padding-bottom: 0;
+    max-width: none;
+  }
+  /* スマホは写真を全幅に敷き、紺のベタ寄りグラデで可読性を優先する */
+  .tlp-hero-bg {
+    width: 100%;
+  }
+  .tlp-hero-bg::after {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(11, 26, 51, 0.94) 0%,
+        rgba(11, 26, 51, 0.9) 42%,
+        rgba(11, 26, 51, 0.96) 100%
+      );
   }
   .tlp-hero-title {
     font-size: 34px;
@@ -834,12 +844,8 @@
     font-size: 12.5px;
     color: rgba(255, 255, 255, 0.72);
   }
-  .tlp-hero-visual {
-    min-height: 320px;
-    border-radius: 16px 16px 0 0;
-  }
   .tlp-hero-img {
-    object-position: 52% 28%;
+    object-position: 58% 18%;
   }
   .tlp-steps-title {
     text-align: left;

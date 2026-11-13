@@ -222,10 +222,20 @@ export default function TopLandingPage() {
 
       <main>
         {/* ===== Z1 ファーストビュー =====
-            2026-11-08 t iku指示（新事業方針）: メインコピー・サブコピー・説明文・
-            主CTA（無料相談フォーム）・補助CTA（掲載説明会）をHTMLで表示する。
-            写真はKVの右側（文字が焼き込まれていない範囲）を切り出した kv-hero.jpg。 */}
+            2026-11-13 t iku指示: KV型のレイアウトに戻す（写真を全面に敷き、左にコピー）。
+            文言は新事業方針（2026-11-08）のものをそのまま使い、画像に焼き込まずHTMLで表示する。 */}
         <section className="tlp-hero" aria-label="KAMOファンディング">
+          <div className="tlp-hero-bg" aria-hidden="true">
+            {/* LCP。寸法を明示してレイアウトシフトを防ぐ */}
+            <img
+              className="tlp-hero-img"
+              src={LP_HERO.image}
+              alt=""
+              width={1360}
+              height={1440}
+              fetchPriority="high"
+            />
+          </div>
           <div className="tlp-hero-inner">
             <div className="tlp-hero-text">
               <h1 className="tlp-hero-title">{LP_HERO.title}</h1>
@@ -241,17 +251,6 @@ export default function TopLandingPage() {
               </div>
               {/* TODO(t iku確認中: 「最短24時間返信」は運用約束。文言は仕様書§3.2のまま／PM 2026-10-27) */}
               <p className="tlp-hero-note">{LP_HERO.note}</p>
-            </div>
-            <div className="tlp-hero-visual">
-              {/* LCP。寸法を明示してレイアウトシフトを防ぐ */}
-              <img
-                className="tlp-hero-img"
-                src={LP_HERO.image}
-                alt={LP_HERO.imageAlt}
-                width={1360}
-                height={1440}
-                fetchPriority="high"
-              />
             </div>
           </div>
         </section>
