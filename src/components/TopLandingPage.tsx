@@ -238,7 +238,13 @@ export default function TopLandingPage() {
           </div>
           <div className="tlp-hero-inner">
             <div className="tlp-hero-text">
-              <h1 className="tlp-hero-title">{LP_HERO.title}</h1>
+              <h1 className="tlp-hero-title">
+                {LP_HERO.titleLines.map((line) => (
+                  <span className="tlp-hero-title-line" key={line}>
+                    {line}
+                  </span>
+                ))}
+              </h1>
               <p className="tlp-hero-sub">{LP_HERO.sub}</p>
               <p className="tlp-hero-desc">{LP_HERO.description}</p>
               <div className="tlp-hero-actions">

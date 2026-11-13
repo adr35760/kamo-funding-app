@@ -178,19 +178,23 @@
   min-width: 0;
   max-width: 640px;
 }
+/* 2026-11-13 t iku指示: 旧KVと同じ文字バランス（2行の大見出し＋大きめのサブ）に合わせる */
 .tlp-hero-title {
-  font-size: 56px;
+  font-size: 68px;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.16;
   letter-spacing: 0.02em;
   color: #fff;
   text-shadow: 0 2px 24px rgba(6, 16, 38, 0.45);
 }
+.tlp-hero-title-line {
+  display: block;
+}
 .tlp-hero-sub {
-  margin-top: 18px;
-  font-size: 22px;
+  margin-top: 20px;
+  font-size: 28px;
   font-weight: 700;
-  line-height: 1.55;
+  line-height: 1.5;
   color: #dfe9ff;
   text-wrap: balance;
   text-shadow: 0 1px 14px rgba(6, 16, 38, 0.5);
@@ -198,7 +202,7 @@
 .tlp-hero-desc {
   max-width: 34em;
   margin-top: 18px;
-  font-size: 15px;
+  font-size: 16.5px;
   line-height: 1.95;
   color: rgba(255, 255, 255, 0.88);
 }
@@ -741,13 +745,13 @@
     max-width: 520px;
   }
   .tlp-hero-title {
-    font-size: 44px;
+    font-size: 52px;
   }
   .tlp-hero-sub {
-    font-size: 19px;
+    font-size: 24px;
   }
   .tlp-hero-desc {
-    font-size: 14.5px;
+    font-size: 15.5px;
   }
   .tlp-hero-cta {
     min-height: 54px;
@@ -812,13 +816,13 @@
       );
   }
   .tlp-hero-title {
-    font-size: 34px;
-    line-height: 1.28;
+    font-size: 40px;
+    line-height: 1.24;
   }
   .tlp-hero-sub {
-    margin-top: 12px;
-    font-size: 18px;
-    line-height: 1.6;
+    margin-top: 14px;
+    font-size: 21px;
+    line-height: 1.55;
   }
   .tlp-hero-desc {
     margin-top: 14px;

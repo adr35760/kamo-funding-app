@@ -47,7 +47,9 @@ export const LP_HERO = {
    */
   image: '/lp/kv-hero.jpg',
   imageAlt: 'KAMOファンディングの担当者',
+  /** 見出し。KVと同じく2行に組む（読み上げ・SEOは title と同じ文字列） */
   title: '挑戦を、加速させろ。',
+  titleLines: ['挑戦を、', '加速させろ。'] as const,
   sub: 'あなたのできることを、応援される事業へ。',
   description:
     '新しい商品やサービスを、クラウドファンディングで最初のお客様に届ける。KAMOファンディングは、企画づくりから先行販売、ファンづくりまで、あなたの挑戦に伴走します。',
