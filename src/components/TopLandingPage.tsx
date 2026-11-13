@@ -222,30 +222,40 @@ export default function TopLandingPage() {
 
       <main>
         {/* ===== Z1 ファーストビュー =====
-            2026-11-13 t iku指示: 元のKV画像（文字焼き込み済み）をそのまま使い、
-            元の実装どおり下段の小さいコピーとCTAだけを重ねる。
-            大見出しは画像内の文字なので、読み上げ・SEO用に sr-only の h1 を置く。 */}
+            2026-11-13 t iku指示: KV型のレイアウトに戻す（写真を全面に敷き、左にコピー）。
+            文言は新事業方針（2026-11-08）のものをそのまま使い、画像に焼き込まずHTMLで表示する。 */}
         <section className="tlp-hero" aria-label="KAMOファンディング">
-          <h1 className="tlp-sr-only">{LP_HERO.srTitle}</h1>
-          <div className="tlp-hero-frame">
-            {/* KVはLCP。寸法を明示してレイアウトシフトを防ぐ */}
+          <div className="tlp-hero-bg" aria-hidden="true">
+            {/* LCP。寸法を明示してレイアウトシフトを防ぐ */}
             <img
               className="tlp-hero-img"
               src={LP_HERO.image}
-              alt={LP_HERO.imageAlt}
-              width={1672}
-              height={941}
+              alt=""
+              width={1336}
+              height={752}
               fetchPriority="high"
             />
-            <div className="tlp-hero-copy">
-              <p className="tlp-hero-lead">
-                {LP_HERO.lead[0]}
-                <br />
-                {LP_HERO.lead[1]}
-              </p>
-              <a className="tlp-btn tlp-btn-primary" href="#consult" onClick={onHeroCta}>
-                {LP_HERO.cta}
-              </a>
+          </div>
+          <div className="tlp-hero-inner">
+            <div className="tlp-hero-text">
+              <h1 className="tlp-hero-title">
+                {LP_HERO.titleLines.map((line) => (
+                  <span className="tlp-hero-title-line" key={line}>
+                    {line}
+                  </span>
+                ))}
+              </h1>
+              <p className="tlp-hero-sub">{LP_HERO.sub}</p>
+              <p className="tlp-hero-desc">{LP_HERO.description}</p>
+              <div className="tlp-hero-actions">
+                <a className="tlp-btn tlp-btn-primary tlp-hero-cta" href="#consult" onClick={onHeroCta}>
+                  {LP_HERO.cta}
+                </a>
+                <a className="tlp-btn tlp-btn-ghost tlp-hero-sub-cta" href={LP_HERO.subCtaHref}>
+                  {LP_HERO.subCta}
+                </a>
+              </div>
+              {/* TODO(t iku確認中: 「最短24時間返信」は運用約束。文言は仕様書§3.2のまま／PM 2026-10-27) */}
               <p className="tlp-hero-note">{LP_HERO.note}</p>
             </div>
           </div>
