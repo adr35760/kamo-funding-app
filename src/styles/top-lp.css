@@ -130,118 +130,48 @@
 }
 
 /* ===== Z1 ファーストビュー =====
-   2026-11-13 t iku指示: KV型のレイアウトに戻す（写真を全面に敷き、左に紺グラデ＋左寄せコピー）。
-   文字は画像に焼き込まずHTMLで表示する（コピー差し替え・読み上げ・SEOのため）。 */
+   2026-11-13 t iku指示: 元のKV（文字焼き込み済み・16:9）をそのまま表示し、
+   下段の小さいコピーとCTAだけを重ねる（元の実装に戻す）。 */
 .tlp-hero {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
   padding: 0;
-  /* 2026-11-13 t iku指示: 元のKVと同じ 16:9 の箱で見せる（指示の再現） */
-  aspect-ratio: 16 / 9;
-  max-height: 720px;
   background: #0b1a33;
-  color: #fff;
 }
-/* 2026-11-13 t iku指示: KVと同じ構成。写真は全面に敷き、左は紺のグラデで覆う */
-.tlp-hero-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-.tlp-hero-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      90deg,
-      #0a1a3a 0%,
-      rgba(10, 26, 58, 0.95) 24%,
-      rgba(10, 26, 58, 0.62) 42%,
-      rgba(10, 26, 58, 0.16) 58%,
-      rgba(10, 26, 58, 0) 72%
-    ),
-    linear-gradient(0deg, rgba(8, 19, 39, 0.28) 0%, rgba(8, 19, 39, 0) 34%);
+.tlp-hero-frame {
+  position: relative;
+  max-width: 1280px;
+  margin: 0 auto;
+  line-height: 0;
 }
 .tlp-hero-img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 58% 34%;
+  height: auto;
   display: block;
 }
-.tlp-hero-inner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  height: 100%;
-  max-width: none;
-  margin: 0 auto;
-  /* KVと同じく左6%から、縦は中央 */
-  padding: 0 6%;
+.tlp-hero-copy {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  max-width: 48%;
+  padding: 0 40px 34px;
+  line-height: 1.75;
 }
-.tlp-hero-text {
-  min-width: 0;
-  max-width: 52%;
-}
-/* 2026-11-13 t iku指示: 旧KVと同じ文字バランス（2行の大見出し＋大きめのサブ）に合わせる */
-.tlp-hero-title {
-  font-size: 68px;
-  font-weight: 800;
-  line-height: 1.16;
-  letter-spacing: 0.02em;
+.tlp-hero-lead {
+  margin-bottom: 16px;
   color: #fff;
-  text-shadow: 0 2px 24px rgba(6, 16, 38, 0.45);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.7;
+  text-shadow: 0 1px 12px rgba(6, 16, 38, 0.6);
 }
-.tlp-hero-title-line {
-  display: block;
-}
-.tlp-hero-sub {
-  margin-top: 18px;
-  font-size: 25px;
-  font-weight: 700;
-  line-height: 1.5;
-  color: #dfe9ff;
-  text-wrap: balance;
-  text-shadow: 0 1px 14px rgba(6, 16, 38, 0.5);
-}
-.tlp-hero-desc {
-  max-width: 34em;
-  margin-top: 16px;
+.tlp-hero-copy .tlp-btn {
+  min-height: 48px;
+  padding: 12px 22px;
   font-size: 15px;
-  line-height: 1.95;
-  color: rgba(255, 255, 255, 0.88);
-}
-.tlp-hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin-top: 28px;
-}
-.tlp-hero-cta {
-  min-height: 54px;
-  padding: 14px 22px;
-  font-size: 15.5px;
-}
-.tlp-btn-ghost {
-  min-height: 54px;
-  padding: 14px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  background: transparent;
-  color: #fff !important;
-  font-size: 14px;
-  font-weight: 700;
-}
-.tlp-btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.12);
 }
 .tlp-hero-note {
-  margin-top: 12px;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.86);
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.72);
 }
 
 /* ===== Z1.5 3ステップ（クラファン→商品化→メンター支援） =====
@@ -745,25 +675,18 @@
   .tlp-inner {
     padding: 0 20px;
   }
-  .tlp-hero-inner {
-    padding: 0 5%;
-  }
-  .tlp-hero-text {
+  .tlp-hero-copy {
     max-width: 54%;
+    padding: 0 30px 26px;
   }
-  .tlp-hero-title {
-    font-size: 52px;
-  }
-  .tlp-hero-sub {
-    font-size: 24px;
-  }
-  .tlp-hero-desc {
-    font-size: 15.5px;
-  }
-  .tlp-hero-cta {
-    min-height: 54px;
-    padding: 14px 22px;
+  .tlp-hero-lead {
+    margin-bottom: 14px;
     font-size: 16px;
+  }
+  .tlp-hero-copy .tlp-btn {
+    min-height: 46px;
+    padding: 11px 20px;
+    font-size: 14.5px;
   }
   .tlp-btn-ghost {
     min-height: 54px;
@@ -801,64 +724,41 @@
   .tlp-inner {
     padding: 0 16px;
   }
-  /* スマホは16:9の箱では文字が入らないので、高さを内容に合わせる */
+  /* スマホはKVの下に白地でコピーを置く（元の実装どおり） */
   .tlp-hero {
-    aspect-ratio: auto;
-    max-height: none;
+    background: #fff;
   }
-  .tlp-hero-inner {
-    display: block;
-    height: auto;
-    padding: 92px 16px 34px;
-  }
-  .tlp-hero-text {
+  .tlp-hero-frame {
     max-width: none;
+    line-height: 1.75;
   }
-  /* スマホは写真を敷いた上に紺のベタ寄りグラデで可読性を優先する */
-  .tlp-hero-bg::after {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(11, 26, 51, 0.94) 0%,
-        rgba(11, 26, 51, 0.9) 42%,
-        rgba(11, 26, 51, 0.96) 100%
-      );
+  .tlp-hero-copy {
+    position: static;
+    max-width: none;
+    padding: 18px 16px 4px;
   }
-  .tlp-hero-title {
-    font-size: 40px;
-    line-height: 1.24;
+  .tlp-hero-lead {
+    margin-bottom: 16px;
+    color: var(--text, #1a1a1a);
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.7;
+    text-shadow: none;
   }
-  .tlp-hero-sub {
-    margin-top: 14px;
-    font-size: 21px;
-    line-height: 1.55;
+  /* スマホは幅が足りないので、固定の改行をやめて自然に折り返す */
+  .tlp-hero-lead br {
+    display: none;
   }
-  .tlp-hero-desc {
-    margin-top: 14px;
-    font-size: 14.5px;
-    line-height: 1.85;
-  }
-  .tlp-hero-actions {
-    gap: 10px;
-    margin-top: 22px;
-  }
-  .tlp-hero-cta {
-    min-height: 56px;
-    padding: 14px 16px;
+  .tlp-hero-copy .tlp-btn {
+    width: 100%;
+    min-height: 54px;
     font-size: 16px;
-  }
-  .tlp-btn-ghost {
-    min-height: 52px;
-    padding: 13px 16px;
-    font-size: 15px;
   }
   .tlp-hero-note {
     margin-top: 10px;
-    font-size: 12.5px;
-    color: rgba(255, 255, 255, 0.72);
-  }
-  .tlp-hero-img {
-    object-position: 58% 18%;
+    color: var(--text-sub, #555);
+    font-size: 13.5px;
+    text-shadow: none;
   }
   .tlp-steps-title {
     text-align: left;
