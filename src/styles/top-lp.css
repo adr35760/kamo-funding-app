@@ -43,8 +43,8 @@
   background: #fff;
   color: var(--text);
   font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 16px;
-  line-height: 1.8;
+  font-size: 15.5px;
+  line-height: 1.78;
   overflow-x: clip;
 }
 
@@ -55,14 +55,14 @@
 }
 
 .tlp-inner {
-  max-width: 1200px;
+  max-width: 1160px;
   margin: 0 auto;
   padding: 0 24px;
 }
 
 /* ---- 見出し・本文（§8） ---- */
 .tlp-h2 {
-  font-size: 23px;
+  font-size: 22px;
   font-weight: 600;
   line-height: 1.6;
   letter-spacing: 0.02em;
@@ -75,7 +75,7 @@
   color: var(--text);
 }
 .tlp-body {
-  font-size: 16px;
+  font-size: 15.5px;
   line-height: 1.75;
   color: var(--text-sub);
 }
@@ -140,7 +140,7 @@
   position: relative;
   /* 2026-11-14 t iku指示: 全体的にもう少し大きく見せたい → KVの上限を1280→1600に拡大
      （16:9を保ったまま。切り抜くと画像内の文字と重なるためトリミングしない） */
-  max-width: 1600px;
+  max-width: 1440px;
   margin: 0 auto;
   line-height: 0;
 }
@@ -160,7 +160,7 @@
 .tlp-hero-lead {
   margin-bottom: 16px;
   color: #fff;
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 600;
   line-height: 1.7;
   text-shadow: 0 1px 12px rgba(6, 16, 38, 0.6);
@@ -228,14 +228,14 @@
 }
 .tlp-step-title {
   margin-top: 2px;
-  font-size: 18px;
+  font-size: 17.5px;
   font-weight: 700;
   line-height: 1.6;
   color: var(--text);
   text-wrap: balance;
 }
 .tlp-step-body {
-  font-size: 15.5px;
+  font-size: 15px;
   line-height: 1.85;
   color: var(--text-sub);
 }
@@ -337,13 +337,13 @@
   line-height: 1;
 }
 .tlp-card-title {
-  font-size: 17.5px;
+  font-size: 17px;
   font-weight: 600;
   line-height: 1.6;
   color: var(--text);
 }
 .tlp-card-text {
-  font-size: 16px;
+  font-size: 15.5px;
   line-height: 1.75;
   color: var(--text-sub);
   /* 2026-11-08: 「スケジュール」等が語中で割れないように文節単位で折り返す */
@@ -606,7 +606,7 @@
   padding: 28px 0 32px;
 }
 .tlp-footer-inner {
-  max-width: 1200px;
+  max-width: 1160px;
   margin: 0 auto;
   padding: 0 24px;
   text-align: center;
