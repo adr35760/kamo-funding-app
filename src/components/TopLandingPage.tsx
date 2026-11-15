@@ -233,8 +233,8 @@ export default function TopLandingPage() {
               className="tlp-hero-img"
               src={LP_HERO.image}
               alt={LP_HERO.imageAlt}
-              width={1672}
-              height={941}
+              width={2032}
+              height={1152}
               fetchPriority="high"
             />
             {/* 2026-11-16 t iku指示: 画像から消したサブコピーを、同じ位置・同じ大きさで重ねる */}
