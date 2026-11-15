@@ -237,12 +237,10 @@ export default function TopLandingPage() {
               height={941}
               fetchPriority="high"
             />
+            {/* 2026-11-16 t iku指示: 画像から消したサブコピーを、同じ位置・同じ大きさで重ねる */}
+            <p className="tlp-hero-sub">{LP_HERO.sub}</p>
             <div className="tlp-hero-copy">
-              <p className="tlp-hero-lead">
-                {LP_HERO.lead[0]}
-                <br />
-                {LP_HERO.lead[1]}
-              </p>
+              <p className="tlp-hero-lead">{LP_HERO.lead}</p>
               <a className="tlp-btn tlp-btn-primary" href="#consult" onClick={onHeroCta}>
                 {LP_HERO.cta}
               </a>

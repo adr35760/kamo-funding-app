@@ -829,3 +829,26 @@
     display: inline;
   }
 }
+
+/* ===== 2026-11-16 t iku指示: 画像内サブコピーの位置・大きさに合わせて重ねる =====
+   元画像(1672×941)の実測: 左端 x=90(5.38%) / 文字帯 y=598-634 → 画像幅に対する比率で指定し、
+   どの画面幅でも画像と同じ縮尺で追従させる（ページの縮尺は変えない）。 */
+.tlp-hero-sub {
+  position: absolute;
+  top: 63.2%;
+  left: 5.38%;
+  margin: 0;
+  z-index: 2;
+  color: #fff;
+  font-weight: 700;
+  font-size: calc(min(100vw, 1440px) * 0.0221);
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  text-shadow: 0 2px 16px rgba(6, 16, 38, 0.5);
+}
+@media (max-width: 767px) {
+  .tlp-hero-sub {
+    display: none; /* スマホは画像が小さく、下にコピーが出るため */
+  }
+}
