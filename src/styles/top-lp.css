@@ -170,6 +170,95 @@
   padding: 12px 22px;
   font-size: 15px;
 }
+/* 2026-11-18 t iku指示: FVのボタンを2つ（青=個別相談／赤=掲載説明会）。
+   同じ高さ・同じ角丸で横に並べ、青を主・赤を副に見せる。
+   動き（青=ゆっくり脈打つグロー／赤=光が横に流れるシャイン）は
+   prefers-reduced-motion: reduce では止める。 */
+.tlp-hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 12px;
+}
+.tlp-hero-cta {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-decoration: none;
+  /* `.tlp-page a`（青）より強くして、青・赤どちらのボタンも白文字にする */
+  color: #fff !important;
+  transition: box-shadow 0.25s ease, filter 0.2s ease, transform 0.2s ease;
+}
+.tlp-hero-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+/* 青地・赤地の上でも枠が見えるように、FVのボタンは白いフォーカス枠にする */
+.tlp-hero-cta:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+.tlp-hero-cta-main {
+  background: linear-gradient(135deg, #2c64ea 0%, var(--cta-primary) 55%, #1c46b8 100%);
+  box-shadow: 0 8px 22px rgba(36, 86, 214, 0.42);
+}
+.tlp-hero-cta-sub {
+  background: linear-gradient(135deg, #f01a27 0%, #e60012 55%, #c20010 100%);
+  box-shadow: 0 8px 20px rgba(200, 0, 16, 0.26);
+}
+/* 赤ボタンの光（横に流れるシャイン）。通常は左外に待機させ、動きは下のメディアクエリで付ける */
+.tlp-hero-cta-sub::after {
+  content: '';
+  position: absolute;
+  top: -25%;
+  bottom: -25%;
+  left: -60%;
+  width: 38%;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-18deg);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .tlp-hero-cta-main {
+    animation: tlp-cta-glow 2.6s ease-in-out infinite;
+  }
+  .tlp-hero-cta-sub::after {
+    animation: tlp-cta-shine 3.4s ease-in-out infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tlp-hero-cta,
+  .tlp-hero-cta-sub::after {
+    animation: none !important;
+  }
+  .tlp-hero-cta:hover {
+    transform: none;
+  }
+}
+@keyframes tlp-cta-glow {
+  0%,
+  100% {
+    box-shadow: 0 8px 22px rgba(36, 86, 214, 0.42), 0 0 0 0 rgba(110, 158, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 10px 26px rgba(36, 86, 214, 0.5), 0 0 0 9px rgba(110, 158, 255, 0);
+  }
+}
+@keyframes tlp-cta-shine {
+  0% {
+    left: -60%;
+  }
+  60%,
+  100% {
+    left: 120%;
+  }
+}
 .tlp-hero-note {
   margin-top: 8px;
   color: rgba(255, 255, 255, 0.86);
@@ -669,6 +758,19 @@
   }
 }
 
+/* ===== 1024–1399: FVの2ボタンを1行に保つ（文字を少しだけ詰める） =====
+   1440px以上の見た目は変えない。狭いノートPCでボタンが縦に折り返さないための調整。 */
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .tlp-hero-ctas {
+    gap: 8px;
+  }
+  .tlp-hero-copy .tlp-btn {
+    padding-left: 14px;
+    padding-right: 14px;
+    font-size: 13.5px;
+  }
+}
+
 /* ===== タブレット（768–1023）: 2×2のまま余白縮小（§9） ===== */
 @media (max-width: 1023px) {
   .tlp-page {
@@ -689,6 +791,14 @@
     min-height: 46px;
     padding: 11px 20px;
     font-size: 14.5px;
+  }
+  /* タブレットは幅が足りないので、2ボタンを詰めて1行に収める */
+  .tlp-hero-ctas {
+    gap: 9px;
+  }
+  .tlp-hero-cta {
+    padding-left: 15px;
+    padding-right: 15px;
   }
   .tlp-btn-ghost {
     min-height: 54px;
@@ -755,6 +865,15 @@
     width: 100%;
     min-height: 54px;
     font-size: 16px;
+  }
+  /* スマホは2ボタンを縦積み（幅いっぱい）にして、最初の画面内に出す */
+  .tlp-hero-ctas {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tlp-hero-cta {
+    flex: 0 0 auto;
+    width: 100%;
   }
   .tlp-hero-note {
     margin-top: 10px;

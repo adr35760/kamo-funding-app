@@ -241,9 +241,22 @@ export default function TopLandingPage() {
             <p className="tlp-hero-sub">{LP_HERO.sub}</p>
             <div className="tlp-hero-copy">
               <p className="tlp-hero-lead">{LP_HERO.lead}</p>
-              <a className="tlp-btn tlp-btn-primary" href="#consult" onClick={onHeroCta}>
-                {LP_HERO.cta}
-              </a>
+              {/* 2026-11-18 t iku指示: 青（個別相談）を主・赤（掲載説明会）を副にした2ボタン */}
+              <div className="tlp-hero-ctas">
+                <a
+                  className="tlp-btn tlp-btn-primary tlp-hero-cta tlp-hero-cta-main"
+                  href={LP_HERO.ctaHref}
+                  onClick={onHeroCta}
+                >
+                  {LP_HERO.cta}
+                </a>
+                <a
+                  className="tlp-btn tlp-hero-cta tlp-hero-cta-sub"
+                  href={LP_HERO.ctaSubHref}
+                >
+                  {LP_HERO.ctaSub}
+                </a>
+              </div>
               <p className="tlp-hero-note">{LP_HERO.note}</p>
             </div>
           </div>
