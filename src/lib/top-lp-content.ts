@@ -40,7 +40,7 @@ export const LP_HERO = {
    *   ヒーロー上部の大見出し・サブは画像内の文字を活かし、HTMLは下段の小さいコピーと
    *   CTAだけを重ねる（元の実装どおり）。
    */
-  image: '/lp/kv-hero-20261118c.jpg',
+  image: '/lp/kv-hero-20261118d.jpg',
   imageAlt: 'KAMOファンディングの担当者',
   title: '挑戦を、加速させろ。',
   /** 画像に焼き込み済みの大見出し（読み上げ・SEO用のh1にのみ使う） */
