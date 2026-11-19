@@ -971,3 +971,147 @@
     display: none; /* スマホは画像が小さく、下にコピーが出るため */
   }
 }
+
+/* ===== 2026-11-19 t iku指示: 3ステップセクションのデザインを仕上げる ===== */
+.tlp-steps {
+  background: linear-gradient(180deg, #f7f9fd 0%, #eef3fb 100%);
+}
+.tlp-steps-title {
+  position: relative;
+  font-size: 30px;
+  letter-spacing: 0.02em;
+  padding-bottom: 18px;
+}
+.tlp-steps-title::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 56px;
+  height: 3px;
+  border-radius: 3px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #2456d6 0%, #7aa7ff 100%);
+}
+.tlp-steps-grid {
+  gap: 22px;
+  margin-top: 40px;
+}
+.tlp-step {
+  position: relative;
+  overflow: visible;
+  gap: 12px;
+  padding: 30px 24px 26px;
+  border: 1px solid #e4e9f4;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 10px 28px -18px rgba(16, 24, 40, 0.28);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+/* 上端のアクセントライン */
+.tlp-step::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 16px 16px 0 0;
+  background: linear-gradient(90deg, #2456d6 0%, #6f9dff 100%);
+}
+.tlp-step.is-future::before {
+  background: linear-gradient(90deg, #b9c5dc 0%, #dbe3f0 100%);
+}
+.tlp-step:hover {
+  transform: translateY(-3px);
+  border-color: #cfdcf6;
+  box-shadow: 0 2px 4px rgba(16, 24, 40, 0.05), 0 18px 36px -20px rgba(36, 86, 214, 0.35);
+}
+/* 番号はグラデーションの文字にして少し大きく */
+.tlp-step-no {
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  background: linear-gradient(180deg, #3b6fd4 0%, #1c3f8c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.tlp-step.is-future .tlp-step-no {
+  background: linear-gradient(180deg, #b8c2d6 0%, #93a1ba 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* カード間の進行矢印（PCのみ） */
+@media (min-width: 900px) {
+  .tlp-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 52px;
+    right: -15px;
+    width: 9px;
+    height: 9px;
+    border-top: 2px solid #c6d5ef;
+    border-right: 2px solid #c6d5ef;
+    transform: rotate(45deg);
+  }
+}
+/* 「今後の構想」タグはアウトライン＋ドット */
+.tlp-step-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 11px;
+  border: 1px solid #cfdcf6;
+  background: #eff4ff;
+  color: #2b4c86;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.tlp-step-tag::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6f9dff;
+}
+/* 注記は薄いパネルに入れて本文と分ける */
+.tlp-steps-note {
+  max-width: 860px;
+  margin: 24px auto 0;
+  padding: 12px 18px;
+  background: #fff;
+  border: 1px dashed #d5e0f2;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #64708a;
+}
+.tlp-steps-cta {
+  margin-top: 30px;
+}
+.tlp-steps-cta .tlp-btn {
+  box-shadow: 0 10px 24px -12px rgba(36, 86, 214, 0.6);
+}
+@media (max-width: 767px) {
+  .tlp-steps-title {
+    font-size: 24px;
+    padding-bottom: 14px;
+  }
+  .tlp-steps-grid {
+    margin-top: 28px;
+    gap: 16px;
+  }
+  .tlp-step {
+    padding: 24px 18px 22px;
+  }
+  .tlp-step-no {
+    font-size: 36px;
+  }
+  .tlp-steps-note {
+    padding: 10px 14px;
+    font-size: 12.5px;
+    text-align: left;
+  }
+}
