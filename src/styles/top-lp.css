@@ -1115,3 +1115,114 @@
     text-align: left;
   }
 }
+
+/* ===== 2026-11-19 t iku指示: FV左側コピーの刷新（焼き込み見出し→HTML） ===== */
+.tlp-hero-copy2 {
+  position: absolute;
+  left: 5.5%;
+  top: 50%;
+  z-index: 2;
+  width: 44%;
+  max-width: 640px;
+  transform: translateY(-50%);
+  line-height: 1.75;
+}
+.tlp-hero-eyebrow {
+  margin-bottom: 14px;
+  color: #cfe0ff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+}
+.tlp-hero-h1 {
+  color: #fff;
+  font-size: clamp(26px, 2.6vw, 40px);
+  font-weight: 900;
+  line-height: 1.36;
+  letter-spacing: 0.01em;
+  word-break: auto-phrase;
+  line-break: strict;
+  text-wrap: balance;
+  text-shadow: 0 2px 20px rgba(6, 16, 38, 0.35);
+}
+.tlp-hero-h2 {
+  margin-top: 16px;
+  color: #e8f0ff;
+  font-size: clamp(15px, 1.3vw, 19px);
+  word-break: auto-phrase;
+  font-weight: 800;
+  line-height: 1.65;
+}
+.tlp-hero-body {
+  margin-top: 14px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 14.5px;
+  line-height: 1.95;
+  word-break: auto-phrase;
+}
+.tlp-hero-ctas {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 22px;
+}
+.tlp-hero-sublink {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.tlp-hero-sublink-a {
+  color: #fff !important;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.tlp-hero-sublink-a:hover {
+  opacity: 0.85;
+}
+@media (max-width: 767px) {
+  .tlp-hero-copy2 {
+    position: static;
+    width: auto;
+    max-width: none;
+    transform: none;
+    padding: 20px 16px 8px;
+  }
+  .tlp-hero-eyebrow {
+    color: #2456d6;
+    font-size: 12.5px;
+    margin-bottom: 10px;
+  }
+  .tlp-hero-h1 {
+    color: var(--text);
+    font-size: 27px;
+    line-height: 1.4;
+    text-shadow: none;
+  }
+  .tlp-hero-h2 {
+    color: var(--text);
+    font-size: 16px;
+    margin-top: 12px;
+  }
+  .tlp-hero-body {
+    color: var(--text-sub);
+    font-size: 14px;
+    line-height: 1.9;
+  }
+  .tlp-hero-ctas {
+    margin-top: 18px;
+    gap: 10px;
+  }
+  .tlp-hero-sublink {
+    color: var(--text-sub);
+  }
+  .tlp-hero-sublink-a {
+    color: #2456d6 !important;
+  }
+}

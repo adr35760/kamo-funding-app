@@ -226,7 +226,6 @@ export default function TopLandingPage() {
             元の実装どおり下段の小さいコピーとCTAだけを重ねる。
             大見出しは画像内の文字なので、読み上げ・SEO用に sr-only の h1 を置く。 */}
         <section className="tlp-hero" aria-label="KAMOファンディング">
-          <h1 className="tlp-sr-only">{LP_HERO.srTitle}</h1>
           <div className="tlp-hero-frame">
             {/* KVはLCP。寸法を明示してレイアウトシフトを防ぐ */}
             <img
@@ -237,11 +236,11 @@ export default function TopLandingPage() {
               height={1152}
               fetchPriority="high"
             />
-            {/* 2026-11-16 t iku指示: 画像から消したサブコピーを、同じ位置・同じ大きさで重ねる */}
-            <p className="tlp-hero-sub">{LP_HERO.sub}</p>
-            <div className="tlp-hero-copy">
-              <p className="tlp-hero-lead">{LP_HERO.lead}</p>
-              {/* 2026-11-18 t iku指示: 青（個別相談）を主・赤（掲載説明会）を副にした2ボタン */}
+            <div className="tlp-hero-copy2">
+              <p className="tlp-hero-eyebrow">{LP_HERO.eyebrow}</p>
+              <h1 className="tlp-hero-h1">{LP_HERO.title}</h1>
+              <p className="tlp-hero-h2">{LP_HERO.sub}</p>
+              <p className="tlp-hero-body">{LP_HERO.description}</p>
               <div className="tlp-hero-ctas">
                 <a
                   className="tlp-btn tlp-btn-primary tlp-hero-cta tlp-hero-cta-main"
@@ -250,12 +249,12 @@ export default function TopLandingPage() {
                 >
                   {LP_HERO.cta}
                 </a>
-                <a
-                  className="tlp-btn tlp-hero-cta tlp-hero-cta-sub"
-                  href={LP_HERO.ctaSubHref}
-                >
-                  {LP_HERO.ctaSub}
-                </a>
+                <div className="tlp-hero-sublink">
+                  <span className="tlp-hero-sublink-lead">{LP_HERO.subCtaLead}</span>
+                  <a className="tlp-hero-sublink-a" href={LP_HERO.subCtaHref}>
+                    {LP_HERO.subCta} →
+                  </a>
+                </div>
               </div>
               <p className="tlp-hero-note">{LP_HERO.note}</p>
             </div>
