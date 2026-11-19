@@ -1226,3 +1226,83 @@
     color: #2456d6 !important;
   }
 }
+
+/* ===== 2026-11-19 t iku指示: FVの説明会導線を赤バナーに ===== */
+.tlp-hero-redbanner {
+  position: relative;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  overflow: hidden;
+  padding: 13px 20px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #eb0013 0%, #b8000e 100%);
+  color: #fff !important;
+  font-size: 14px;
+  line-height: 1.5;
+  text-decoration: none;
+  box-shadow: 0 8px 20px -10px rgba(235, 0, 19, 0.75);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.tlp-hero-redbanner:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 12px 26px -12px rgba(235, 0, 19, 0.85);
+}
+.tlp-hero-redbanner-lead {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.tlp-hero-redbanner-main {
+  font-size: 15.5px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.tlp-hero-redbanner-arrow {
+  font-weight: 900;
+  transition: transform 0.2s ease;
+}
+.tlp-hero-redbanner:hover .tlp-hero-redbanner-arrow {
+  transform: translateX(3px);
+}
+/* 光が横に流れる演出 */
+.tlp-hero-redbanner::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.35) 50%, rgba(255, 255, 255, 0) 100%);
+  animation: tlp-red-shine 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes tlp-red-shine {
+  0%,
+  62% {
+    left: -60%;
+  }
+  85%,
+  100% {
+    left: 120%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tlp-hero-redbanner::after {
+    animation: none;
+  }
+}
+@media (max-width: 767px) {
+  .tlp-hero-redbanner {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+  }
+  .tlp-hero-redbanner-main {
+    font-size: 15px;
+  }
+}

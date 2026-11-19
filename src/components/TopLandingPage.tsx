@@ -249,12 +249,14 @@ export default function TopLandingPage() {
                 >
                   {LP_HERO.cta}
                 </a>
-                <div className="tlp-hero-sublink">
-                  <span className="tlp-hero-sublink-lead">{LP_HERO.subCtaLead}</span>
-                  <a className="tlp-hero-sublink-a" href={LP_HERO.subCtaHref}>
-                    {LP_HERO.subCta} →
-                  </a>
-                </div>
+                {/* 2026-11-19 t iku指示: 説明会導線は赤バナーで目立たせる */}
+                <a className="tlp-hero-redbanner" href={LP_HERO.subCtaHref}>
+                  <span className="tlp-hero-redbanner-lead">{LP_HERO.subCtaLead}</span>
+                  <span className="tlp-hero-redbanner-main">{LP_HERO.subCta}</span>
+                  <span className="tlp-hero-redbanner-arrow" aria-hidden="true">
+                    →
+                  </span>
+                </a>
               </div>
               <p className="tlp-hero-note">{LP_HERO.note}</p>
             </div>
