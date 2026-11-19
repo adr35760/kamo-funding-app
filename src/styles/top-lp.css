@@ -1306,3 +1306,48 @@
     font-size: 15px;
   }
 }
+
+/* ===== 2026-11-19 t iku指示: 上下のバナーを同じ大きさに揃え、長くする ===== */
+.tlp-hero-ctas {
+  width: 100%;
+  max-width: 560px;
+}
+.tlp-hero-cta-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 14px 24px;
+  text-align: center;
+}
+.tlp-hero-redbanner {
+  width: 100%;
+  min-height: 56px;
+  justify-content: center;
+  padding: 12px 20px;
+}
+@media (max-width: 767px) {
+  .tlp-hero-ctas {
+    max-width: none;
+  }
+  .tlp-hero-cta-main,
+  .tlp-hero-redbanner {
+    min-height: 54px;
+  }
+  /* スマホでも2つを同じ高さに揃えるため、赤バナーは1行に収める */
+  .tlp-hero-redbanner {
+    flex-wrap: nowrap;
+    gap: 6px;
+    padding: 10px 14px;
+  }
+  .tlp-hero-redbanner-lead {
+    font-size: 11px;
+  }
+  .tlp-hero-redbanner-main {
+    font-size: 13.5px;
+  }
+  .tlp-hero-redbanner-arrow {
+    font-size: 13.5px;
+  }
+}
