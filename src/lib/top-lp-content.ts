@@ -39,7 +39,7 @@ export const LP_HERO = {
    * 2026-11-19 t iku指示: FVの左側コピーを全面差し替え。
    *   焼き込み見出しは画像から除去し、テキストはすべてHTMLで表示する。
    */
-  image: '/lp/kv-hero-20261119g.jpg',
+  image: '/lp/kv-hero-20261120.jpg',
   imageAlt: 'KAMOファンディングの担当者',
   eyebrow: '新商品・出版・店舗開業を、クラファンで実現したい方へ',
   title: 'その企画、クラファンでどう実現する？',
