@@ -265,6 +265,62 @@
   font-size: 13px;
 }
 
+/* ===== Z1.5 支援実績バナー（3ステップ見出しの直上・2026-11-20 t iku指示） =====
+   白カード・角丸・細い枠線＋やわらかい影。数値は緑系で強調。
+   セクション背景（#f6f8fc）はそのまま。 */
+.tlp-stats {
+  max-width: 900px;
+  margin: 0 auto 40px;
+  padding: 24px 28px 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(28, 31, 38, 0.06);
+}
+.tlp-stats-title {
+  text-align: center;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+.tlp-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+  text-align: center;
+}
+.tlp-stats-item {
+  min-width: 0;
+}
+.tlp-stats-value {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: #0f7a3d;
+  /* 数字は折り返さない（スマホでも1行で読めること） */
+  white-space: nowrap;
+}
+.tlp-stats-label {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+.tlp-stats-source {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--text-note);
+}
+
 /* ===== Z1.5 3ステップ（クラファン→商品化→メンター支援） =====
    依頼文のコピーをそのまま置く。提供前の02・03には「今後の構想」を付ける。 */
 .tlp-steps {
@@ -805,6 +861,9 @@
     padding: 14px 20px;
     font-size: 14.5px;
   }
+  .tlp-stats-value {
+    font-size: 28px;
+  }
   .tlp-steps-title {
     font-size: 24px;
   }
@@ -887,6 +946,26 @@
     /* 日本語の途中で折れないようにし、「、」で改行させる */
     word-break: keep-all;
     overflow-wrap: anywhere;
+  }
+  /* 支援実績バナー: 3列のまま。数字が折り返さない大きさに落とす */
+  .tlp-stats {
+    margin-bottom: 28px;
+    padding: 20px 12px 14px;
+  }
+  .tlp-stats-title {
+    font-size: 18px;
+  }
+  .tlp-stats-grid {
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .tlp-stats-value {
+    font-size: 26px;
+  }
+  .tlp-stats-source {
+    margin-top: 14px;
+    padding-top: 12px;
+    font-size: 11px;
   }
   .tlp-steps-grid {
     grid-template-columns: minmax(0, 1fr);

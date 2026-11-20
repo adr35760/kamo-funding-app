@@ -12,6 +12,7 @@ import {
   LP_FOLLOW,
   LP_FORM,
   LP_HERO,
+  LP_STATS,
   LP_STEPS,
   LP_TRUST,
   type LpCard,
@@ -266,6 +267,19 @@ export default function TopLandingPage() {
         {/* ===== Z1.5 3ステップ（クラファン→商品化→メンター支援） ===== */}
         <section className="tlp-steps" aria-label="クラファンから、その先の事業成長へ">
           <div className="tlp-inner">
+            {/* 2026-11-20 t iku指示: 3ステップ見出しの直上に支援実績バナー */}
+            <div className="tlp-stats">
+              <p className="tlp-stats-title">{LP_STATS.heading}</p>
+              <div className="tlp-stats-grid">
+                {LP_STATS.items.map((item) => (
+                  <div className="tlp-stats-item" key={item.label}>
+                    <div className="tlp-stats-value">{item.value}</div>
+                    <div className="tlp-stats-label">{item.label}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="tlp-stats-source">{LP_STATS.source}</p>
+            </div>
             <h2 className="tlp-steps-title">{LP_STEPS.heading}</h2>
             <div className="tlp-steps-grid">
               {LP_STEPS.items.map((step) => (
