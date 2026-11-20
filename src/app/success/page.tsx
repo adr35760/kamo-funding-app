@@ -247,7 +247,10 @@ export default function SuccessPage() {
       <section className="sc-cta">
         <div className="sc-container">
           <h2 className="sc-cta-title">
-            あなたの企画も、<span className="sc-gold">実現できる可能性</span>があります。
+            あなたの企画も、
+            <span className="sc-cta-tail">
+              <span className="sc-gold">実現できる可能性</span>があります。
+            </span>
           </h2>
           <p className="sc-cta-lead">
             目標金額やリターン、公開までの準備について、

@@ -200,7 +200,7 @@
   background: linear-gradient(135deg, #0B1D3A 0%, #14294F 100%);
   color: #fff; text-align: center;
 }
-.sc-cta-title .sc-gold { white-space: nowrap; }
+.sc-cta-title .sc-cta-tail { white-space: nowrap; }
 .sc-cta-title { font-size: 30px; font-weight: 900; line-height: 1.45; margin-bottom: 14px; }
 .sc-cta-lead { font-size: 15.5px; line-height: 1.85; color: rgba(255,255,255,0.8); margin-bottom: 26px; }
 .sc-cta-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px; }
