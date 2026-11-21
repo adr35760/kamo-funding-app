@@ -40,15 +40,57 @@
   border: 1px solid #C8901A;
   padding: 10px 22px; border-radius: 100px;
   letter-spacing: 0.01em;
-  white-space: nowrap; transition: all 0.2s;
-  box-shadow: 0 3px 12px rgba(200, 144, 26, 0.38);
+  white-space: nowrap; transition: background 0.2s, transform 0.2s;
+  /* 2026-11-22 t iku指示「光らせて」: 外側がゆっくり脈打つように光る */
+  animation: sc-cta-glow 2.8s ease-in-out infinite;
 }
-.site-header-nav a.site-header-cta-secondary { font-weight: 800; font-size: 13.5px; }
+.site-header-nav a.site-header-cta-secondary {
+  position: relative; overflow: hidden; isolation: isolate;
+  font-weight: 800; font-size: 13.5px;
+}
+/* 表面を斜めの光がすっと通り抜ける（金のバナーらしい艶） */
+.site-header-nav a.site-header-cta-secondary::after {
+  content: '';
+  position: absolute; top: -60%; left: -70%;
+  width: 55%; height: 240%;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.15) 35%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.15) 65%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  pointer-events: none;
+  animation: sc-cta-shine 2.6s ease-in-out infinite;
+}
+@keyframes sc-cta-shine {
+  0%   { left: -70%; }
+  55%  { left: 130%; }
+  100% { left: 130%; }
+}
+@keyframes sc-cta-glow {
+  0%, 100% {
+    box-shadow: 0 3px 12px rgba(200, 144, 26, 0.38), 0 0 0 rgba(255, 208, 84, 0);
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    box-shadow: 0 4px 18px rgba(200, 144, 26, 0.6), 0 0 22px rgba(255, 208, 84, 0.75);
+    filter: brightness(1.07) saturate(1.12);
+  }
+}
+/* 動きを減らす設定の環境では光らせない */
+@media (prefers-reduced-motion: reduce) {
+  .site-header-cta-secondary,
+  .site-header-nav a.site-header-cta-secondary::after { animation: none; }
+}
 .site-header-cta-secondary:hover {
   background: linear-gradient(135deg, #FFF2C9 0%, #F0C75E 52%, #D4A017 100%);
   color: #2A1F00 !important;
   transform: translateY(-1px);
-  box-shadow: 0 5px 16px rgba(200, 144, 26, 0.5);
+  animation-play-state: paused;
+  box-shadow: 0 5px 18px rgba(200, 144, 26, 0.6), 0 0 22px rgba(255, 208, 84, 0.7);
 }
 
 /* 掲載申込ボタン（主CTAの右横）。主CTAの赤とは別の役割なので紺系にする
