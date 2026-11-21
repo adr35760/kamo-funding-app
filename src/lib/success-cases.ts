@@ -113,7 +113,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
     id: 'first-challenge',
     label: '初めてクラファンに挑戦した人',
     lead:
-      '目標金額は30万〜100万円。全員が初めての挑戦で、必要な資金と仲間を集めました。支援総額の小さい順に並べています。',
+      '目標金額は30万〜100万円。小さく始めて、必要な資金と仲間を集めた6組です。支援総額の小さい順に並べています。',
     cases: [
       {
         slug: 'kurio01',
