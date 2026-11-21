@@ -38,11 +38,12 @@
   background: linear-gradient(135deg, #FFE9A8 0%, #E8B33A 52%, #C8901A 100%);
   color: #2A1F00 !important;
   border: 1px solid #C8901A;
-  padding: 10px 22px; border-radius: 100px; font-weight: 800; font-size: 13.5px;
+  padding: 10px 22px; border-radius: 100px;
   letter-spacing: 0.01em;
   white-space: nowrap; transition: all 0.2s;
   box-shadow: 0 3px 12px rgba(200, 144, 26, 0.38);
 }
+.site-header-nav a.site-header-cta-secondary { font-weight: 800; font-size: 13.5px; }
 .site-header-cta-secondary:hover {
   background: linear-gradient(135deg, #FFF2C9 0%, #F0C75E 52%, #D4A017 100%);
   color: #2A1F00 !important;
