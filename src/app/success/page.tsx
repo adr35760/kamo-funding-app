@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import SiteHeader from '@/components/SiteHeader';
+import StatsBanner from '@/components/StatsBanner';
+import { TOTAL_RAISED_LABEL } from '@/lib/site-stats';
 import {
   SUCCESS_CATEGORIES,
   CaseStory,
@@ -8,8 +10,6 @@ import {
   CASE_IMAGE_WIDTH,
   CASE_IMAGE_HEIGHT,
   publishedCaseCount,
-  maxAchievementRate,
-  CUMULATIVE_RAISED_ALL,
   CONSULT_ANCHOR,
   formatYen,
 } from '@/lib/success-cases';
@@ -28,7 +28,7 @@ const CASE_COUNT = publishedCaseCount();
 const META_DESCRIPTION =
   `KAMOファンディングで実現した挑戦の記録。初めてのクラウドファンディング、新サービスの立ち上げ、` +
   `店舗・出版・地域活動。${CASE_COUNT}件の事例を、挑戦前の状況・始めた理由・実施したこと・結果・感想で紹介します。` +
-  `累計支援総額${formatYen(CUMULATIVE_RAISED_ALL)}。`;
+  `累計支援総額は${TOTAL_RAISED_LABEL}（両サービス合計）。`;
 
 export const metadata: Metadata = {
   title: '成功事例 | KAMOファンディング',
@@ -170,7 +170,6 @@ function StoryCard({ item, index }: { item: CaseStory; index: number }) {
 }
 
 export default function SuccessPage() {
-  const maxRate = maxAchievementRate();
   let caseIndex = 0;
 
   return (
@@ -191,25 +190,9 @@ export default function SuccessPage() {
             から、自分の企画を進める手順が見えてきます。
           </p>
 
-          <div className="sc-stats">
-            <div className="sc-stat">
-              <div className="sc-stat-num">{formatYen(CUMULATIVE_RAISED_ALL)}</div>
-              <div className="sc-stat-label">KAMOファンディング累計支援総額</div>
-            </div>
-            <div className="sc-stat">
-              <div className="sc-stat-num">
-                {CASE_COUNT}
-                <span className="sc-unit">件</span>
-              </div>
-              <div className="sc-stat-label">掲載している事例</div>
-            </div>
-            <div className="sc-stat">
-              <div className="sc-stat-num">
-                {maxRate.toLocaleString('ja-JP')}
-                <span className="sc-unit">%</span>
-              </div>
-              <div className="sc-stat-label">掲載事例の最高達成率</div>
-            </div>
+          {/* 2026-11-21 t iku指示: 実績は3ページ共通のコンポーネントに統一（旧: sc-stats） */}
+          <div className="sc-stats-banner">
+            <StatsBanner />
           </div>
 
           <nav className="sc-nav" aria-label="事例のカテゴリ">

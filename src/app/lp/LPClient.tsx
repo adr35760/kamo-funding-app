@@ -7,7 +7,9 @@ import { formatEventDateJa, eventCardParts, cleanTitle, EventLike } from '@/lib/
 import SiteHeader from '@/components/SiteHeader';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
 import LegalFooter from '@/components/LegalFooter';
-import { NUM_JISSEKI, CONSULT_URL, CONSULT_MINUTES } from '@/lib/seminar-info-content';
+import { CONSULT_URL, CONSULT_MINUTES } from '@/lib/seminar-info-content';
+import StatsBanner from '@/components/StatsBanner';
+import { ACHIEVEMENT_RATE_LABEL, KAMO_RAISED_LABEL } from '@/lib/site-stats';
 
 interface EventOption extends EventLike {}
 
@@ -192,6 +194,13 @@ export default function LPClient({
         </div>
       </section>
 
+      {/* ===== 実績バナー（2026-11-21 t iku指示・3ページ共通コンポーネント） ===== */}
+      <section className="lp-stats-banner" aria-label="クラウドファンディング支援実績">
+        <div className="container">
+          <StatsBanner />
+        </div>
+      </section>
+
       {/* ===== 4 PILLARS ===== */}
       <section className="section section-alt" id="pillars">
         <div className="container">
@@ -207,7 +216,7 @@ export default function LPClient({
               <h3>掲載説明会（月2回）</h3>
               <p>KAMOファンディングの掲載方法から成功のコツまで、参加費無料で学べます。</p>
               <ul>
-                <li>KAMOファンディングの特徴 — 総支援額{NUM_JISSEKI}！達成率95%のノウハウの一端をご紹介</li>
+                <li>KAMOファンディングの特徴 — 累計支援総額{KAMO_RAISED_LABEL}！目標達成率{ACHIEVEMENT_RATE_LABEL}のノウハウの一端をご紹介</li>
                 <li>クラウドファンディングの集める構造を理解する — クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</li>
                 <li>応援支援で高額支援を集めるノウハウを伝授 — スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</li>
               </ul>

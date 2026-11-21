@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import '@/styles/top-lp.css';
 import SiteHeader from '@/components/SiteHeader';
+import StatsBanner from '@/components/StatsBanner';
 import LegalFooter from '@/components/LegalFooter';
 import { CONSULT_URL, CONSULT_MINUTES } from '@/lib/seminar-info-content';
 import {
@@ -12,7 +13,6 @@ import {
   LP_FOLLOW,
   LP_FORM,
   LP_HERO,
-  LP_STATS,
   LP_STEPS,
   LP_TRUST,
   type LpCard,
@@ -267,32 +267,9 @@ export default function TopLandingPage() {
         {/* ===== Z1.5 3ステップ（クラファン→商品化→メンター支援） ===== */}
         <section className="tlp-steps" aria-label="クラファンから、その先の事業成長へ">
           <div className="tlp-inner">
-            {/* 2026-11-20 t iku指示: 3ステップ見出しの直上に支援実績バナー */}
-            {/* 2026-11-21 t iku指示: 577件／約19.5億円／93.7% に統一し、累計支援総額の内訳を追加 */}
-            <div className="tlp-stats">
-              <p className="tlp-stats-title">{LP_STATS.heading}</p>
-              <div className="tlp-stats-grid">
-                {LP_STATS.items.map((item) => (
-                  <div className="tlp-stats-item" key={item.label}>
-                    <div className="tlp-stats-value">{item.value}</div>
-                    <div className="tlp-stats-label">{item.label}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="tlp-stats-breakdown">
-                <p className="tlp-stats-breakdown-title">{LP_STATS.breakdown.heading}</p>
-                <ul className="tlp-stats-breakdown-list">
-                  {LP_STATS.breakdown.items.map((item) => (
-                    <li className="tlp-stats-breakdown-item" key={item.label}>
-                      <span className="tlp-stats-dot" aria-hidden="true" />
-                      <span className="tlp-stats-breakdown-label">{item.label}</span>
-                      <span className="tlp-stats-breakdown-value">{item.value}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <p className="tlp-stats-source">{LP_STATS.source}</p>
-            </div>
+            {/* 2026-11-20 t iku指示: 3ステップ見出しの直上に支援実績バナー
+                2026-11-21 t iku指示: 3ページ共通の StatsBanner（コンパクトな横長）に置き換え */}
+            <StatsBanner className="tlp-stats-banner" />
             <h2 className="tlp-steps-title">{LP_STEPS.heading}</h2>
             <div className="tlp-steps-grid">
               {LP_STEPS.items.map((step) => (

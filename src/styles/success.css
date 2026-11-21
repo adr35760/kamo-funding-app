@@ -23,20 +23,9 @@
 .sc-nowrap { white-space: nowrap; }
 .sc-hero-lead { font-size: 16px; line-height: 1.85; color: rgba(255,255,255,0.82); }
 
-.sc-stats {
-  display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; margin-top: 30px;
-}
-.sc-stat {
-  flex: 1 1 220px; max-width: 300px;
-  background: rgba(255,255,255,0.07); border: 1px solid rgba(212,175,55,0.35);
-  border-radius: 12px; padding: 18px 16px;
-}
-.sc-stat-num {
-  font-family: var(--font-en); font-size: 27px; font-weight: 900;
-  color: var(--kamo-gold); line-height: 1.1; white-space: nowrap;
-}
-.sc-unit { font-size: 18px; margin-left: 2px; }
-.sc-stat-label { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 6px; font-weight: 600; }
+/* 2026-11-21 t iku指示: 実績は3ページ共通の StatsBanner（白カード）に統一した。
+   旧 .sc-stats（ダークな3枚カード）は廃止。ここは余白だけ持つ。 */
+.sc-stats-banner { margin-top: 26px; }
 
 /* ---- カテゴリ目次 ---- */
 .sc-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
@@ -229,9 +218,7 @@
   .sc-hero { padding: 40px 0 34px; }
   .sc-hero-title { font-size: 34px; }
   .sc-hero-lead { font-size: 14.5px; }
-  .sc-stats { gap: 10px; margin-top: 26px; }
-  .sc-stat { flex: 1 1 100%; max-width: none; padding: 14px; }
-  .sc-stat-num { font-size: 23px; }
+  .sc-stats-banner { margin-top: 22px; }
   .sc-nav { gap: 8px; margin-top: 20px; }
   .sc-nav-item { font-size: 12px; padding: 8px 14px; }
 

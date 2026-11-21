@@ -295,6 +295,20 @@ img { max-width: 100%; height: auto; }
   .stat-number .unit { font-size: 17px; }
 }
 
+/* ===== 実績バナー（2026-11-21 t iku指示・3ページ共通の StatsBanner） =====
+   ダークな STATS BAR の直後に、正式な実績表記の白カードを置く。
+   カード自体の見た目は src/styles/stats-banner.css が持つ（ここは余白のみ）。 */
+.lp-stats-banner {
+  /* 下は影の余白（カードの影がセクション境界で切れないように） */
+  padding: 36px 0 30px;
+  background: #fff;
+}
+/* 3ページでカード幅を揃える（トップは .tlp-inner の左右16px。ここも16pxに合わせる） */
+.lp-stats-banner .container { padding-left: 16px; padding-right: 16px; }
+@media (max-width: 768px) {
+  .lp-stats-banner { padding: 24px 0 22px; }
+}
+
 /* ===== SECTION COMMON ===== */
 .section { padding: 80px 0; }
 .section-alt { background: var(--kamo-light-bg); }

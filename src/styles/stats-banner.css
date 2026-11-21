@@ -1,0 +1,309 @@
+/* ===== 実績バナー（3ページ共通・2026-11-21 t iku指示） =====
+   トップ（/）・成功事例（/success）・掲載説明会LP（/lp）で同じ見た目にする。
+   🔴 各ページの色トークン（/lp の赤×金など）には依存させない。
+      色はこのファイル内で完結させる（白カード＋緑の数値＋金の上端ライン）。
+   🔴 PCの高さ160px以下が要件。上下の余白・行間は詰めて調整済み（変更時は実測すること）。 */
+
+.kamo-stats-banner {
+  --ksb-ink: #1c1f26;
+  --ksb-sub: #5b6270;
+  --ksb-note: #7c828d;
+  --ksb-line: #e6e8ee;
+  --ksb-green: #0f7a3d;
+  --ksb-gold: #c99a3f;
+
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 10px 24px 9px;
+  background: #fff;
+  border: 1px solid var(--ksb-line);
+  border-radius: 16px;
+  box-shadow: 0 10px 28px rgba(28, 31, 38, 0.08);
+  color: var(--ksb-ink);
+  /* 3ページで完全に同じ見た目にするため、フォントと基準サイズもここで固定する
+     （各ページの継承値に依存させない） */
+  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  text-align: center;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* カード上端の金のアクセント（2px） */
+.kamo-stats-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #e2c894, var(--ksb-gold) 30%, var(--ksb-gold) 70%, #e2c894);
+}
+
+.kamo-stats-banner__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  color: var(--ksb-ink);
+}
+
+/* 上段: 3つの数値を横1列（約19.5億円が長いので中列を広めに取る） */
+.kamo-stats-banner__grid {
+  display: grid;
+  grid-template-columns: 0.9fr 1.22fr 0.9fr;
+  margin-top: 1px;
+}
+
+.kamo-stats-banner__item {
+  min-width: 0;
+  padding: 0 6px;
+}
+
+/* 数値の間の細い縦区切り線（PC） */
+.kamo-stats-banner__item + .kamo-stats-banner__item {
+  border-left: 1px solid var(--ksb-line);
+}
+
+.kamo-stats-banner__value {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.005em;
+  color: var(--ksb-green);
+  font-variant-numeric: tabular-nums;
+  /* 数値は折り返さない */
+  white-space: nowrap;
+}
+
+.kamo-stats-banner__label {
+  margin: 1px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  color: var(--ksb-ink);
+  white-space: nowrap;
+}
+
+/* 93.7% の行はラベルが無いので、高さだけ確保して透明にする */
+.kamo-stats-banner__label.is-empty {
+  visibility: hidden;
+}
+
+.kamo-stats-banner__note {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--ksb-note);
+  white-space: nowrap;
+}
+
+/* 93.7%の補足（KAMOファンディングの目標達成率）は読み落とさないよう少し濃く */
+.kamo-stats-banner__note.is-strong {
+  font-weight: 700;
+  color: var(--ksb-sub);
+}
+
+/* 中段: 内訳（PCは1行） */
+.kamo-stats-banner__breakdown {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 5px;
+  padding-top: 6px;
+  border-top: 1px solid var(--ksb-line);
+}
+
+.kamo-stats-banner__breakdown-title {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  color: var(--ksb-ink);
+  white-space: nowrap;
+}
+
+.kamo-stats-banner__breakdown-list {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kamo-stats-banner__breakdown-item {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+/* 内訳の区切り（細い縦線） */
+.kamo-stats-banner__breakdown-item + .kamo-stats-banner__breakdown-item::before {
+  content: '';
+  align-self: center;
+  width: 1px;
+  height: 10px;
+  margin: 0 9px;
+  background: var(--ksb-line);
+}
+
+.kamo-stats-banner__breakdown-label {
+  color: var(--ksb-note);
+}
+
+.kamo-stats-banner__breakdown-value {
+  color: var(--ksb-ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.kamo-stats-banner__breakdown-item.is-total .kamo-stats-banner__breakdown-label {
+  color: var(--ksb-sub);
+  font-weight: 700;
+}
+
+/* 下段: 注記（1行） */
+.kamo-stats-banner__source {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ksb-note);
+  text-align: left;
+}
+
+/* ===== SP（≤767）: 数値3つは横3列を維持（数値26px・折り返さない）
+   内訳はラベル左・金額右の2〜3行、注記は2〜3行に折り返す ===== */
+@media (max-width: 767px) {
+  .kamo-stats-banner {
+    padding: 11px 10px 9px;
+    border-radius: 14px;
+  }
+
+  .kamo-stats-banner__title {
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+  }
+
+  .kamo-stats-banner__grid {
+    /* 3列を保つ。約19.5億円（中列）と「KAMOファンディングの目標達成率」（右列）が
+       長いので、その2列を広く取る（390pxで数値が折り返さない配分） */
+    grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.39fr) minmax(0, 1.12fr);
+    margin-top: 4px;
+  }
+
+  .kamo-stats-banner__item {
+    padding: 0 2px;
+  }
+
+  .kamo-stats-banner__value {
+    font-size: 26px;
+    line-height: 1.1;
+    /* 390pxで「577件｜約19.5億円」が窮屈にならないよう、ほんの少しだけ詰める */
+    letter-spacing: -0.02em;
+  }
+
+  .kamo-stats-banner__label {
+    margin-top: 2px;
+    font-size: 10.5px;
+    line-height: 1.25;
+  }
+
+  .kamo-stats-banner__note {
+    margin-top: 1px;
+    font-size: 10px;
+    line-height: 1.3;
+    white-space: normal;
+    /* 「KAMOファンディング／目標達成率」のように語の途中で切れないよう文節で折る
+       （非対応ブラウザは通常の折り返しになる） */
+    word-break: auto-phrase;
+    overflow-wrap: break-word;
+  }
+
+  .kamo-stats-banner__breakdown {
+    display: block;
+    margin-top: 8px;
+    padding-top: 7px;
+    text-align: left;
+  }
+
+  .kamo-stats-banner__breakdown-title {
+    display: block;
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  .kamo-stats-banner__breakdown-list {
+    display: grid;
+    gap: 1px;
+    justify-content: stretch;
+  }
+
+  .kamo-stats-banner__breakdown-item {
+    justify-content: space-between;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: normal;
+  }
+
+  /* SPは行が分かれるので区切り線は出さない */
+  .kamo-stats-banner__breakdown-item + .kamo-stats-banner__breakdown-item::before {
+    display: none;
+  }
+
+  .kamo-stats-banner__source {
+    margin-top: 6px;
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+}
+
+/* ===== 390px未満の保険（基準は390px。数値を少し落として折り返しと横はみ出しを防ぐ） ===== */
+@media (max-width: 389px) {
+  .kamo-stats-banner__value {
+    font-size: 24px;
+  }
+  .kamo-stats-banner__label {
+    font-size: 10px;
+  }
+  .kamo-stats-banner__note {
+    font-size: 9.5px;
+  }
+}
+
+@media (max-width: 374px) {
+  .kamo-stats-banner {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .kamo-stats-banner__value {
+    font-size: 23px;
+  }
+}
+
+/* 320〜360px級の小型端末（参考値。390pxが設計基準） */
+@media (max-width: 359px) {
+  .kamo-stats-banner__value {
+    font-size: 20px;
+  }
+  .kamo-stats-banner__label {
+    font-size: 9.5px;
+  }
+  .kamo-stats-banner__note {
+    font-size: 9px;
+  }
+}

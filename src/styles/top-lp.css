@@ -266,135 +266,10 @@
 }
 
 /* ===== Z1.5 支援実績バナー（3ステップ見出しの直上・2026-11-20 t iku指示） =====
-   白カード・角丸・細い枠線＋やわらかい影。数値は緑系で強調。
-   2026-11-21 t iku指示: 情報量が増えたので、見出し・数値の階層と内訳の区切りを整える。
-   上下の余白だけでは弱いので、カード上端にKAMOの金の細いラインを1本入れる。 */
-.tlp-stats {
-  position: relative;
-  max-width: 900px;
-  margin: 0 auto 44px;
-  padding: 32px 32px 18px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: 0 10px 28px rgba(28, 31, 38, 0.07);
-  overflow: hidden;
-}
-/* カード上端の金のアクセント（2px） */
-.tlp-stats::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #e2c894, #c99a3f 30%, #c99a3f 70%, #e2c894);
-}
-.tlp-stats-title {
-  text-align: center;
-  font-size: 19px;
-  font-weight: 800;
-  line-height: 1.5;
-  letter-spacing: 0.05em;
-  color: var(--text);
-}
-.tlp-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: start;
-  margin-top: 20px;
-  text-align: center;
-}
-.tlp-stats-item {
-  min-width: 0;
-  padding: 0 12px;
-}
-/* 数値の間の細い縦の区切り線（PCのみ）。スマホは縦積みにして横線に切り替える */
-.tlp-stats-item + .tlp-stats-item {
-  border-left: 1px solid var(--line);
-}
-.tlp-stats-value {
-  font-size: 42px;
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: 0.005em;
-  color: #0f7a3d;
-  font-variant-numeric: tabular-nums;
-  /* 数字は折り返さない（スマホでも1行で読めること） */
-  white-space: nowrap;
-}
-.tlp-stats-label {
-  margin-top: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.5;
-  letter-spacing: 0.02em;
-  color: var(--text-sub);
-  white-space: nowrap;
-}
-/* 累計支援総額の内訳（2件のチップ） */
-.tlp-stats-breakdown {
-  margin-top: 24px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
-}
-.tlp-stats-breakdown-title {
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.6;
-  letter-spacing: 0.04em;
-  color: var(--text);
-}
-.tlp-stats-breakdown-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 14px;
-  margin-top: 10px;
-  padding: 0;
-  list-style: none;
-}
-.tlp-stats-breakdown-item {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  min-width: 0;
-  padding: 10px 14px;
-  background: #fdfbf6;
-  border: 1px solid rgba(201, 154, 63, 0.24);
-  border-radius: 10px;
-}
-/* 内訳の金の点 */
-.tlp-stats-dot {
-  flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #c99a3f;
-  transform: translateY(-3px);
-}
-.tlp-stats-breakdown-label {
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.6;
-  color: var(--text-sub);
-  min-width: 0;
-}
-.tlp-stats-breakdown-value {
-  margin-left: auto;
-  font-size: 17px;
-  font-weight: 800;
-  line-height: 1.4;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.tlp-stats-source {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-  font-size: 12px;
-  line-height: 1.75;
-  color: var(--text-note);
+   2026-11-21 t iku指示: バナー本体は3ページ共通の StatsBanner に移した
+   （見た目・中身は src/styles/stats-banner.css が持つ）。ここはトップ側の余白だけ。 */
+.kamo-stats-banner.tlp-stats-banner {
+  margin-bottom: 44px;
 }
 
 /* ===== Z1.5 3ステップ（クラファン→商品化→メンター支援） =====
@@ -937,9 +812,6 @@
     padding: 14px 20px;
     font-size: 14.5px;
   }
-  .tlp-stats-value {
-    font-size: 34px;
-  }
   .tlp-steps-title {
     font-size: 24px;
   }
@@ -1023,50 +895,9 @@
     word-break: keep-all;
     overflow-wrap: anywhere;
   }
-  /* 支援実績バナー: スマホは3数値を縦積み（数字を折り返さない）・内訳も縦2行 */
-  .tlp-stats {
+  /* 支援実績バナー（StatsBanner）はスマホでも横3列を維持する。トップ側は余白だけ */
+  .kamo-stats-banner.tlp-stats-banner {
     margin-bottom: 28px;
-    padding: 22px 16px 16px;
-    border-radius: 14px;
-  }
-  .tlp-stats-title {
-    /* 390pxで1行に収めたうえで、左右に余白を残す */
-    font-size: 16px;
-    letter-spacing: 0.01em;
-  }
-  .tlp-stats-grid {
-    grid-template-columns: minmax(0, 1fr);
-    margin-top: 12px;
-  }
-  .tlp-stats-item {
-    padding: 12px 0;
-  }
-  /* 縦積みなので区切り線は横線にする */
-  .tlp-stats-item + .tlp-stats-item {
-    border-left: 0;
-    border-top: 1px solid var(--line);
-  }
-  .tlp-stats-value {
-    font-size: 34px;
-  }
-  .tlp-stats-breakdown {
-    margin-top: 16px;
-    padding-top: 14px;
-  }
-  .tlp-stats-breakdown-list {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-  }
-  .tlp-stats-breakdown-item {
-    padding: 9px 12px;
-  }
-  .tlp-stats-breakdown-value {
-    font-size: 16px;
-  }
-  .tlp-stats-source {
-    margin-top: 14px;
-    padding-top: 12px;
-    font-size: 11.5px;
   }
   .tlp-steps-grid {
     grid-template-columns: minmax(0, 1fr);

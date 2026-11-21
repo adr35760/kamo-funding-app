@@ -5,8 +5,8 @@
  *    ここを直せばページ全体に反映される（JSX側にコピーを直書きしない）。
  *
  * 🔴 数値は必ず既存の定数を参照する（直書き禁止）:
- *    - トップの実績数値（577件／約19.5億円／93.7%） → このファイル内の
- *      SUPPORTED_PROJECTS / TOTAL_RAISED_ALL / ACHIEVEMENT_RATE（LP_STATS・LP_TRUST が共有）
+ *    - トップの実績数値（577件／約19.5億円／93.7%） → site-stats.ts
+ *      （3ページ共通の StatsBanner と LP_TRUST が共有する唯一の情報源）
  *    - 紹介料率   → reward-calc.ts の REWARD_CONFIG.REFERRAL_REWARD_RATE
  *
  * 🔴 未確定のものは数字を作らない（§6 / §12）。伴走プロジェクト数は根拠が無いため
@@ -16,6 +16,13 @@
 import { CONSULT_MINUTES } from './seminar-info-content';
 import { REWARD_CONFIG } from './reward-calc';
 import { CONSULT_CATEGORIES, type ConsultCategory } from './consult-shared';
+import {
+  SUPPORTED_PROJECTS_LABEL,
+  TOTAL_RAISED_LABEL,
+  ACHIEVEMENT_RATE_LABEL,
+  STATS_PERIOD_NOTE,
+  STATS_DEFINITION,
+} from './site-stats';
 
 /** 万円未満を切り上げた「◯億◯,◯◯◯万円」表記（既存の実績表記と同じ切り上げ方針） */
 export function formatManYen(amount: number): string {
@@ -30,11 +37,6 @@ export function formatManYen(amount: number): string {
 /** 紹介料率の表示（0.02 → 2%） */
 function formatPercent(rate: number): string {
   return `${Math.round(rate * 1000) / 10}%`;
-}
-
-/** 億円単位の数値表記（19.5 / 16.88 / 2.6）。末尾の0は落とす */
-export function formatOkuYen(amount: number): string {
-  return parseFloat((amount / 100_000_000).toFixed(2)).toString();
 }
 
 // ===== Z1 ファーストビュー =====
@@ -173,34 +175,23 @@ export const LP_CARDS: LpCard[] = [
   },
 ];
 
-// ===== 実績数値（2026-11-21 t iku指定・トップの表示はすべてここを参照する） =====
+// ===== 実績数値（2026-11-21 t iku指定） =====
 /**
- * 🔴 トップページの実績数値は**この4つだけ**を正とする（JSX・他ファイルに直書きしない）。
- *    LP_STATS（3ステップ上のバナー）と LP_TRUST（ページ下部の実績欄）の両方が参照する。
- *    旧値（16億8,752万円／95%）はトップからは使わない。
- *    ※ success-cases.ts の CUMULATIVE_RAISED_ALL は /success 等の他ページが使っているので触らない。
+ * 🔴 実績数値は src/lib/site-stats.ts が唯一の情報源。
+ *    トップのバナー（StatsBanner）・下部の実績欄（LP_TRUST）・メタdescription は
+ *    すべてそこを参照する（このファイルにも各ページにも数値を直書きしない）。
+ *    旧値（16億8,752万円／95%）はトップでは使わない。
  */
-/** 支援実績（プロジェクト）件数・5年間 */
-export const SUPPORTED_PROJECTS = 577;
-/** 累計支援総額（円）・5年間 */
-export const TOTAL_RAISED_ALL = 1_950_000_000;
-/** 目標達成率（%）・5年間 */
-export const ACHIEVEMENT_RATE = 93.7;
-/** 累計支援総額の内訳（円）。合計が約19.5億円になる */
-export const RAISED_BREAKDOWN = [
-  { label: 'KAMOファンディング', amount: 1_688_000_000 },
-  { label: '未来の扉（サポート案件）', amount: 260_000_000 },
-] as const;
-
-export const SUPPORTED_PROJECTS_LABEL = `${SUPPORTED_PROJECTS}件`;
-export const TOTAL_RAISED_LABEL = `約${formatOkuYen(TOTAL_RAISED_ALL)}億円`;
-export const ACHIEVEMENT_RATE_LABEL = `${ACHIEVEMENT_RATE}%`;
-
-/** 実績の定義文（LP_STATS・LP_TRUST で共有） */
-const STATS_PERIOD_NOTE = '※集計期間は過去5年間です。';
-const STATS_DEFINITION =
-  '累計支援総額は、KAMOファンディングが関与したプロジェクトの累計支援総額です。' +
-  '平均達成率は、掲載プロジェクトの目標達成率の平均です。';
+export {
+  SUPPORTED_PROJECTS,
+  TOTAL_RAISED_ALL,
+  ACHIEVEMENT_RATE,
+  RAISED_BREAKDOWN,
+  SUPPORTED_PROJECTS_LABEL,
+  TOTAL_RAISED_LABEL,
+  ACHIEVEMENT_RATE_LABEL,
+  formatOkuYen,
+} from './site-stats';
 
 // ===== Z4 信頼性 =====
 export const LP_TRUST = {
@@ -214,34 +205,9 @@ export const LP_TRUST = {
   /**
    * 2026-11-08 t iku指示: 実績数値には定義を添え、確認済みの値だけを載せる。
    *   未確定の「伴走プロジェクト数」は表示しない（実績準備中も置かない）。
-   * 2026-11-21 t iku指示: 集計期間（5年間）を明記。内訳の説明はバナー側にだけ足す。
+   * 2026-11-21 t iku指示: 集計期間（直近5年間）を明記。内訳の説明はバナー側にだけ足す。
    */
   source: `${STATS_PERIOD_NOTE}${STATS_DEFINITION}`,
-} as const;
-
-// ===== Z1.5 支援実績バナー（3ステップ見出しの直上） =====
-/**
- * 2026-11-20 t iku指示: 「クラファンから、その先の事業成長へ」の直上に
- * 「5年間のクラウドファンディング支援実績」の横長バナーを置く。
- * 2026-11-21 t iku指示: 見出し・数値を確定（577件／約19.5億円／93.7%）＋内訳2件を追加。
- *   数値は上部の定数（SUPPORTED_PROJECTS 等）を参照し、LP_TRUST と同じ組み合わせにする。
- */
-export const LP_STATS = {
-  heading: '5年間のクラウドファンディング支援実績',
-  items: [
-    { value: SUPPORTED_PROJECTS_LABEL, label: '支援実績' },
-    { value: TOTAL_RAISED_LABEL, label: '累計支援総額' },
-    { value: ACHIEVEMENT_RATE_LABEL, label: '目標達成率' },
-  ],
-  /** 累計支援総額の内訳（ラベル＋金額） */
-  breakdown: {
-    heading: '累計支援総額の内訳',
-    items: RAISED_BREAKDOWN.map((item) => ({
-      label: item.label,
-      value: `${formatOkuYen(item.amount)}億円`,
-    })),
-  },
-  source: `${STATS_PERIOD_NOTE}${STATS_DEFINITION}内訳は、KAMOファンディングのプロジェクトと、未来の扉のサポート案件の合計です。`,
 } as const;
 
 // ===== Z5 最終CTA / Z6 追従CTA =====
