@@ -66,7 +66,8 @@ export const STATS_BANNER = {
     { value: ACHIEVEMENT_RATE_LABEL, label: '', note: 'KAMOファンディングの目標達成率', emphasis: true },
   ],
   breakdown: {
-    heading: '累計支援総額の内訳',
+    // 内訳の合計（16.88＋2.6＝19.48億）は見出しの約19.5億と完全一致しないため「主な内訳」と明記する（t iku指示 2026-11-22）
+    heading: '累計支援総額の主な内訳',
     items: RAISED_BREAKDOWN.map((item) => ({
       label: item.label,
       value: `${formatOkuYen(item.amount)}億円`,

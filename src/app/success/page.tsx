@@ -153,7 +153,7 @@ function StoryCard({ item, index }: { item: CaseStory; index: number }) {
                 <dd>{formatYen(item.raised)}</dd>
               </div>
               <div className="sc-story-result">
-                <dt>支援者数</dt>
+                <dt>支援数</dt>
                 <dd>
                   {item.supporters.toLocaleString('ja-JP')}
                   <span className="sc-story-unit">人</span>
@@ -306,7 +306,7 @@ export default function SuccessPage() {
               <span>03</span>支援の工夫
             </li>
             <li>
-              <span>04</span>結果（支援総額・支援者数・達成率）
+              <span>04</span>結果（支援総額・支援数・達成率）
             </li>
             <li>
               <span>05</span>成功のポイント
@@ -355,9 +355,8 @@ export default function SuccessPage() {
             <li>「目標金額はいくらに設定すればいいのか？」</li>
           </ul>
           <p className="sc-cta-lead">
-            そんな疑問をお持ちの方は、まず無料の個別相談をご利用ください。
-            これまでの支援経験をもとに、あなたの企画にクラファンが適しているか、
-            公開までに何を準備すればよいかを一緒に整理します。
+            まずは{CONSULT_MINUTES}分の無料個別相談で、あなたの企画についてお聞かせください。
+            企画内容や目標金額、公開までの準備について一緒に整理します。
           </p>
           <div className="sc-cta-actions">
             <a
@@ -374,13 +373,14 @@ export default function SuccessPage() {
           </p>
 
           <p className="sc-cta-flow">
-            掲載をご希望の場合は、無料掲載説明会へのご参加が必須です。
-            説明会でクラウドファンディングの仕組みと掲載までの流れをご案内したうえで、
-            個別にご相談を承ります。
+            なお、正式な掲載に進む際は、無料掲載説明会への参加が必要です。
+            説明会では、掲載条件や手数料、公開までの流れをご案内します。
           </p>
 
           <div className="sc-cta-sub-block">
-            <p className="sc-cta-sub-label">まずはクラファンの仕組みを知りたい方はこちら</p>
+            <p className="sc-cta-sub-label">
+              まず全体像を知りたい方は、無料掲載説明会からご参加いただくこともできます。
+            </p>
             <a href="/seminar-info#schedule" className="sc-cta-sub-link">
               無料掲載説明会の日程を確認する →
             </a>
@@ -390,11 +390,11 @@ export default function SuccessPage() {
 
       <div className="sc-footer">
         <p className="sc-source">
-          掲載している金額・達成率・支援者数・募集期間は、各プロジェクトページ（
+          掲載している金額・達成率・支援数・募集期間は、各プロジェクトページ（
           <a href="https://www.kamofunding.com/" target="_blank" rel="noopener noreferrer">
             KAMOファンディング公式サイト
           </a>
-          ）の記載のままです。支援者数は各ページの「支援数」の値です。開始日がページに記載されていない事例は、募集終了日のみを表示しています。
+          ）の「支援数」の記載のままです。開始日がページに記載されていない事例は、募集終了日のみを表示しています。
         </p>
         <p className="sc-source">
           挑戦の背景・企画内容・支援の工夫・成功のポイントは、各プロジェクトページに記載の内容を整理したものです。成果を保証するものではありません。
