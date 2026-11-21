@@ -1,10 +1,8 @@
 import type { Metadata } from 'next';
 import SiteHeader from '@/components/SiteHeader';
 import StatsBanner from '@/components/StatsBanner';
-import {
-  SUPPORTED_PROJECTS_LABEL,
-  TOTAL_RAISED_LABEL,
-} from '@/lib/site-stats';
+import { TOTAL_RAISED_LABEL } from '@/lib/site-stats';
+import { CONSULT_URL, CONSULT_MINUTES } from '@/lib/seminar-info-content';
 import {
   SUCCESS_CATEGORIES,
   CaseStory,
@@ -13,8 +11,8 @@ import {
   CASE_IMAGE_WIDTH,
   CASE_IMAGE_HEIGHT,
   publishedCaseCount,
-  CONSULT_ANCHOR,
   formatYen,
+  formatManYen,
 } from '@/lib/success-cases';
 import '@/styles/kamo-icons.css';
 import '@/styles/success.css';
@@ -28,6 +26,18 @@ import LegalFooter from '@/components/LegalFooter';
  * 文章は各プロジェクトページに書かれている事実のみで構成する。
  */
 const CASE_COUNT = publishedCaseCount();
+
+/**
+ * 冒頭の事例一覧に並べる全事例（カテゴリ順）。
+ * 一覧は「自分に近い挑戦を探す」ためのものなので、
+ * 金額で序列をつけず、掲載順のまま同じ扱いで並べる。
+ */
+const CASE_INDEX = SUCCESS_CATEGORIES.flatMap(category =>
+  category.cases.map(item => ({
+    item,
+    label: item.subLabel ?? category.shortLabel,
+  })),
+);
 
 const META_DESCRIPTION =
   `KAMOファンディングで実現した挑戦の記録。初めてのクラウドファンディング、新サービスの立ち上げ、` +
@@ -180,6 +190,7 @@ function StoryCard({ item, index }: { item: CaseStory; index: number }) {
             </ol>
             {item.voice && (
               <blockquote className="sc-story-voice">
+                <p className="sc-story-voice-label">{item.voiceLabel ?? '実行者の言葉'}</p>
                 <p>{item.voice}</p>
                 <cite className="sc-story-source">（{item.voiceSource}）</cite>
               </blockquote>
@@ -190,7 +201,9 @@ function StoryCard({ item, index }: { item: CaseStory; index: number }) {
             <p className="sc-story-cta-title">
               <span className="sc-story-num">06</span>あなたの企画も相談してみませんか？
             </p>
-            <a href={CONSULT_ANCHOR}>無料で企画を相談する →</a>
+            <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer">
+              無料で企画を相談する →
+            </a>
           </div>
         </div>
       </div>
@@ -223,6 +236,11 @@ export default function SuccessPage() {
             <StatsBanner />
           </div>
 
+          {/* 2026-11-22 t iku指示: 実績バナーの直下に掲載件数を小さく出す */}
+          <p className="sc-hero-count">
+            掲載している成功事例：<strong>{CASE_COUNT}</strong>件
+          </p>
+
           <nav className="sc-nav" aria-label="事例のカテゴリ">
             {SUCCESS_CATEGORIES.map((category, i) => (
               <a className="sc-nav-item" href={`#${category.id}`} key={category.id}>
@@ -231,6 +249,45 @@ export default function SuccessPage() {
               </a>
             ))}
           </nav>
+        </div>
+      </section>
+
+      {/* ===== 事例一覧（2026-11-22 t iku指示: 冒頭で事例を選べる一覧） ===== */}
+      <section className="sc-index">
+        <div className="sc-container">
+          <h2 className="sc-index-title">あなたに近い挑戦を探してみてください</h2>
+          <p className="sc-index-lead">
+            興味のある事例を選ぶと、詳しい取り組みと結果をご覧いただけます。
+          </p>
+
+          <ul className="sc-index-list">
+            {CASE_INDEX.map(({ item, label }) => (
+              <li key={item.slug}>
+                <a className="sc-index-card" href={`#${item.slug}`}>
+                  {item.hasImage && (
+                    <span className="sc-index-media">
+                      <img
+                        src={caseImage(item.slug)}
+                        alt=""
+                        width={CASE_IMAGE_WIDTH}
+                        height={CASE_IMAGE_HEIGHT}
+                        loading="lazy"
+                        className="sc-index-image"
+                      />
+                    </span>
+                  )}
+                  <span className="sc-index-body">
+                    <span className="sc-index-label">{label}</span>
+                    <span className="sc-index-heading">{item.heading}</span>
+                    <span className="sc-index-raised">
+                      <span className="sc-index-raised-label">支援総額</span>
+                      {formatManYen(item.raised)}
+                    </span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
@@ -262,8 +319,12 @@ export default function SuccessPage() {
       </section>
 
       {/* ===== CATEGORIES ===== */}
-      {SUCCESS_CATEGORIES.map(category => (
-        <section className="sc-category" key={category.id} id={category.id}>
+      {SUCCESS_CATEGORIES.map((category, i) => (
+        <section
+          className={`sc-category${i % 2 === 1 ? ' is-alt' : ''}`}
+          key={category.id}
+          id={category.id}
+        >
           <div className="sc-container">
             <div className="sc-category-head">
               <h2 className="sc-category-title">{category.label}</h2>
@@ -286,23 +347,31 @@ export default function SuccessPage() {
         <div className="sc-container">
           <h2 className="sc-cta-title">次に挑戦するのは、あなたです。</h2>
           <p className="sc-cta-sub">
-            あなたの夢や事業も、クラウドファンディングで実現しませんか？
+            あなたの企画も、クラファンで実現できるかもしれません。
           </p>
+          <ul className="sc-cta-questions">
+            <li>「自分の企画でもクラファンができるのか？」</li>
+            <li>「どんなリターンを用意すればいいのか？」</li>
+            <li>「目標金額はいくらに設定すればいいのか？」</li>
+          </ul>
           <p className="sc-cta-lead">
-            これまで5年間で{SUPPORTED_PROJECTS_LABEL}、累計{TOTAL_RAISED_LABEL}の支援実績。
-            <br className="sc-br-pc" />
-            私たちは、あなたの企画や想いを伺い、クラウドファンディングが適しているか、
-            どんな準備が必要かを一緒に整理します。
-            <br className="sc-br-pc" />
-            まだ企画が固まっていなくても大丈夫です。
-            まずは、あなたの実現したいことを聞かせてください。
+            そんな疑問をお持ちの方は、まず無料の個別相談をご利用ください。
+            これまでの支援経験をもとに、あなたの企画にクラファンが適しているか、
+            公開までに何を準備すればよいかを一緒に整理します。
           </p>
           <div className="sc-cta-actions">
-            <a href={CONSULT_ANCHOR} className="sc-cta-main">
-              あなたの企画を無料で相談する →
+            <a
+              href={CONSULT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sc-cta-main"
+            >
+              {CONSULT_MINUTES}分の無料個別相談を予約する
             </a>
           </div>
-          <p className="sc-cta-note">45分・初回相談無料</p>
+          <p className="sc-cta-note">
+            ※相談は無料です。掲載手数料や有償サポート費用については別途ご案内します。
+          </p>
 
           <p className="sc-cta-flow">
             掲載をご希望の場合は、無料掲載説明会へのご参加が必須です。

@@ -28,6 +28,70 @@
    旧 .sc-stats（ダークな3枚カード）は廃止。ここは余白だけ持つ。 */
 .sc-stats-banner { margin-top: 26px; }
 
+/* 2026-11-22 t iku指示: 実績バナーの直下の掲載件数（小さく1行） */
+.sc-hero-count {
+  margin-top: 12px; font-size: 12.5px; font-weight: 700;
+  letter-spacing: 0.02em; color: rgba(255,255,255,0.75);
+}
+.sc-hero-count strong {
+  font-family: var(--font-en); font-size: 15px; font-weight: 900;
+  color: var(--kamo-gold); margin: 0 1px;
+}
+
+/* ---- 事例一覧（冒頭で事例を選ぶ） ---- */
+.sc-index { background: #fff; padding: 46px 0 34px; border-bottom: 1px solid var(--kamo-border); }
+.sc-index-title {
+  font-size: 24px; font-weight: 900; line-height: 1.5;
+  color: var(--kamo-dark); text-align: center;
+}
+.sc-index-lead {
+  margin-top: 8px; margin-bottom: 26px;
+  font-size: 13.5px; line-height: 1.8; color: var(--kamo-gray); text-align: center;
+}
+.sc-index-list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px;
+}
+.sc-index-list > li { min-width: 0; }
+.sc-index-card {
+  display: flex; flex-direction: column; height: 100%;
+  background: #fff; border: 1px solid var(--kamo-border); border-radius: 12px;
+  overflow: hidden; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.sc-index-card:hover {
+  transform: translateY(-2px); border-color: var(--kamo-gold);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+}
+.sc-index-card:focus-visible { outline: 3px solid var(--kamo-gold); outline-offset: 2px; }
+/* 画像は16:9のまま（文字が焼き込まれているので切り抜かない） */
+.sc-index-media {
+  display: block; aspect-ratio: 16 / 9; background: #F2F3F5; overflow: hidden;
+}
+.sc-index-image { display: block; width: 100%; height: 100%; object-fit: contain; }
+.sc-index-body {
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 11px 12px 13px; min-width: 0;
+}
+.sc-index-label {
+  align-self: flex-start; max-width: 100%;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.02em;
+  color: #9A7B3F; background: #FFF5E0; border: 1px solid #E6D3A3;
+  border-radius: 100px; padding: 2px 9px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.sc-index-heading {
+  font-size: 13.5px; font-weight: 900; line-height: 1.55;
+  color: var(--kamo-dark); overflow-wrap: anywhere;
+}
+.sc-index-raised {
+  margin-top: auto; padding-top: 6px;
+  display: flex; align-items: baseline; gap: 6px;
+  font-family: var(--font-en); font-size: 14px; font-weight: 900; color: var(--kamo-red);
+}
+.sc-index-raised-label {
+  font-family: var(--font-jp); font-size: 10.5px; font-weight: 700; color: #9AA0A6;
+}
+
 /* ---- カテゴリ目次 ---- */
 .sc-nav { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
 .sc-nav-item {
@@ -63,7 +127,8 @@
 
 /* ---- CATEGORY ---- */
 .sc-category { padding: 52px 0 24px; }
-.sc-category:nth-of-type(even) { background: #FAFAFA; }
+/* 背景の縞はセクションの並び順に依存させない（事例一覧の追加で崩れるため） */
+.sc-category.is-alt { background: #FAFAFA; }
 .sc-category-head {
   display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
   padding-left: 14px; border-left: 5px solid var(--kamo-red);
@@ -85,6 +150,8 @@
 .sc-story {
   background: #fff; border: 1px solid var(--kamo-border); border-radius: 16px;
   overflow: hidden; box-shadow: 0 2px 14px rgba(0,0,0,0.05);
+  /* ヘッダー（PC61px／SP47px）が固定なので、一覧から飛んだとき見出しが隠れないようにする */
+  scroll-margin-top: 80px;
 }
 
 /* 見出しブロック（画像＋見出し） */
@@ -232,6 +299,12 @@
   padding: 13px 15px; border-radius: 0 8px 8px 0;
 }
 .sc-story-voice p { font-size: 13px; line-height: 1.9; color: #4A4F57; }
+/* 引用の種類（実施後の報告／実施後の感想／実行者の想い／実施中の報告） */
+.sc-story-voice .sc-story-voice-label {
+  display: inline-block; font-size: 10.5px; font-weight: 900; letter-spacing: 0.04em;
+  color: #9A7B3F; background: #fff; border: 1px solid #E6D3A3; border-radius: 4px;
+  padding: 2px 8px; margin-bottom: 8px; line-height: 1.6;
+}
 .sc-story-source { display: block; font-size: 11px; color: #9AA0A6; text-align: right; margin-top: 7px; font-style: normal; }
 
 /* 06 各事例のCTA（最後の大きなCTAより弱く見せる） */
@@ -260,6 +333,20 @@
 .sc-cta-sub { font-size: 19px; font-weight: 700; line-height: 1.6; margin-bottom: 20px; }
 .sc-cta-lead { font-size: 15.5px; line-height: 1.9; color: rgba(255,255,255,0.82); margin-bottom: 26px; }
 .sc-cta-note { margin-top: 12px; font-size: 13px; color: rgba(255,255,255,0.7); letter-spacing: 0.02em; }
+/* 相談前に抱きがちな3つの疑問（2026-11-22 t iku指示の原稿） */
+.sc-cta-questions {
+  list-style: none; margin: 0 auto 20px; padding: 0; max-width: 720px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sc-cta-questions li {
+  position: relative; padding-left: 22px;
+  font-size: 15.5px; font-weight: 700; line-height: 1.8;
+  color: rgba(255,255,255,0.92); text-align: left;
+}
+.sc-cta-questions li::before {
+  content: ''; position: absolute; left: 4px; top: 12px;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--kamo-gold);
+}
 .sc-cta-flow {
   max-width: 660px; margin: 26px auto 0; padding-top: 22px;
   border-top: 1px solid rgba(255,255,255,0.18);
@@ -290,6 +377,11 @@
 .sc-source a { color: rgba(255,255,255,0.75); text-decoration: underline; }
 
 /* ---- SP ---- */
+@media (max-width: 1024px) {
+  /* 4列だと1枚が狭くなりすぎる幅では3列にする */
+  .sc-index-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 @media (max-width: 900px) {
   .sc-story-head { grid-template-columns: 1fr; align-items: stretch; }
 }
@@ -302,6 +394,20 @@
   .sc-stats-banner { margin-top: 22px; }
   .sc-nav { gap: 8px; margin-top: 20px; }
   .sc-nav-item { font-size: 12px; padding: 8px 14px; }
+
+  .sc-hero-count { font-size: 11.5px; margin-top: 10px; }
+  .sc-hero-count strong { font-size: 14px; }
+
+  .sc-index { padding: 32px 0 26px; }
+  .sc-index-title { font-size: 19px; line-height: 1.5; }
+  .sc-index-lead { font-size: 12.5px; margin-top: 6px; margin-bottom: 20px; }
+  .sc-index-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .sc-index-body { padding: 9px 10px 11px; gap: 6px; }
+  .sc-index-label { font-size: 10px; padding: 2px 7px; }
+  .sc-index-heading { font-size: 12.5px; line-height: 1.55; }
+  .sc-index-raised { font-size: 13px; }
+
+  .sc-story { scroll-margin-top: 74px; }
 
   .sc-guide { padding: 14px 0; }
   .sc-guide-title { font-size: 12px; margin-bottom: 8px; }
@@ -345,8 +451,10 @@
   .sc-cta-title { font-size: 22px; }
   .sc-cta-sub { font-size: 15px; margin-bottom: 16px; }
   .sc-cta-lead { font-size: 14px; }
+  .sc-cta-questions { gap: 6px; margin-bottom: 16px; }
+  .sc-cta-questions li { font-size: 13.5px; line-height: 1.75; padding-left: 18px; }
+  .sc-cta-questions li::before { top: 10px; width: 6px; height: 6px; }
   .sc-cta-flow { font-size: 12.5px; line-height: 1.9; }
   .sc-cta-sub-label { font-size: 12.5px; }
-  .sc-br-pc { display: none; }
   .sc-cta-main { width: 100%; text-align: center; font-size: 16px; padding: 16px 20px; }
 }

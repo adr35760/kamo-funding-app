@@ -16,8 +16,14 @@
 
 const PROJECT_BASE_URL = 'https://www.kamofunding.com/projects';
 
-/** 無料相談の導線（トップの相談フォーム） */
-export const CONSULT_ANCHOR = '/#consult';
+/**
+ * 無料相談の導線。
+ * 2026-11-22 t iku指示: 相談ボタンはトップ（/#consult）に戻さず、
+ * Googleカレンダーの予約ページへ直接つなぐ。
+ * 予約URLは src/lib/seminar-info-content.ts の CONSULT_URL だけを正とする
+ * （このファイルにも各ページにもURLを直書きしない）。
+ */
+export { CONSULT_URL as CONSULT_LINK } from './seminar-info-content';
 
 /** 事例カードの画像サイズ（16:9）。画像内に文字が焼き込まれているため切り抜かない。 */
 export const CASE_IMAGE_WIDTH = 1024;
@@ -82,7 +88,25 @@ export interface CaseStory {
   voice?: string;
   /** コメントの出典表記（例「終了後の報告より」） */
   voiceSource?: string;
+  /**
+   * コメントの種類（引用の上に出す小さなラベル）。
+   * 2026-11-22 t iku指示: 「実行者の感想」と一括りにすると、
+   * 実施前の想いまで実施後の感想に見えるため、出典と本文に合わせて分ける。
+   * 出典が実施前（プロフィール・メッセージ・開始前の想い）→ 実行者の想い
+   * 終了後・達成・活動報告 → 実施後の報告
+   * 実施後の気持ち・振り返り → 実施後の感想
+   * 実施中（終了前）の報告 → 実施中の報告
+   */
+  voiceLabel?: VoiceLabel;
 }
+
+/** 引用ラベルの種類 */
+export type VoiceLabel =
+  | '実施後の報告'
+  | '実施後の感想'
+  | '実行者の想い'
+  | '実施中の報告'
+  | '実行者の言葉';
 
 /**
  * 他ページ（/seminar-info の実績セクション）が slug で引用する事例。
@@ -102,6 +126,8 @@ export interface SuccessCategory {
   id: string;
   /** カテゴリ見出し（t iku 指定の3分類） */
   label: string;
+  /** 事例一覧カード用の短いラベル（カテゴリ見出しは長いため） */
+  shortLabel: string;
   /** カテゴリの補足（1文） */
   lead: string;
   cases: CaseStory[];
@@ -111,6 +137,7 @@ export interface SuccessCategory {
 export const SUCCESS_CATEGORIES: SuccessCategory[] = [
   {
     id: 'first-challenge',
+    shortLabel: '初めての挑戦',
     label: '初めてクラファンに挑戦した人',
     lead:
       '目標金額は30万〜100万円。小さく始めて、必要な資金と仲間を集めた6組です。支援総額の小さい順に並べています。',
@@ -148,6 +175,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '世界大会で初出場初優勝した後、「私1人ではこの挑戦に押しつぶされていたと思います。みんなの応援が私に挑戦する力をくれていた」と報告している。',
         voiceSource: '結果報告より',
+        voiceLabel: '実施後の報告',
       },
       {
         slug: 'goto01',
@@ -181,6 +209,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '大会後、「41歳のサラリーマンが、世界選手権のコートに立ちました」「『もう年だから』は、ぜんぶ言い訳だった。これを、この身体で証明できた」と報告している。',
         voiceSource: '終了後の活動報告より',
+        voiceLabel: '実施後の報告',
       },
       {
         slug: 'airi01',
@@ -214,6 +243,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '終了間際の報告で「KAMOファンディングが無ければ、鴨さんがいなければ、私は留学を諦めていた」と綴っている。',
         voiceSource: '活動報告より',
+        voiceLabel: '実施中の報告',
       },
       {
         slug: 'uma',
@@ -247,6 +277,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '「このクラファンに挑戦して、改めて自分を見つめ直すきっかけになった」と振り返っている。なぜ自分がやるのか、自分じゃなきゃダメな理由は何かを問われ、答えは「撮影馬の乗馬クラブを作りたいから」だと気づいたという。',
         voiceSource: 'プロジェクトページの追記より',
+        voiceLabel: '実施後の感想',
       },
       {
         slug: 'matsukura02',
@@ -280,6 +311,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '「今はその熱を、自分だけで終わらせない。次は“誰かの人生に火をつける側”へ」とプロフィールで語る。一度きりの人生を燃やしきりたい、とページを締めくくっている。',
         voiceSource: '掲載ページより',
+        voiceLabel: '実行者の想い',
       },
       {
         slug: 'kanourie02',
@@ -313,11 +345,13 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '起業して12年、セミナー業界の「マクドナルド」を目指してきたと語る。教え子には1,000万円以上の売上を出した受講生や認定講師も育った。今は仕事と同じくらいの情熱で自分を磨き、支援してくれた人に恥ずかしくない姿で当日を迎えたいと話している。',
         voiceSource: '掲載ページのメッセージより',
+        voiceLabel: '実行者の想い',
       },
     ],
   },
   {
     id: 'new-service',
+    shortLabel: '新サービス',
     label: '新サービスを立ち上げた人',
     lead:
       'あたらしいメディア、商品、教室、事業所。世に出すための最初の資金と仲間を集めた5組です。支援総額の小さい順に並べています。',
@@ -359,6 +393,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '「うまくいく保証なんてどこにもないけれど、諦める前にまず挑戦することで、きっと自分自身も成長していける」とページを結んでいる。',
         voiceSource: '掲載ページより',
+        voiceLabel: '実行者の想い',
       },
       {
         slug: 'tominaga01',
@@ -392,6 +427,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '「今回のプロジェクトは、文字を通してもっとあなたを好きになる新しい一歩を踏み出してもらうためのわたしの挑戦です」とページで語っている。',
         voiceSource: '掲載ページより',
+        voiceLabel: '実行者の想い',
       },
       {
         slug: 'yuka01',
@@ -425,6 +461,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '終了後「一人では絶対につくれなかった1日。皆さんと一緒につくれたことを、心から嬉しく思います」と報告している。',
         voiceSource: '終了後の活動報告より',
+        voiceLabel: '実施後の報告',
       },
       {
         slug: 'tenmeikaika',
@@ -459,6 +496,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '終了後の報告で、集まった支援総額7,706,200円と収支の内訳を公開し、支援してくれた人への感謝を伝えている。残った資金は全国講演や増刷、体験会など、届ける活動に使うとしている。',
         voiceSource: '終了後の報告より',
+        voiceLabel: '実施後の報告',
       },
       {
         slug: 'nakano04',
@@ -493,11 +531,13 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '目標達成の報告で「1人でも多くの方にフロンティアを通じて情報強者に育ってほしい。情報の仕入れこそが、これからの豊かさを決める」と語っている。',
         voiceSource: '達成報告より',
+        voiceLabel: '実施後の報告',
       },
     ],
   },
   {
     id: 'realize',
+    shortLabel: '店舗・出版・地域',
     label: '店舗・出版・地域活動で、何かを実現した人',
     lead:
       'お店を開く、本を届ける、地域の居場所をつくる。かたちは違っても、自分の手で何かを実現した7組です。支援総額の小さい順に並べています。',
@@ -536,6 +576,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '「この瞑想ルームは、私ひとりの願いでは完成しません。あなたの想い、エネルギー、祈りが加わることで、はじめて“生きた場”として目を覚まします」とページで語っている。',
         voiceSource: '掲載ページより',
+        voiceLabel: '実行者の想い',
       },
       {
         slug: 'fujita01',
@@ -570,6 +611,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '「これまでの私は、自分は応援をする側だと勝手な解釈をしていました。今度は、私の夢を叶えるために応援をして貰いたい」とページで語っている。',
         voiceSource: '掲載ページより',
+        voiceLabel: '実行者の想い',
       },
       {
         slug: 'hama01',
@@ -604,6 +646,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '開店の報告で「初めてのことだらけで想像以上に大変なこともありましたが、その分、たくさんの方の優しさや温かさに触れることができました」と綴っている。',
         voiceSource: '開店の報告より',
+        voiceLabel: '実施後の感想',
       },
       {
         slug: 'oonishi01',
@@ -638,6 +681,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '2026年9月26日のプレオープンには50名を超える人が集まり、「皆様からのご支援、応援があったから実現できた」と報告している。',
         voiceSource: '活動報告より',
+        voiceLabel: '実施後の報告',
       },
       {
         slug: 'akahoshi',
@@ -673,6 +717,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '初日に600万円を超えた報告で「ご支援いただいたお名前を見るたびに感謝の気持ちでいっぱいになる」と綴り、亡き父に約束した「一人ひとりに寄り添った温かみある床屋」を目指して精進するとしている。',
         voiceSource: '活動報告より',
+        voiceLabel: '実施中の報告',
       },
       {
         slug: 'nakajima01',
@@ -713,6 +758,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '終了後の報告で「挑戦した結果、今『初めての景色』が見えています。本当にクラファンやってよかった」と綴っている。',
         voiceSource: '終了後の報告より',
+        voiceLabel: '実施後の報告',
       },
       {
         slug: 'yamamoto02',
@@ -748,6 +794,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
         voice:
           '終了報告で「みなさんのおかげさまで前回を大きく超える1,080件、40,380,680円のご支援をいただいた」と感謝を伝え、「まずはコラボ講演会、そして2024年もたくさんのチャレンジをしていきます」としている。',
         voiceSource: '終了後の報告より',
+        voiceLabel: '実施後の報告',
       },
     ],
   },
