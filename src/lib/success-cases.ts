@@ -117,6 +117,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
     cases: [
       {
         slug: 'kurio01',
+        hasImage: true,
         heading: '48歳で、20代に諦めた世界一に挑みたい。',
         title: '諦めた夢。世界一への挑戦！世界ベテランズレスリング大会に出場したい！',
         owner: '栗尾 直樹さん',
@@ -150,6 +151,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
       },
       {
         slug: 'goto01',
+        hasImage: true,
         heading: '41歳の会社員が、もう一度世界のコートに立ちたい。',
         title: 'Challenge like a baby！世界テニス選手権へ挑戦したい！',
         owner: '後藤 祐亮さん',
@@ -182,6 +184,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
       },
       {
         slug: 'airi01',
+        hasImage: true,
         heading: '16歳で、4カ国留学を自分の力で叶えたい。',
         title: '16歳、夢はモデル社長！世界4カ国で美と健康を学びたい！',
         owner: '佐藤 あいりさん',
@@ -321,6 +324,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
     cases: [
       {
         slug: 'erikana',
+        hasImage: true,
         heading: '故郷に、高齢者が挑戦できるデイサービスをつくりたい。',
         title: '高齢者の『やってみたい！』を叶えられる夢のデイサービスをゼロから立ち上げます！',
         owner: '野中 梨恵さん',
@@ -358,6 +362,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
       },
       {
         slug: 'tominaga01',
+        hasImage: true,
         heading: '筆跡から、人の心に寄り添う仕事をはじめたい。',
         title: '9/20あみの筆跡診断会＆バースデーパーティーin博多特別プロジェクト！',
         owner: '富永 亜実さん',
@@ -390,6 +395,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
       },
       {
         slug: 'yuka01',
+        hasImage: true,
         heading: '親子でお金を語り合える社会をつくりたい。',
         title: '大切な人とお金を語り合える社会へ。 ～親子にお金の学びを届ける挑戦を、みんなで実現したい！～',
         owner: '駒沢 友香さん',
@@ -498,6 +504,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
     cases: [
       {
         slug: 'matsuyoko03',
+        hasImage: true,
         subLabel: '店舗',
         heading: '祈りが宿る瞑想ルームを、みんなでつくりたい。',
         title: 'みんなの愛の波動で満たされた「瞑想ルーム」を作りたい',
@@ -532,6 +539,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
       },
       {
         slug: 'fujita01',
+        hasImage: true,
         subLabel: '店舗',
         heading: '石垣島に、腸揉みのサロンを開きたい。',
         title: '姐さんの挑戦を応援してほしい🥺 石垣島に【腸揉みサロン】をオープンします！',
@@ -565,6 +573,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
       },
       {
         slug: 'hama01',
+        hasImage: true,
         subLabel: '店舗',
         heading: '「いい店見ぃつけた♪」と笑顔で帰れる店を、芝公園につくりたい。',
         title: '『いい店見ぃつけた♪』と笑顔で帰れるレストランを芝公園につくりたい！',
@@ -667,6 +676,7 @@ export const SUCCESS_CATEGORIES: SuccessCategory[] = [
       },
       {
         slug: 'nakajima01',
+        hasImage: true,
         subLabel: '出版',
         heading: '出版記念講演会を通じて、新刊を多くの人に届けたい。',
         title:

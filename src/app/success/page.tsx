@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import SiteHeader from '@/components/SiteHeader';
 import StatsBanner from '@/components/StatsBanner';
-import { TOTAL_RAISED_LABEL } from '@/lib/site-stats';
+import {
+  SUPPORTED_PROJECTS_LABEL,
+  TOTAL_RAISED_LABEL,
+} from '@/lib/site-stats';
 import {
   SUCCESS_CATEGORIES,
   CaseStory,
@@ -278,23 +281,39 @@ export default function SuccessPage() {
         </section>
       ))}
 
-      {/* ===== CTA ===== */}
-      <section className="sc-cta">
+      {/* ===== CTA（2026-11-21 t iku指示: 個別相談をメイン・掲載説明会をサブに） ===== */}
+      <section className="sc-cta" id="consult">
         <div className="sc-container">
-          <h2 className="sc-cta-title">
-            あなたの企画も、
-            <span className="sc-cta-tail">
-              <span className="sc-gold">実現できる可能性</span>があります。
-            </span>
-          </h2>
+          <h2 className="sc-cta-title">次に挑戦するのは、あなたです。</h2>
+          <p className="sc-cta-sub">
+            あなたの夢や事業も、クラウドファンディングで実現しませんか？
+          </p>
           <p className="sc-cta-lead">
-            目標金額やリターン、公開までの準備について、
+            これまで5年間で{SUPPORTED_PROJECTS_LABEL}、累計{TOTAL_RAISED_LABEL}の支援実績。
             <br className="sc-br-pc" />
-            まずは無料で相談してみませんか？
+            私たちは、あなたの企画や想いを伺い、クラウドファンディングが適しているか、
+            どんな準備が必要かを一緒に整理します。
+            <br className="sc-br-pc" />
+            まだ企画が固まっていなくても大丈夫です。
+            まずは、あなたの実現したいことを聞かせてください。
           </p>
           <div className="sc-cta-actions">
             <a href={CONSULT_ANCHOR} className="sc-cta-main">
               あなたの企画を無料で相談する →
+            </a>
+          </div>
+          <p className="sc-cta-note">45分・初回相談無料</p>
+
+          <p className="sc-cta-flow">
+            掲載をご希望の場合は、無料掲載説明会へのご参加が必須です。
+            説明会でクラウドファンディングの仕組みと掲載までの流れをご案内したうえで、
+            個別にご相談を承ります。
+          </p>
+
+          <div className="sc-cta-sub-block">
+            <p className="sc-cta-sub-label">まずはクラファンの仕組みを知りたい方はこちら</p>
+            <a href="/seminar-info#schedule" className="sc-cta-sub-link">
+              無料掲載説明会の日程を確認する →
             </a>
           </div>
         </div>
