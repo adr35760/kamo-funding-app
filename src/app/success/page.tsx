@@ -21,13 +21,14 @@ import LegalFooter from '@/components/LegalFooter';
  * /success = 「金額の大きい事例を並べるページ」ではなく
  * 「自分の企画を実現するイメージが湧くページ」。
  * 事例は t iku 指定の3分類（初挑戦／新サービス／店舗・出版・地域活動）。
- * ①〜⑤は各プロジェクトページに書かれている事実のみで構成する。
+ * 1件ずつ「挑戦の背景／企画内容／支援の工夫／結果／成功のポイント／次の行動」の6項目で読ませる。
+ * 文章は各プロジェクトページに書かれている事実のみで構成する。
  */
 const CASE_COUNT = publishedCaseCount();
 
 const META_DESCRIPTION =
   `KAMOファンディングで実現した挑戦の記録。初めてのクラウドファンディング、新サービスの立ち上げ、` +
-  `店舗・出版・地域活動。${CASE_COUNT}件の事例を、挑戦前の状況・始めた理由・実施したこと・結果・感想で紹介します。` +
+  `店舗・出版・地域活動。${CASE_COUNT}件の事例を、挑戦の背景・企画内容・支援の工夫・結果・成功のポイントで紹介します。` +
   `累計支援総額は${TOTAL_RAISED_LABEL}（両サービス合計）。`;
 
 export const metadata: Metadata = {
@@ -48,18 +49,20 @@ export const metadata: Metadata = {
 /** 事例1件（テンプレート6項目） */
 function StoryCard({ item, index }: { item: CaseStory; index: number }) {
   return (
-    <article className="sc-story" id={item.slug}>
+    <article className={`sc-story${item.hasImage ? '' : ' is-noimage'}`} id={item.slug}>
       <div className="sc-story-head">
-        <div className="sc-story-media">
-          <img
-            src={caseImage(item.slug)}
-            alt={`${item.title}（プロジェクトのメイン画像）`}
-            width={CASE_IMAGE_WIDTH}
-            height={CASE_IMAGE_HEIGHT}
-            loading={index === 0 ? 'eager' : 'lazy'}
-            className="sc-story-image"
-          />
-        </div>
+        {item.hasImage && (
+          <div className="sc-story-media">
+            <img
+              src={caseImage(item.slug)}
+              alt={`${item.title}（プロジェクトのメイン画像）`}
+              width={CASE_IMAGE_WIDTH}
+              height={CASE_IMAGE_HEIGHT}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              className="sc-story-image"
+            />
+          </div>
+        )}
 
         <div className="sc-story-headtext">
           <p className="sc-story-index">
@@ -70,6 +73,7 @@ function StoryCard({ item, index }: { item: CaseStory; index: number }) {
             {item.heading}
             <span className="sc-story-heading-sub">そんな想いから始まった挑戦。</span>
           </h3>
+          <p className="sc-story-summary">{item.summary}</p>
           <dl className="sc-story-meta">
             <dt>プロジェクト名</dt>
             <dd>{item.title}</dd>
@@ -94,25 +98,32 @@ function StoryCard({ item, index }: { item: CaseStory; index: number }) {
         <div className="sc-story-col">
           <section className="sc-story-block">
             <h4 className="sc-story-label">
-              <span className="sc-story-num">①</span>挑戦前の状況
+              <span className="sc-story-num">01</span>挑戦の背景
             </h4>
-            <p>{item.situation}</p>
+            <p>{item.background}</p>
           </section>
 
           <section className="sc-story-block">
             <h4 className="sc-story-label">
-              <span className="sc-story-num">②</span>クラファンを始めた理由
+              <span className="sc-story-num">02</span>企画内容
             </h4>
-            <p>{item.reason}</p>
+            <p>{item.plan}</p>
+            {item.planPoints && item.planPoints.length > 0 && (
+              <ul className="sc-story-list sc-story-list--tight">
+                {item.planPoints.map(point => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <section className="sc-story-block">
             <h4 className="sc-story-label">
-              <span className="sc-story-num">③</span>実施したこと
+              <span className="sc-story-num">03</span>支援の工夫
             </h4>
             <ul className="sc-story-list">
-              {item.actions.map(action => (
-                <li key={action}>{action}</li>
+              {item.effort.map(effort => (
+                <li key={effort}>{effort}</li>
               ))}
             </ul>
           </section>
@@ -121,16 +132,12 @@ function StoryCard({ item, index }: { item: CaseStory; index: number }) {
         <div className="sc-story-col">
           <section className="sc-story-block">
             <h4 className="sc-story-label">
-              <span className="sc-story-num">④</span>結果
+              <span className="sc-story-num">04</span>結果
             </h4>
             <dl className="sc-story-results">
-              <div className="sc-story-result">
-                <dt>目標金額</dt>
-                <dd>{formatYen(item.goal)}</dd>
-              </div>
-              <div className="sc-story-result">
+              <div className="sc-story-result is-main">
                 <dt>支援総額</dt>
-                <dd className="is-main">{formatYen(item.raised)}</dd>
+                <dd>{formatYen(item.raised)}</dd>
               </div>
               <div className="sc-story-result">
                 <dt>支援者数</dt>
@@ -146,20 +153,39 @@ function StoryCard({ item, index }: { item: CaseStory; index: number }) {
                   <span className="sc-story-unit">%</span>
                 </dd>
               </div>
+              <div className="sc-story-result is-goal">
+                <dt>目標金額</dt>
+                <dd>{formatYen(item.goal)}</dd>
+              </div>
             </dl>
+            <p className="sc-story-terms">
+              <span className="sc-story-terms-label">
+                {item.period ? '募集期間' : '募集終了'}
+              </span>
+              {item.period ?? item.endDate}
+            </p>
           </section>
 
           <section className="sc-story-block">
             <h4 className="sc-story-label">
-              <span className="sc-story-num">⑤</span>実行者の感想
+              <span className="sc-story-num">05</span>成功のポイント
             </h4>
-            <p className="sc-story-voice">{item.voice}</p>
-            <p className="sc-story-source">（{item.voiceSource}）</p>
+            <ol className="sc-story-points">
+              {item.successPoints.map(point => (
+                <li key={point}>{point}</li>
+              ))}
+            </ol>
+            {item.voice && (
+              <blockquote className="sc-story-voice">
+                <p>{item.voice}</p>
+                <cite className="sc-story-source">（{item.voiceSource}）</cite>
+              </blockquote>
+            )}
           </section>
 
           <div className="sc-story-cta">
             <p className="sc-story-cta-title">
-              <span className="sc-story-num">⑥</span>あなたの企画も相談してみませんか？
+              <span className="sc-story-num">06</span>あなたの企画も相談してみませんか？
             </p>
             <a href={CONSULT_ANCHOR}>無料で企画を相談する →</a>
           </div>
@@ -184,10 +210,9 @@ export default function SuccessPage() {
             成功<span className="sc-gold">事例</span>
           </h1>
           <p className="sc-hero-lead">
-            金額の大きさより、どう準備して、どう届けたか。
-            <br className="sc-br-pc" />
-            <span className="sc-nowrap">3つのタイプの事例</span>
-            から、自分の企画を進める手順が見えてきます。
+            金額の大きさより、どう考えて、どう届けたか。
+            <br />
+            <span className="sc-nowrap">ひとつずつ、</span>挑戦の中身から読み解けます。
           </p>
 
           {/* 2026-11-21 t iku指示: 実績は3ページ共通のコンポーネントに統一（旧: sc-stats） */}
@@ -203,6 +228,33 @@ export default function SuccessPage() {
               </a>
             ))}
           </nav>
+        </div>
+      </section>
+
+      {/* ===== 読むときの6項目 ===== */}
+      <section className="sc-guide">
+        <div className="sc-container">
+          <p className="sc-guide-title">各事例は6つの項目で紹介しています</p>
+          <ol className="sc-guide-list">
+            <li>
+              <span>01</span>挑戦の背景
+            </li>
+            <li>
+              <span>02</span>企画内容
+            </li>
+            <li>
+              <span>03</span>支援の工夫
+            </li>
+            <li>
+              <span>04</span>結果（支援総額・支援者数・達成率）
+            </li>
+            <li>
+              <span>05</span>成功のポイント
+            </li>
+            <li>
+              <span>06</span>次の行動（無料相談）
+            </li>
+          </ol>
         </div>
       </section>
 
@@ -250,11 +302,14 @@ export default function SuccessPage() {
 
       <div className="sc-footer">
         <p className="sc-source">
-          掲載している金額・達成率・支援者数は、各プロジェクトページ（
+          掲載している金額・達成率・支援者数・募集期間は、各プロジェクトページ（
           <a href="https://www.kamofunding.com/" target="_blank" rel="noopener noreferrer">
             KAMOファンディング公式サイト
           </a>
-          ）の記載のままです。支援者数は各ページの「支援数」の値です。
+          ）の記載のままです。支援者数は各ページの「支援数」の値です。開始日がページに記載されていない事例は、募集終了日のみを表示しています。
+        </p>
+        <p className="sc-source">
+          挑戦の背景・企画内容・支援の工夫・成功のポイントは、各プロジェクトページに記載の内容を整理したものです。成果を保証するものではありません。
         </p>
         <p>&copy; 2026 KAMO FUNDING. All rights reserved.</p>
         <LegalFooter />
