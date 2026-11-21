@@ -268,6 +268,7 @@ export default function TopLandingPage() {
         <section className="tlp-steps" aria-label="クラファンから、その先の事業成長へ">
           <div className="tlp-inner">
             {/* 2026-11-20 t iku指示: 3ステップ見出しの直上に支援実績バナー */}
+            {/* 2026-11-21 t iku指示: 577件／約19.5億円／93.7% に統一し、累計支援総額の内訳を追加 */}
             <div className="tlp-stats">
               <p className="tlp-stats-title">{LP_STATS.heading}</p>
               <div className="tlp-stats-grid">
@@ -277,6 +278,18 @@ export default function TopLandingPage() {
                     <div className="tlp-stats-label">{item.label}</div>
                   </div>
                 ))}
+              </div>
+              <div className="tlp-stats-breakdown">
+                <p className="tlp-stats-breakdown-title">{LP_STATS.breakdown.heading}</p>
+                <ul className="tlp-stats-breakdown-list">
+                  {LP_STATS.breakdown.items.map((item) => (
+                    <li className="tlp-stats-breakdown-item" key={item.label}>
+                      <span className="tlp-stats-dot" aria-hidden="true" />
+                      <span className="tlp-stats-breakdown-label">{item.label}</span>
+                      <span className="tlp-stats-breakdown-value">{item.value}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
               <p className="tlp-stats-source">{LP_STATS.source}</p>
             </div>
@@ -355,12 +368,16 @@ export default function TopLandingPage() {
             <h2 className="tlp-sr-only">実績</h2>
             <div className="tlp-trust-grid">
               <div className="tlp-trust-item">
-                <div className="tlp-trust-value">{LP_TRUST.rateLabel}</div>
-                <div className="tlp-trust-label">{LP_TRUST.rateNote}</div>
+                <div className="tlp-trust-value">{LP_TRUST.countLabel}</div>
+                <div className="tlp-trust-label">{LP_TRUST.countNote}</div>
               </div>
               <div className="tlp-trust-item">
                 <div className="tlp-trust-value">{LP_TRUST.raisedLabel}</div>
                 <div className="tlp-trust-label">{LP_TRUST.raisedNote}</div>
+              </div>
+              <div className="tlp-trust-item">
+                <div className="tlp-trust-value">{LP_TRUST.rateLabel}</div>
+                <div className="tlp-trust-label">{LP_TRUST.rateNote}</div>
               </div>
             </div>
             <p className="tlp-trust-source">{LP_TRUST.source}</p>

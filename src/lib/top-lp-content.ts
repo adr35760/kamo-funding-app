@@ -5,16 +5,15 @@
  *    ここを直せばページ全体に反映される（JSX側にコピーを直書きしない）。
  *
  * 🔴 数値は必ず既存の定数を参照する（直書き禁止）:
- *    - 累計調達額 → success-cases.ts の CUMULATIVE_RAISED_ALL
- *    - 平均達成率 → seminar-info-content.ts の NUM_TASSEI_RATE
+ *    - トップの実績数値（577件／約19.5億円／93.7%） → このファイル内の
+ *      SUPPORTED_PROJECTS / TOTAL_RAISED_ALL / ACHIEVEMENT_RATE（LP_STATS・LP_TRUST が共有）
  *    - 紹介料率   → reward-calc.ts の REWARD_CONFIG.REFERRAL_REWARD_RATE
  *
  * 🔴 未確定のものは数字を作らない（§6 / §12）。伴走プロジェクト数は根拠が無いため
  *    表示しない（2026-11-08 t iku指示「確認済みの値のみ」）。
  */
 
-import { CUMULATIVE_RAISED_ALL } from './success-cases';
-import { NUM_TASSEI_RATE, CONSULT_MINUTES } from './seminar-info-content';
+import { CONSULT_MINUTES } from './seminar-info-content';
 import { REWARD_CONFIG } from './reward-calc';
 import { CONSULT_CATEGORIES, type ConsultCategory } from './consult-shared';
 
@@ -31,6 +30,11 @@ export function formatManYen(amount: number): string {
 /** 紹介料率の表示（0.02 → 2%） */
 function formatPercent(rate: number): string {
   return `${Math.round(rate * 1000) / 10}%`;
+}
+
+/** 億円単位の数値表記（19.5 / 16.88 / 2.6）。末尾の0は落とす */
+export function formatOkuYen(amount: number): string {
+  return parseFloat((amount / 100_000_000).toFixed(2)).toString();
 }
 
 // ===== Z1 ファーストビュー =====
@@ -169,40 +173,75 @@ export const LP_CARDS: LpCard[] = [
   },
 ];
 
+// ===== 実績数値（2026-11-21 t iku指定・トップの表示はすべてここを参照する） =====
+/**
+ * 🔴 トップページの実績数値は**この4つだけ**を正とする（JSX・他ファイルに直書きしない）。
+ *    LP_STATS（3ステップ上のバナー）と LP_TRUST（ページ下部の実績欄）の両方が参照する。
+ *    旧値（16億8,752万円／95%）はトップからは使わない。
+ *    ※ success-cases.ts の CUMULATIVE_RAISED_ALL は /success 等の他ページが使っているので触らない。
+ */
+/** 支援実績（プロジェクト）件数・5年間 */
+export const SUPPORTED_PROJECTS = 577;
+/** 累計支援総額（円）・5年間 */
+export const TOTAL_RAISED_ALL = 1_950_000_000;
+/** 目標達成率（%）・5年間 */
+export const ACHIEVEMENT_RATE = 93.7;
+/** 累計支援総額の内訳（円）。合計が約19.5億円になる */
+export const RAISED_BREAKDOWN = [
+  { label: 'KAMOファンディング', amount: 1_688_000_000 },
+  { label: '未来の扉（サポート案件）', amount: 260_000_000 },
+] as const;
+
+export const SUPPORTED_PROJECTS_LABEL = `${SUPPORTED_PROJECTS}件`;
+export const TOTAL_RAISED_LABEL = `約${formatOkuYen(TOTAL_RAISED_ALL)}億円`;
+export const ACHIEVEMENT_RATE_LABEL = `${ACHIEVEMENT_RATE}%`;
+
+/** 実績の定義文（LP_STATS・LP_TRUST で共有） */
+const STATS_PERIOD_NOTE = '※集計期間は過去5年間です。';
+const STATS_DEFINITION =
+  '累計支援総額は、KAMOファンディングが関与したプロジェクトの累計支援総額です。' +
+  '平均達成率は、掲載プロジェクトの目標達成率の平均です。';
+
 // ===== Z4 信頼性 =====
 export const LP_TRUST = {
-  rateLabel: NUM_TASSEI_RATE,
+  /** 2026-11-21 t iku指示: 下部の実績欄も新数値（577件／約19.5億円／93.7%）に統一 */
+  countLabel: SUPPORTED_PROJECTS_LABEL,
+  countNote: '5年間の支援実績',
+  rateLabel: ACHIEVEMENT_RATE_LABEL,
   rateNote: '掲載プロジェクトの平均達成率',
-  raisedLabel: formatManYen(CUMULATIVE_RAISED_ALL),
+  raisedLabel: TOTAL_RAISED_LABEL,
   raisedNote: '関与プロジェクトの累計支援総額',
   /**
    * 2026-11-08 t iku指示: 実績数値には定義を添え、確認済みの値だけを載せる。
    *   未確定の「伴走プロジェクト数」は表示しない（実績準備中も置かない）。
-   *   数値は既存定数のみ（直書き禁止）。
+   * 2026-11-21 t iku指示: 集計期間（5年間）を明記。内訳の説明はバナー側にだけ足す。
    */
-  source:
-    '累計調達額は、KAMOファンディングが関与したプロジェクトの累計支援総額です（万円未満切り上げ）。平均達成率は、掲載プロジェクトの目標達成率の平均です。',
+  source: `${STATS_PERIOD_NOTE}${STATS_DEFINITION}`,
 } as const;
 
 // ===== Z1.5 支援実績バナー（3ステップ見出しの直上） =====
 /**
  * 2026-11-20 t iku指示: 「クラファンから、その先の事業成長へ」の直上に
- * 「5年間の支援実績」の横長バナーを新設する（見本スクショのまま）。
- *
- * 🔴 数値は t iku 指定（577件 / 19億円 / 93.7%）。既存の LP_TRUST が表示する
- *    「累計16億8,752万円・平均達成率95%」とは**食い違う**。今回は新バナーだけを
- *    この値で作り、LP_TRUST 側は変更しない（どちらに統一するかは t iku 判断）。
- * 🔴 集計期間の根拠が無いため期間は書かない（t iku指示）。
- *    注記は既存 LP_TRUST.source の定義文をそのまま流用する。
+ * 「5年間のクラウドファンディング支援実績」の横長バナーを置く。
+ * 2026-11-21 t iku指示: 見出し・数値を確定（577件／約19.5億円／93.7%）＋内訳2件を追加。
+ *   数値は上部の定数（SUPPORTED_PROJECTS 等）を参照し、LP_TRUST と同じ組み合わせにする。
  */
 export const LP_STATS = {
-  heading: '5年間の支援実績',
+  heading: '5年間のクラウドファンディング支援実績',
   items: [
-    { value: '577件', label: '支援実績' },
-    { value: '19億円', label: '累計支援総額' },
-    { value: '93.7%', label: '目標達成率' },
+    { value: SUPPORTED_PROJECTS_LABEL, label: '支援実績' },
+    { value: TOTAL_RAISED_LABEL, label: '累計支援総額' },
+    { value: ACHIEVEMENT_RATE_LABEL, label: '目標達成率' },
   ],
-  source: LP_TRUST.source,
+  /** 累計支援総額の内訳（ラベル＋金額） */
+  breakdown: {
+    heading: '累計支援総額の内訳',
+    items: RAISED_BREAKDOWN.map((item) => ({
+      label: item.label,
+      value: `${formatOkuYen(item.amount)}億円`,
+    })),
+  },
+  source: `${STATS_PERIOD_NOTE}${STATS_DEFINITION}内訳は、KAMOファンディングのプロジェクトと、未来の扉のサポート案件の合計です。`,
 } as const;
 
 // ===== Z5 最終CTA / Z6 追従CTA =====

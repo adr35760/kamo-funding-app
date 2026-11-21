@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import TopLandingPage from '@/components/TopLandingPage';
-import { formatManYen } from '@/lib/top-lp-content';
-import { CUMULATIVE_RAISED_ALL } from '@/lib/success-cases';
-import { NUM_TASSEI_RATE } from '@/lib/seminar-info-content';
+import { ACHIEVEMENT_RATE_LABEL, TOTAL_RAISED_LABEL } from '@/lib/top-lp-content';
 
 /**
  * トップページ（/）。
@@ -14,11 +12,9 @@ import { NUM_TASSEI_RATE } from '@/lib/seminar-info-content';
  *    画面本体は components/TopLandingPage.tsx（'use client'）に分離してある。
  *
  * 数値は必ず既存の定数から組み立てる（直書き禁止）:
- *   CUMULATIVE_RAISED_ALL = 1,687,515,999 → 16億8,752万円（万円未満切り上げ）
- *   NUM_TASSEI_RATE = 95%
+ *   TOTAL_RAISED_LABEL = 約19.5億円 / ACHIEVEMENT_RATE_LABEL = 93.7%
+ *   （2026-11-21 t iku指示。トップは 577件／約19.5億円／93.7% に統一）
  */
-
-const RAISED_LABEL = formatManYen(CUMULATIVE_RAISED_ALL);
 
 /** タブタイトル・検索結果・SNS共有で同じ文言を使う（1箇所で管理） */
 const LP_TITLE = 'KAMOファンディング｜クラファンから、その先の事業成長へ';
@@ -26,7 +22,7 @@ const LP_TITLE = 'KAMOファンディング｜クラファンから、その先�
 const LP_DESCRIPTION =
   `新しい商品やサービスを、クラウドファンディングで最初のお客様へ。` +
   `企画づくりから先行販売、ファンづくりまで、KAMOファンディングが伴走します。` +
-  `累計調達額${RAISED_LABEL}・平均達成率${NUM_TASSEI_RATE}。相談無料・最短24時間返信。`;
+  `累計支援総額${TOTAL_RAISED_LABEL}・目標達成率${ACHIEVEMENT_RATE_LABEL}。相談無料・最短24時間返信。`;
 
 export const metadata: Metadata = {
   title: LP_TITLE,
