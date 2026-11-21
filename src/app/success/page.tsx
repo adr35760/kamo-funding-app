@@ -14,6 +14,7 @@ import {
   formatYen,
   formatManYen,
 } from '@/lib/success-cases';
+import { FIELD_SECTION } from '@/lib/success-fields';
 import '@/styles/kamo-icons.css';
 import '@/styles/success.css';
 import LegalFooter from '@/components/LegalFooter';
@@ -288,6 +289,67 @@ export default function SuccessPage() {
               </li>
             ))}
           </ul>
+        </div>
+      </section>
+
+      {/* ===== 分野別支援実績（2026-11-22 t iku指示: 一覧の直後・詳細の前に置く） ===== */}
+      <section className="sc-fields" id="fields">
+        <div className="sc-container">
+          <h2 className="sc-fields-title">{FIELD_SECTION.heading}</h2>
+          <div className="sc-fields-lead">
+            {FIELD_SECTION.lead.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
+
+          <h3 className="sc-fields-subtitle">{FIELD_SECTION.tableHeading}</h3>
+          <table className="sc-fields-table">
+            <caption className="sc-visually-hidden">{FIELD_SECTION.tableHeading}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{FIELD_SECTION.columns.field}</th>
+                <th scope="col">{FIELD_SECTION.columns.projects}</th>
+                <th scope="col">{FIELD_SECTION.columns.amount}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {FIELD_SECTION.rows.map((row) => (
+                <tr key={row.field}>
+                  <th scope="row">{row.field}</th>
+                  <td>{row.projects}件</td>
+                  <td>{row.amount}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row">合計</th>
+                <td>{FIELD_SECTION.total.projects}件</td>
+                <td>{FIELD_SECTION.total.amount}</td>
+              </tr>
+            </tfoot>
+          </table>
+          <p className="sc-fields-note">{FIELD_SECTION.source}</p>
+          <p className="sc-fields-note">{FIELD_SECTION.scopeNote}</p>
+
+          <div className="sc-fields-cta">
+            <p className="sc-fields-cta-title">{FIELD_SECTION.cta.heading}</p>
+            <ul className="sc-fields-cta-questions">
+              {FIELD_SECTION.cta.questions.map((q) => (
+                <li key={q}>「{q}」</li>
+              ))}
+            </ul>
+            <p className="sc-fields-cta-lead">{FIELD_SECTION.cta.lead}</p>
+            <a
+              href={CONSULT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sc-fields-cta-button"
+            >
+              {CONSULT_MINUTES}分の無料個別相談を予約する
+            </a>
+            <p className="sc-fields-cta-note">{FIELD_SECTION.cta.note}</p>
+          </div>
         </div>
       </section>
 
