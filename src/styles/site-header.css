@@ -31,14 +31,24 @@
 }
 .site-header-cta:hover { background: var(--kamo-red-dark); }
 
-/* 副ボタン（成功事例）。主CTAの赤と役割を区別するため金系にする */
+/* 副ボタン（成功事例）。主CTAの赤と役割を区別するため金系にする
+   2026-11-22 t iku指示: 「成功事例のバナーを目立つように」→ 白抜きの細い枠から、
+   金ベタ＋影のバナー型に変更（主CTAの赤より弱いが、ナビの文字より明確に強い） */
 .site-header-cta-secondary {
-  background: #FFFDF5; color: #8A6D1F !important;
-  border: 1.5px solid var(--kamo-gold);
-  padding: 7px 16px; border-radius: 100px; font-weight: 700; font-size: 12.5px;
+  background: linear-gradient(135deg, #FFE9A8 0%, #E8B33A 52%, #C8901A 100%);
+  color: #2A1F00 !important;
+  border: 1px solid #C8901A;
+  padding: 10px 22px; border-radius: 100px; font-weight: 800; font-size: 13.5px;
+  letter-spacing: 0.01em;
   white-space: nowrap; transition: all 0.2s;
+  box-shadow: 0 3px 12px rgba(200, 144, 26, 0.38);
 }
-.site-header-cta-secondary:hover { background: var(--kamo-gold); color: var(--kamo-dark) !important; }
+.site-header-cta-secondary:hover {
+  background: linear-gradient(135deg, #FFF2C9 0%, #F0C75E 52%, #D4A017 100%);
+  color: #2A1F00 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 16px rgba(200, 144, 26, 0.5);
+}
 
 /* 掲載申込ボタン（主CTAの右横）。主CTAの赤とは別の役割なので紺系にする
    — 赤2つを並べるとどちらを押すか迷わせるため */
@@ -66,9 +76,9 @@
   .site-header-nav { display: none; }
   /* 副ボタンは主CTAと並べると390pxで窮屈になるためドロワー先頭に置く */
   .site-header-drawer-secondary {
-    display: block; padding: 14px 20px; font-size: 14.5px; font-weight: 800;
-    color: #8A6D1F; background: #FFFDF5;
-    border-bottom: 1px solid var(--kamo-border);
+    display: block; padding: 15px 20px; font-size: 15px; font-weight: 800;
+    color: #2A1F00; background: linear-gradient(135deg, #FFE9A8 0%, #E8B33A 52%, #C8901A 100%);
+    border-bottom: 1px solid #C8901A;
   }
   /* 掲載申込はヘッダーに並べず（3つは390pxで収まらない）ドロワー最上段に出す */
   .site-header-cta-apply { display: none; }
