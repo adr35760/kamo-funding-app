@@ -32,7 +32,7 @@ import {
   validateConsult,
   type ConsultCategory,
 } from '@/lib/consult-shared';
-import { initAnalytics, track, type CtaPosition } from '@/lib/analytics';
+import { track, type CtaPosition } from '@/lib/analytics';
 
 /**
  * トップページ（/）の本体 — LP実装仕様書 v1.1 の Z1〜Z6＋相談フォーム。
@@ -84,7 +84,6 @@ export default function TopLandingPage() {
 
   // ===== 計測（§11）: GA4は任意。IDが無くてもエラーにしない =====
   useEffect(() => {
-    initAnalytics(process.env.NEXT_PUBLIC_GA_ID);
   }, []);
 
   // ===== Z6 追従CTA: スクロール50%（半画面）超で初回表示 =====
