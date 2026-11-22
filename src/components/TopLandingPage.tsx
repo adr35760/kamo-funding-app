@@ -9,7 +9,6 @@ import { CONSULT_URL, CONSULT_MINUTES } from '@/lib/seminar-info-content';
 import {
   LP_CARDS,
   LP_EMPATHY,
-  LP_EVENT,
   LP_FINAL,
   LP_FOLLOW,
   LP_FORM,
@@ -312,29 +311,6 @@ export default function TopLandingPage() {
                 </a>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* ===== Z3.55 挑戦者交流会バナー（2026-11-22 t iku指示） =====
-            成功事例の直後・支援内容の前に、横長バナーをコンテナ幅で置く。
-            画像全体をリンク（/real-seminar）にし、下に1行のキャプションを添える。
-            SPでも画像全体が見えるように width:100% / height:auto（左右を切らない）。 */}
-        <section className="tlp-event" aria-label={LP_EVENT.caption}>
-          <div className="tlp-inner">
-            <p className="tlp-eyebrow">{LP_SECTION_LABELS.event}</p>
-            <a className="tlp-event-link" href={LP_EVENT.href}>
-              <span className="tlp-event-media">
-                <img
-                  className="tlp-event-img"
-                  src={LP_EVENT.image}
-                  alt={LP_EVENT.imageAlt}
-                  width={LP_EVENT.width}
-                  height={LP_EVENT.height}
-                  loading="lazy"
-                />
-              </span>
-              <span className="tlp-event-caption">{LP_EVENT.caption}</span>
-            </a>
           </div>
         </section>
 
