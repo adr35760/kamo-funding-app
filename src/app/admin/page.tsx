@@ -517,6 +517,28 @@ export default function AdminPage() {
         <TabButton active={tab === 'survey'} onClick={() => setTab('survey')}>
           アンケート
         </TabButton>
+        {/* 2026-11-23 t iku指示: アクセス解析（GA4）への入口を管理画面のタブに置く */}
+        <a
+          href="https://analytics.google.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            padding: '10px 20px',
+            borderBottom: '3px solid transparent',
+            color: '#1A73E8',
+            fontWeight: 'bold',
+            fontSize: 14,
+            textDecoration: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            marginLeft: 'auto',
+          }}
+          title="Googleアナリティクスを新しいタブで開きます"
+        >
+          アナリティクス
+          <span aria-hidden="true" style={{ fontSize: 12 }}>↗</span>
+        </a>
       </div>
 
       {loading ? (
