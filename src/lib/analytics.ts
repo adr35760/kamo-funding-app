@@ -7,16 +7,32 @@
  *   IDが入れば initAnalytics() が gtag を読み込み、同じ dataLayer 経由で送られる。
  *
  * イベント（§11）:
- *   cta_click    { entrance: 1-4, position: 'fv' | 'hub' | 'footer' | 'follow' }
- *   form_start   { entrance }
- *   form_submit  { entrance }
+ *   cta_click    { entrance: 1-4, position: 'fv' | 'hub' | 'footer' | 'follow' }（/）
+ *   cta_click    { position: 'case' | 'middle' | 'footer' }（/success）
+ *   cta_click    { position: 'consult' | 'schedule' }（/seminar-info・/lp）
+ *   case_select  { slug }（/success の事例一覧カード）
+ *   form_start   { entrance }（/）／{ form: 'seminar-info' | 'lp' }
+ *   form_submit  { entrance }（/）／{ form: 'seminar-info' | 'lp' }
  *   scroll_depth { percent: 25 | 50 | 75 | 100 }
+ *
+ * 🔴 入力値（氏名・メール・電話・本文）はイベントに載せない。
  */
 
 export type TrackParams = Record<string, string | number | boolean | undefined | null>;
 
 /** cta_click の位置（§11 position） */
-export type CtaPosition = 'fv' | 'steps' | 'hub' | 'footer' | 'follow';
+export type CtaPosition =
+  | 'fv'
+  | 'steps'
+  | 'hub'
+  | 'footer'
+  | 'follow'
+  // /success
+  | 'case'
+  | 'middle'
+  // /seminar-info・/lp
+  | 'consult'
+  | 'schedule';
 
 declare global {
   interface Window {

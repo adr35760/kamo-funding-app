@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import '@/styles/kamo-icons.css';
 import '@/styles/seminar-info.css';
 import { formatEventDateJa, eventCardParts, EventLike } from '@/lib/event-format';
@@ -25,6 +25,8 @@ import {
   NUM_JISSEKI_NOTE,
 } from '@/lib/seminar-info-content';
 import { PLATFORM_FEE_SHORT } from '@/lib/site-fees';
+import TrackedLink from '@/components/TrackedLink';
+import { track } from '@/lib/analytics';
 
 /**
  * ④実績セクションで引用する成功事例（/success と同じ既存データを読む）。
@@ -153,6 +155,14 @@ export default function SeminarInfoClient({
     if (code) setReferralCode(code);
   }, []);
 
+  /** フォームの最初の操作で form_start を1回だけ送る（/ と同じ考え方） */
+  const formStartedRef = useRef(false);
+  const onFormStart = () => {
+    if (formStartedRef.current) return;
+    formStartedRef.current = true;
+    track('form_start', { form: 'seminar-info' });
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
@@ -175,6 +185,8 @@ export default function SeminarInfoClient({
         const result = await res.json().catch(() => ({}));
         throw new Error(result.error || '申込に失敗しました');
       }
+      // 送信が通った時だけ form_submit を送る（入力値は載せない）
+      track('form_submit', { form: 'seminar-info' });
       setSubmitted(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '申込に失敗しました');
@@ -212,12 +224,24 @@ export default function SeminarInfoClient({
               「実現したいことはあるけれど、何から始めたらいいのか分からない」そんな方のための無料相談です。
             </p>
             <div className="hero-cta-row">
-              <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="hero-cta hero-cta--main">
+              <TrackedLink
+                href={CONSULT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hero-cta hero-cta--main"
+                event="cta_click"
+                params={{ position: 'consult' }}
+              >
                 {CONSULT_MINUTES}分の無料個別相談を予約する
-              </a>
-              <a href={noSchedule ? '#apply' : SCHEDULE_ANCHOR} className="hero-cta hero-cta--sub">
+              </TrackedLink>
+              <TrackedLink
+                href={noSchedule ? '#apply' : SCHEDULE_ANCHOR}
+                className="hero-cta hero-cta--sub"
+                event="cta_click"
+                params={{ position: 'schedule' }}
+              >
                 {noSchedule ? '説明会のご案内を見る' : '説明会の日程を見る'}
-              </a>
+              </TrackedLink>
             </div>
             <p className="hero-note">オンライン開催・相談無料</p>
             <p className="hero-note">※掲載手数料は{PLATFORM_FEE_SHORT}。有償サポートは個別にお見積もりします。</p>
@@ -239,9 +263,16 @@ export default function SeminarInfoClient({
           </div>
           <p className="learn-lead">まずは企画段階でも構いません。</p>
           <div className="hero-cta-row learn-cta-row">
-            <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="hero-cta hero-cta--main">
+            <TrackedLink
+              href={CONSULT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hero-cta hero-cta--main"
+              event="cta_click"
+              params={{ position: 'consult' }}
+            >
               {CONSULT_MINUTES}分の無料個別相談を予約する
-            </a>
+            </TrackedLink>
           </div>
           <p className="learn-note">オンライン開催・相談無料</p>
           <p className="learn-note">※掲載手数料は{PLATFORM_FEE_SHORT}。有償サポートは個別にお見積もりします。</p>
@@ -304,10 +335,17 @@ export default function SeminarInfoClient({
           </ol>
 
           {/* 2026-11-02 t iku指示: 個別相談の流れの下に予約バナー */}
-          <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="seminar-flow-banner">
+          <TrackedLink
+            href={CONSULT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="seminar-flow-banner"
+            event="cta_click"
+            params={{ position: 'consult' }}
+          >
             <span className="seminar-flow-banner-text">無料の個別相談を予約する<span className="seminar-flow-banner-arrow">→</span></span>
             <span className="seminar-flow-banner-note">無料・{CONSULT_MINUTES}分・オンライン</span>
-          </a>
+          </TrackedLink>
         </div>
       </section>
 
@@ -339,14 +377,16 @@ export default function SeminarInfoClient({
           {noSchedule && (
             <div className="seminar-schedule-note">
               <p>開催日程は、ご希望に応じて設定します。まずは個別相談でご都合をお聞かせください。</p>
-              <a
+              <TrackedLink
                 href={CONSULT_URL}
                 className="seminar-consult-cta"
                 target="_blank"
                 rel="noopener noreferrer"
+                event="cta_click"
+                params={{ position: 'consult' }}
               >
                 個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
-              </a>
+              </TrackedLink>
             </div>
           )}
 
@@ -450,14 +490,16 @@ export default function SeminarInfoClient({
               /* 🔴 日程0件のときはフォームを出さない（空セレクト・送信500を作らない） */
               <div className="seminar-no-schedule">
                 <p>現在、説明会の日程は個別にご案内しています。</p>
-                <a
+                <TrackedLink
                   href={CONSULT_URL}
                   className="seminar-consult-cta"
                   target="_blank"
                   rel="noopener noreferrer"
+                  event="cta_click"
+                  params={{ position: 'consult' }}
                 >
                   個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
-                </a>
+                </TrackedLink>
               </div>
             ) : (
             <>
@@ -469,7 +511,7 @@ export default function SeminarInfoClient({
                 <p style={{color:'#666',fontSize:'15px'}}>確認メールを送信しました。当日までにお待ちください。</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} onFocus={onFormStart}>
                 <input type="hidden" name="event_type" value="seminar_info" />
                 {/* 紹介パートナー専用リンク（/r/<code>）から来たときだけ値が入る。
                     申込はこの値をサーバ側で registrations.referral_code に保存する。
@@ -559,10 +601,24 @@ export default function SeminarInfoClient({
           <h2>まずは、無料の個別相談から。</h2>
           <p>{CONSULT_MINUTES}分で、あなたのアイデアの勝ち筋と現実的な設計をお伝えします。<br />{noSchedule ? '説明会についても、個別にご案内します。' : '説明会の日程から選ぶこともできます。'}</p>
           <div className="hero-cta-row">
-            <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="hero-cta hero-cta--main">
+            <TrackedLink
+              href={CONSULT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hero-cta hero-cta--main"
+              event="cta_click"
+              params={{ position: 'consult' }}
+            >
               個別相談を予約する（無料・{CONSULT_MINUTES}分）
-            </a>
-            <a href="#apply" className="hero-cta hero-cta--sub">{noSchedule ? '説明会のご案内を見る' : '説明会に申し込む'}</a>
+            </TrackedLink>
+            <TrackedLink
+              href="#apply"
+              className="hero-cta hero-cta--sub"
+              event="cta_click"
+              params={{ position: 'schedule' }}
+            >
+              {noSchedule ? '説明会のご案内を見る' : '説明会に申し込む'}
+            </TrackedLink>
           </div>
         </div>
       </section>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import '@/styles/kamo-icons.css';
 import '@/styles/kamo-lp.css';
 import { formatEventDateJa, eventCardParts, cleanTitle, EventLike } from '@/lib/event-format';
@@ -10,6 +10,8 @@ import LegalFooter from '@/components/LegalFooter';
 import { CONSULT_URL, CONSULT_MINUTES } from '@/lib/seminar-info-content';
 import StatsBanner from '@/components/StatsBanner';
 import { ACHIEVEMENT_RATE_LABEL, KAMO_RAISED_LABEL } from '@/lib/site-stats';
+import TrackedLink from '@/components/TrackedLink';
+import { track } from '@/lib/analytics';
 
 interface EventOption extends EventLike {}
 
@@ -86,6 +88,14 @@ export default function LPClient({
     captureUtm();
   }, []);
 
+  /** フォームの最初の操作で form_start を1回だけ送る（/ と同じ考え方） */
+  const formStartedRef = useRef(false);
+  const onFormStart = () => {
+    if (formStartedRef.current) return;
+    formStartedRef.current = true;
+    track('form_start', { form: 'lp' });
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSubmitting(true);
@@ -105,6 +115,8 @@ export default function LPClient({
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || '申込に失敗しました');
       }
+      // 送信が通った時だけ form_submit を送る（入力値は載せない）
+      track('form_submit', { form: 'lp' });
       setSubmitted(true);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : '申込に失敗しました');
@@ -159,11 +171,32 @@ export default function LPClient({
               {/* 主導線（2026-10-26 t iku決定）: 個別相談が主・説明会申込と日程が二番手。
                   URLと所要時間は seminar-info-content.ts の定数を共有する。 */}
               <div className="hero-cta-group">
-                <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                <TrackedLink
+                  href={CONSULT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-primary"
+                  event="cta_click"
+                  params={{ position: 'fv' }}
+                >
                   個別相談を予約する（無料・{CONSULT_MINUTES}分）
-                </a>
-                <a href="#apply" className="btn-secondary">{noSchedule ? '説明会のご案内を見る →' : '説明会に申し込む →'}</a>
-                <a href="#schedule" className="hero-cta-quiet">開催日程を見る</a>
+                </TrackedLink>
+                <TrackedLink
+                  href="#apply"
+                  className="btn-secondary"
+                  event="cta_click"
+                  params={{ position: 'schedule' }}
+                >
+                  {noSchedule ? '説明会のご案内を見る →' : '説明会に申し込む →'}
+                </TrackedLink>
+                <TrackedLink
+                  href="#schedule"
+                  className="hero-cta-quiet"
+                  event="cta_click"
+                  params={{ position: 'schedule' }}
+                >
+                  開催日程を見る
+                </TrackedLink>
               </div>
             </div>
             <div className="hero-visual">
@@ -245,9 +278,16 @@ export default function LPClient({
           {/* 個別相談への導線を、説明会の内容の直後にも置く */}
           <div className="lp-consult-band">
             <p>自分の企画でどうなるか知りたい方は、個別相談が早いです。</p>
-            <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
+            <TrackedLink
+              href={CONSULT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary"
+              event="cta_click"
+              params={{ position: 'middle' }}
+            >
               個別相談を予約する（無料・{CONSULT_MINUTES}分）
-            </a>
+            </TrackedLink>
           </div>
         </div>
       </section>
@@ -294,9 +334,16 @@ export default function LPClient({
               <div style={{ textAlign: 'center', padding: '40px 20px', background: '#FFF5F5', borderRadius: '16px', border: '2px solid #FFE0E0' }}>
                 <p style={{ fontSize: '18px', fontWeight: 700, marginBottom: '10px' }}>現在、説明会の日程は個別にご案内しています。</p>
                 <p style={{ fontSize: '15px', color: '#666', marginBottom: '18px' }}>ご希望に応じて日程を設定します。まずは個別相談でご都合をお聞かせください。</p>
-                <a href={CONSULT_URL} className="lp-consult-cta" target="_blank" rel="noopener noreferrer">
+                <TrackedLink
+                  href={CONSULT_URL}
+                  className="lp-consult-cta"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  event="cta_click"
+                  params={{ position: 'middle' }}
+                >
                   個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
-                </a>
+                </TrackedLink>
               </div>
             ) : (
               <></>
@@ -316,9 +363,16 @@ export default function LPClient({
                 <p style={{ fontSize: '16px', fontWeight: 700, marginBottom: '18px' }}>
                   現在、説明会の日程は個別にご案内しています。
                 </p>
-                <a href={CONSULT_URL} className="lp-consult-cta" target="_blank" rel="noopener noreferrer">
+                <TrackedLink
+                  href={CONSULT_URL}
+                  className="lp-consult-cta"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  event="cta_click"
+                  params={{ position: 'footer' }}
+                >
                   個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
-                </a>
+                </TrackedLink>
               </div>
             ) : (
             <>
@@ -335,7 +389,7 @@ export default function LPClient({
                 </p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} onFocus={onFormStart}>
                 <div className="form-row">
                   <div className="form-group">
                     <label>お名前 <span className="required">必須</span></label>

@@ -18,6 +18,7 @@ import { FIELD_SECTION } from '@/lib/success-fields';
 import '@/styles/kamo-icons.css';
 import '@/styles/success.css';
 import LegalFooter from '@/components/LegalFooter';
+import TrackedLink from '@/components/TrackedLink';
 
 /**
  * /success = 「金額の大きい事例を並べるページ」ではなく
@@ -202,9 +203,15 @@ function StoryCard({ item, index }: { item: CaseStory; index: number }) {
             <p className="sc-story-cta-title">
               <span className="sc-story-num">06</span>あなたの企画も相談してみませんか？
             </p>
-            <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer">
+            <TrackedLink
+              href={CONSULT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              event="cta_click"
+              params={{ position: 'case' }}
+            >
               無料で企画を相談する →
-            </a>
+            </TrackedLink>
           </div>
         </div>
       </div>
@@ -264,7 +271,12 @@ export default function SuccessPage() {
           <ul className="sc-index-list">
             {CASE_INDEX.map(({ item, label }) => (
               <li key={item.slug}>
-                <a className="sc-index-card" href={`#${item.slug}`}>
+                <TrackedLink
+                  className="sc-index-card"
+                  href={`#${item.slug}`}
+                  event="case_select"
+                  params={{ slug: item.slug }}
+                >
                   {item.hasImage && (
                     <span className="sc-index-media">
                       <img
@@ -285,7 +297,7 @@ export default function SuccessPage() {
                       {formatManYen(item.raised)}
                     </span>
                   </span>
-                </a>
+                </TrackedLink>
               </li>
             ))}
           </ul>
@@ -340,14 +352,16 @@ export default function SuccessPage() {
               ))}
             </ul>
             <p className="sc-fields-cta-lead">{FIELD_SECTION.cta.lead}</p>
-            <a
+            <TrackedLink
               href={CONSULT_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="sc-fields-cta-button"
+              event="cta_click"
+              params={{ position: 'middle' }}
             >
               {CONSULT_MINUTES}分の無料個別相談を予約する
-            </a>
+            </TrackedLink>
             <p className="sc-fields-cta-note">{FIELD_SECTION.cta.note}</p>
           </div>
         </div>
@@ -421,14 +435,16 @@ export default function SuccessPage() {
             企画内容や目標金額、公開までの準備について一緒に整理します。
           </p>
           <div className="sc-cta-actions">
-            <a
+            <TrackedLink
               href={CONSULT_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="sc-cta-main"
+              event="cta_click"
+              params={{ position: 'footer' }}
             >
               {CONSULT_MINUTES}分の無料個別相談を予約する
-            </a>
+            </TrackedLink>
           </div>
           <p className="sc-cta-note">
             ※相談は無料です。掲載手数料や有償サポート費用については別途ご案内します。
