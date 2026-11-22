@@ -1750,3 +1750,117 @@
     width: 100%;
   }
 }
+
+/* ===== 支援内容・掲載までの流れ・費用：見出しと文字を大きく（2026-11-22 t iku指示） ===== */
+.tlp-support .tlp-h2 {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: 0.05em;
+}
+.tlp-support .tlp-h2::after {
+  content: '';
+  display: block;
+  width: 58px;
+  height: 3px;
+  margin: 16px auto 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #E8B33A 0%, #C8901A 100%);
+}
+.tlp-support-lead {
+  max-width: 720px;
+  margin-top: 18px;
+  font-size: 17px;
+  line-height: 1.95;
+  color: #3C4A57;
+}
+.tlp-support-block {
+  margin-top: 44px;
+  padding: 32px;
+  border: 1px solid #E8EDF5;
+  box-shadow: 0 6px 24px rgba(20, 32, 64, 0.04);
+}
+.tlp-support-title {
+  position: relative;
+  padding-left: 16px;
+  font-size: 24px;
+  line-height: 1.4;
+}
+.tlp-support-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.16em;
+  width: 5px;
+  height: 1.1em;
+  border-radius: 3px;
+  background: var(--cta-primary);
+}
+.tlp-support-services { gap: 16px; margin-top: 22px; }
+.tlp-support-service {
+  position: relative;
+  padding: 20px 20px 18px;
+  border-radius: 12px;
+  border-color: #E4EAF3;
+  box-shadow: 0 2px 8px rgba(20, 32, 64, 0.04);
+  overflow: hidden;
+}
+.tlp-support-service::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--cta-primary) 0%, #6E8CC4 100%);
+}
+.tlp-support-service h4 { font-size: 18.5px; letter-spacing: 0.01em; }
+.tlp-support-service p { margin-top: 8px; font-size: 15.5px; line-height: 1.85; color: #4A5868; }
+
+.tlp-support-flow { gap: 18px; margin-top: 22px; }
+.tlp-support-step {
+  position: relative;
+  padding: 20px 20px 18px;
+  border-radius: 12px;
+  border-color: #E4EAF3;
+  box-shadow: 0 2px 8px rgba(20, 32, 64, 0.04);
+}
+/* PCのみ：ステップの間に矢印を置く */
+@media (min-width: 901px) {
+  .tlp-support-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 17px;
+    font-weight: 700;
+    color: #A9B8D2;
+  }
+}
+.tlp-support-step-no {
+  width: 34px;
+  height: 34px;
+  font-size: 15px;
+  box-shadow: 0 3px 8px rgba(37, 74, 152, 0.28);
+}
+.tlp-support-step h4 { margin-top: 10px; font-size: 18px; }
+.tlp-support-step p { margin-top: 8px; font-size: 15.5px; line-height: 1.85; color: #4A5868; }
+.tlp-support-note { margin-top: 16px; font-size: 13.5px; color: #6B7785; }
+.tlp-support-fee dt { font-size: 16px; }
+.tlp-support-fee-value { font-size: 20px; }
+.tlp-support-fee-note { font-size: 13.5px; }
+
+@media (max-width: 900px) {
+  .tlp-support .tlp-h2 { font-size: 22px; letter-spacing: 0.01em; }
+  .tlp-support .tlp-h2::after { margin-top: 13px; width: 46px; height: 2.5px; }
+  .tlp-support-lead { margin-top: 14px; font-size: 15px; }
+  .tlp-support-block { margin-top: 28px; padding: 22px 18px; }
+  .tlp-support-title { font-size: 19px; }
+  .tlp-support-service { padding: 16px 16px 14px; }
+  .tlp-support-service h4 { font-size: 16.5px; }
+  .tlp-support-service p { font-size: 14.5px; }
+  .tlp-support-step { padding: 16px 16px 14px; }
+  .tlp-support-step-no { width: 30px; height: 30px; font-size: 14px; }
+  .tlp-support-step h4 { font-size: 16.5px; }
+  .tlp-support-step p { font-size: 14.5px; }
+  .tlp-support-fee-value { font-size: 18px; }
+}
