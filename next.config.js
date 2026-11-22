@@ -26,6 +26,21 @@ const nextConfig = {
   reactStrictMode: true,
   // ビルド情報からバージョンを推測されないようにする
   poweredByHeader: false,
+  /**
+   * 恒久リダイレクト（2026-11-23）
+   *
+   * /award … 11/9に終了した KAMOファンディングアワードのLP。
+   *   表示は廃止したが、ブックマーク・被リンク・過去の告知からの流入を拾うため
+   *   404ではなく /seminar（セミナー日程・お申し込み）へ308で転送する。
+   *
+   * 🔴 ページ側の permanentRedirect() ではなく**ここ**に置く:
+   *   Vercel のエッジで Location 付きの308を返せるため（ページ側の実装だと
+   *   本番でステータスだけ返り Location が落ちる事象が発生した）。
+   * 🔴 クエリ文字列（UTM等）は自動で引き継がれる。
+   */
+  async redirects() {
+    return [{ source: '/award', destination: '/seminar', permanent: true }];
+  },
   async headers() {
     return [
       {
