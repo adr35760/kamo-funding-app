@@ -519,7 +519,7 @@ export default function AdminPage() {
         </TabButton>
         {/* 2026-11-23 t iku指示: アクセス解析（GA4）への入口を管理画面のタブに置く */}
         <a
-          href="https://analytics.google.com/"
+          href="https://analytics.google.com/analytics/web/#/a258672817p565418778/realtime/pages?params=_u..nav%3Dmaui"
           target="_blank"
           rel="noopener noreferrer"
           style={{
@@ -534,7 +534,7 @@ export default function AdminPage() {
             gap: 6,
             marginLeft: 'auto',
           }}
-          title="Googleアナリティクスを新しいタブで開きます"
+          title="Googleアナリティクス（リアルタイム）を新しいタブで開きます"
         >
           アナリティクス
           <span aria-hidden="true" style={{ fontSize: 12 }}>↗</span>
