@@ -87,8 +87,14 @@ export function initAnalytics(gaId?: string): void {
     w.dataLayer = w.dataLayer || [];
     if (typeof w.gtag !== 'function') {
       // 公式スニペットと同じく、読み込み前の呼び出しを dataLayer に積む
-      w.gtag = function gtag(...args: unknown[]) {
-        w.dataLayer!.push(args);
+      /**
+       * 🔴 公式スニペットと同じく **arguments オブジェクト**を積む。
+       *    配列を積むと gtag.js が処理しないことがある（2026-11-22: GA4に
+       *    データが届かない原因がこれだった）。
+       */
+      w.gtag = function gtag() {
+        // eslint-disable-next-line prefer-rest-params
+        w.dataLayer!.push(arguments as unknown as unknown[]);
       };
     }
 

@@ -1,4 +1,5 @@
 import './globals.css';
+import '@/styles/kamo-icons.css';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 export const metadata = {

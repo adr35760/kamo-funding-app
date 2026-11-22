@@ -1864,3 +1864,162 @@
   .tlp-support-step p { font-size: 14.5px; }
   .tlp-support-fee-value { font-size: 18px; }
 }
+
+/* ===== 支援内容・流れ・費用：コントラストと装飾を強める（2026-11-22 2回目） ===== */
+.tlp-support-block {
+  background: #fff;
+  border: 1px solid #E1E8F4;
+  border-radius: 18px;
+  padding: 36px;
+  box-shadow: 0 12px 36px rgba(13, 35, 74, 0.08);
+}
+.tlp-support-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: #0B1D3A;
+}
+.tlp-support-service {
+  padding: 26px 22px 24px;
+  border-radius: 16px;
+  border: 1px solid #E1E8F4;
+  box-shadow: 0 4px 14px rgba(13, 35, 74, 0.06);
+}
+.tlp-support-service::before { height: 5px; }
+.tlp-support-service-icon {
+  width: 52px; height: 52px;
+  border-radius: 14px !important;
+  background-color: #EAF1FF !important;
+  background-size: 26px 26px !important;
+  margin-bottom: 14px;
+}
+.tlp-support-service-no {
+  position: absolute;
+  top: 16px; right: 18px;
+  font-family: Montserrat, sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: #E3EBF8;
+  letter-spacing: 0.02em;
+}
+.tlp-support-service h4 {
+  font-size: 19px;
+  font-weight: 900;
+  color: #0B1D3A;
+  letter-spacing: 0.02em;
+}
+.tlp-support-service p {
+  margin-top: 10px;
+  font-size: 15.5px;
+  line-height: 1.9;
+  color: #33404F;
+}
+.tlp-support-note { font-size: 13.5px; color: #5A6675; }
+
+/* 流れ */
+.tlp-support-step {
+  padding: 24px 22px 22px;
+  border-radius: 16px;
+  border: 1px solid #E1E8F4;
+  box-shadow: 0 4px 14px rgba(13, 35, 74, 0.06);
+}
+.tlp-support-step-label {
+  display: block;
+  font-family: Montserrat, sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: #2F5BB7;
+  margin-bottom: 10px;
+}
+.tlp-support-step-no {
+  width: 40px; height: 40px;
+  font-size: 17px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #2F5BB7 0%, #1B3F8F 100%);
+  box-shadow: 0 6px 14px rgba(31, 66, 143, 0.32);
+}
+.tlp-support-step h4 {
+  margin-top: 12px;
+  font-size: 19px;
+  font-weight: 900;
+  color: #0B1D3A;
+  letter-spacing: 0.02em;
+}
+.tlp-support-step p {
+  margin-top: 10px;
+  font-size: 15.5px;
+  line-height: 1.9;
+  color: #33404F;
+}
+
+/* 費用：金額を強く */
+.tlp-support-fees { margin-top: 22px; border-top: 2px solid #E1E8F4; }
+.tlp-support-fee { padding: 20px 0; }
+.tlp-support-fee dt { font-size: 16.5px; font-weight: 800; color: #0B1D3A; }
+.tlp-support-fee-value { font-size: 22px; font-weight: 900; }
+.tlp-support-fee-note { font-size: 13.5px; color: #4A5868; }
+
+@media (max-width: 900px) {
+  .tlp-support-block { padding: 22px 18px; border-radius: 14px; }
+  .tlp-support-title { font-size: 20px; }
+  .tlp-support-service { padding: 18px 16px 16px; }
+  .tlp-support-service-icon { width: 42px; height: 42px; background-size: 21px 21px !important; margin-bottom: 10px; }
+  .tlp-support-service-no { font-size: 20px; top: 12px; right: 14px; }
+  .tlp-support-service h4 { font-size: 17px; }
+  .tlp-support-service p { font-size: 14.5px; }
+  .tlp-support-step { padding: 18px 16px 16px; }
+  .tlp-support-step-no { width: 34px; height: 34px; font-size: 15px; }
+  .tlp-support-step h4 { font-size: 17px; }
+  .tlp-support-step p { font-size: 14.5px; }
+  .tlp-support-fee-value { font-size: 19px; }
+}
+
+/* ===== 費用の下の交流会告知（黒×金・2026-11-22 t iku指示） ===== */
+.tlp-support-event {
+  margin-top: 24px;
+  padding: 18px 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  background: #14171C;
+  border: 1px solid #C8901A;
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(20, 23, 28, 0.18);
+}
+.tlp-support-event-label {
+  font-family: Montserrat, sans-serif;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #14171C;
+  background: linear-gradient(135deg, #FFE9A8 0%, #E8B33A 55%, #C8901A 100%);
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+.tlp-support-event-title {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(90deg, #FFE9A8 0%, #E8B33A 60%, #D4A017 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.tlp-support-event-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #F3E3B4;
+}
+.tlp-support-event-star { color: #E8B33A; }
+
+@media (max-width: 900px) {
+  .tlp-support-event { padding: 16px; gap: 8px 10px; }
+  .tlp-support-event-title { font-size: 15px; }
+  .tlp-support-event-place { font-size: 13px; }
+}

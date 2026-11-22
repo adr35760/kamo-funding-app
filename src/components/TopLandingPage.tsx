@@ -324,8 +324,12 @@ export default function TopLandingPage() {
             <div className="tlp-support-block">
               <h3 className="tlp-support-title">{LP_SUPPORT.servicesHeading}</h3>
               <div className="tlp-support-services">
-                {LP_SUPPORT.services.map(service => (
+                {LP_SUPPORT.services.map((service, i) => (
                   <div className="tlp-support-service" key={service.title}>
+                    <span className="tlp-support-service-no" aria-hidden="true">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className={`kamo-icon ${service.icon} tlp-support-service-icon`} aria-hidden="true" />
                     <h4>{service.title}</h4>
                     <p>{service.body}</p>
                   </div>
@@ -339,6 +343,9 @@ export default function TopLandingPage() {
               <ol className="tlp-support-flow">
                 {LP_SUPPORT.flow.map((step, i) => (
                   <li className="tlp-support-step" key={step.title}>
+                    <span className="tlp-support-step-label" aria-hidden="true">
+                      STEP {String(i + 1).padStart(2, '0')}
+                    </span>
                     <span className="tlp-support-step-no" aria-hidden="true">
                       {i + 1}
                     </span>
@@ -363,6 +370,18 @@ export default function TopLandingPage() {
                   </div>
                 ))}
               </dl>
+
+              {/* 2026-11-22 t iku指示: 費用の下に交流会の告知を追記（黒×金） */}
+              <div className="tlp-support-event">
+                <span className="tlp-support-event-label">EVENT</span>
+                <span className="tlp-support-event-title">{LP_SUPPORT.eventNote.title}</span>
+                <span className="tlp-support-event-place">
+                  <span className="tlp-support-event-star" aria-hidden="true">
+                    ★
+                  </span>
+                  {LP_SUPPORT.eventNote.place}
+                </span>
+              </div>
             </div>
 
             {/* 2026-11-22 t iku指示: 費用の直後に置く唯一のCTA（セクションは増やさない） */}

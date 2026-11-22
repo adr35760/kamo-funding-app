@@ -258,23 +258,33 @@ export const LP_SUPPORT = {
   servicesHeading: '支援内容',
   services: [
     {
+      icon: 'kamo-icon-pen',
       title: '企画設計',
       body: '誰に何を届けるか、目標金額と期間を一緒に設計します。',
     },
     {
+      icon: 'kamo-icon-gift',
       title: 'リターン設計',
       body: '支援してくれる人が選びやすいリターンを組み立てます。',
     },
     {
+      icon: 'kamo-icon-monitor',
       title: 'ページ制作',
       body: '想いと企画が伝わるプロジェクトページを作ります。',
     },
     {
+      icon: 'kamo-icon-megaphone',
       title: '集客',
       body: '公開前から、応援してくれる人を集める準備を進めます。',
     },
   ],
   servicesNote: `この4つを、公開までの${SUPPORT_PERIOD_LABEL}間いっしょに進めます。`,
+
+  /** 費用ブロックの下に置く告知（2026-11-22 t iku指示・黒×金で装飾） */
+  eventNote: {
+    title: 'ビジネス交流会・鴨頭嘉人特別参加会',
+    place: '池袋開催・懇親会は有料です',
+  },
   /**
    * 2026-11-22 t iku指示: 主導線は個別相談が先。4ステップに並べ替える。
    * 🔴 説明会の所要時間（分数）は書かない（新形式の所要時間が未確定のため）。
