@@ -170,31 +170,9 @@ export default function LPClient({
         </div>
       </section>
 
-      {/* ===== STATS BAR ===== */}
-      <section className="stats-bar">
-        <div className="container">
-          <div className="stats-inner">
-            <div className="stat-item">
-              <div className="stat-number">1,159<span className="unit">%</span></div>
-              <div className="stat-label">平均目標達成率</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number">¥10M<span className="unit">+</span></div>
-              <div className="stat-label">最高支援額</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number">2<span className="unit">回/月</span></div>
-              <div className="stat-label">説明会開催頻度</div>
-            </div>
-            <div className="stat-item">
-              <div className="stat-number">¥0</div>
-              <div className="stat-label">参加費・掲載費</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== 実績バナー（2026-11-21 t iku指示・3ページ共通コンポーネント） ===== */}
+      {/* ===== 実績バナー（2026-11-21 t iku指示・3ページ共通コンポーネント） =====
+          2026-11-22 t iku指示: 上の旧 stats-bar（1,159%／¥10M+ 等）は数値が古く
+          StatsBanner と二重表示になるため撤去し、このバナーに一本化した。 */}
       <section className="lp-stats-banner" aria-label="クラウドファンディング支援実績">
         <div className="container">
           <StatsBanner />
@@ -216,7 +194,7 @@ export default function LPClient({
               <h3>掲載説明会（月2回）</h3>
               <p>KAMOファンディングの掲載方法から成功のコツまで、参加費無料で学べます。</p>
               <ul>
-                <li>KAMOファンディングの特徴 — 累計支援総額{KAMO_RAISED_LABEL}！目標達成率{ACHIEVEMENT_RATE_LABEL}のノウハウの一端をご紹介</li>
+                <li>KAMOファンディングの特徴 — KAMOファンディング単独で累計支援総額{KAMO_RAISED_LABEL}・目標達成率{ACHIEVEMENT_RATE_LABEL}のノウハウの一端をご紹介</li>
                 <li>クラウドファンディングの集める構造を理解する — クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</li>
                 <li>応援支援で高額支援を集めるノウハウを伝授 — スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</li>
               </ul>
