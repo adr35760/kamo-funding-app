@@ -2023,3 +2023,832 @@
   .tlp-support-event-title { font-size: 15px; }
   .tlp-support-event-place { font-size: 13px; }
 }
+
+/* ============================================================================
+   2026-11-22 t iku指示: トップページを「紺・赤・金・白」の4色で組み直す
+   ----------------------------------------------------------------------------
+   ねらい: 高級感と勢い。色数は増やさない（紺#0B1D3A / 赤#E60012 / 金#C8901A〜#E8B33A / 白）。
+   ルール:
+     ・面（セクション）は白と濃紺を交互に置いてリズムをつくる
+     ・赤はCTAと数字の強調だけ
+     ・見出しは「英字の小見出し＋和文の大見出し＋金の細い罫線」で統一
+     ・カードは白＋弱い影、強調カードは濃紺地＋金の枠
+   🔴 文言・数値・CTA先・並び順・計測イベントは変更しない（見た目だけ）。
+   ============================================================================ */
+
+.tlp-page {
+  /* 4色のトークン（この4色以外を面に使わない） */
+  --navy: #0b1d3a;
+  --navy-deep: #071528;
+  --navy-soft: #16294a;
+  --red: #e60012;
+  --red-dark: #c20010;
+  --red-bright: #ff3b3b;
+  --gold: #c8901a;
+  --gold-light: #e8b33a;
+  --gold-pale: #f6e7c3;
+  --gold-ink: #8a6212; /* 白地で 5.4:1。小さい金文字はこれを使う */
+
+  --ink: #0f1b2d;
+  --ink-sub: #44536a;
+  --ink-note: #5c6778;
+
+  /* 既存トークンの差し替え（青系の強調色を赤に寄せる） */
+  --cta-primary: #e60012;
+  --cta-primary-dark: #c20010;
+  --text: #0f1b2d;
+  --text-sub: #44536a;
+  --text-note: #5c6778;
+  --line: #e3e8f1;
+
+  --space-section: 104px;
+
+  background: #fff;
+  color: var(--ink);
+}
+
+/* globals.css の赤リンクを、このページでは紺に統一（CTAは個別に色を持つ） */
+.tlp-page a {
+  color: var(--navy);
+}
+
+/* ---- セクションの英字小見出し（金・字間広め・左右に細い罫線） ---- */
+.tlp-eyebrow {
+  --eb: var(--gold-ink);
+  --eb-line: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 0 14px;
+  text-align: center;
+  font-family: Montserrat, sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.34em;
+  line-height: 1.6;
+  color: var(--eb);
+}
+.tlp-eyebrow::before,
+.tlp-eyebrow::after {
+  content: '';
+  width: 34px;
+  height: 1px;
+  flex: 0 0 34px;
+  background: linear-gradient(90deg, rgba(200, 144, 26, 0), var(--eb-line));
+}
+.tlp-eyebrow::after {
+  background: linear-gradient(90deg, var(--eb-line), rgba(200, 144, 26, 0));
+}
+/* 濃紺の面に載せるとき */
+.tlp-eyebrow-onDark,
+.tlp-cases .tlp-eyebrow,
+.tlp-hub .tlp-eyebrow,
+.tlp-final .tlp-eyebrow {
+  --eb: var(--gold-light);
+  --eb-line: rgba(232, 179, 58, 0.75);
+}
+
+/* ---- 見出し：和文の大見出し＋金の細い罫線 ---- */
+.tlp-page .tlp-h2 {
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1.45;
+  letter-spacing: 0.05em;
+  color: var(--navy);
+  text-wrap: balance;
+}
+.tlp-page .tlp-h2::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin: 18px auto 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--gold-light) 0%, var(--gold) 100%);
+}
+.tlp-page .tlp-body {
+  color: var(--ink-sub);
+}
+
+/* ---- ボタン：主=赤 / 副=紺の枠（濃紺の面では金の枠） ---- */
+.tlp-page .tlp-btn {
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+.tlp-page .tlp-btn-primary {
+  background: linear-gradient(180deg, #f0182a 0%, var(--red) 52%, var(--red-dark) 100%);
+  color: #fff !important;
+  box-shadow: 0 12px 26px -14px rgba(230, 0, 18, 0.85);
+}
+.tlp-page .tlp-btn-primary:hover {
+  background: linear-gradient(180deg, var(--red) 0%, var(--red-dark) 100%);
+  box-shadow: 0 14px 30px -14px rgba(230, 0, 18, 0.9);
+}
+.tlp-page .tlp-btn-outline {
+  background: transparent;
+  border: 1.5px solid rgba(11, 29, 58, 0.55);
+  color: var(--navy) !important;
+  box-shadow: none;
+}
+.tlp-page .tlp-btn-outline:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff !important;
+}
+/* 濃紺の面の副ボタンは金の枠 */
+.tlp-cases .tlp-btn-outline,
+.tlp-support-cta .tlp-btn-outline,
+.tlp-final .tlp-btn-outline {
+  border-color: rgba(232, 179, 58, 0.8);
+  color: var(--gold-pale) !important;
+}
+.tlp-cases .tlp-btn-outline:hover,
+.tlp-support-cta .tlp-btn-outline:hover,
+.tlp-final .tlp-btn-outline:hover {
+  background: rgba(232, 179, 58, 0.16);
+  border-color: var(--gold-light);
+  color: #fff !important;
+}
+/* フォーカスは金で（濃紺・白どちらでも見える） */
+.tlp-page a:focus-visible,
+.tlp-page button:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* ===== Z1 ファーストビュー：濃紺ベタ＋白の大見出し＋金の罫線＋赤のCTA ===== */
+.tlp-page .tlp-hero {
+  position: relative;
+  background: var(--navy-deep);
+  isolation: isolate;
+}
+.tlp-hero-frame::before {
+  /* 左半分にだけ薄い斜めの幾何学パターンと金の気配を敷く（人物側は汚さない） */
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 52%;
+  z-index: 1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      118deg,
+      rgba(255, 255, 255, 0.05) 0 1px,
+      rgba(255, 255, 255, 0) 1px 72px
+    ),
+    radial-gradient(120% 90% at 0% 100%, rgba(200, 144, 26, 0.18) 0%, rgba(200, 144, 26, 0) 62%),
+    linear-gradient(90deg, rgba(7, 21, 40, 0.55) 0%, rgba(7, 21, 40, 0) 78%);
+}
+.tlp-hero-frame::after {
+  /* 下端の金の細い罫線（ヒーローと次の面を切り分ける） */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 38%, rgba(200, 144, 26, 0) 100%);
+  pointer-events: none;
+}
+.tlp-hero-eyebrow {
+  position: relative;
+  padding-left: 14px;
+  margin-left: -14px;
+  border-left: 3px solid var(--gold-light);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.tlp-hero-h1 {
+  font-size: clamp(30px, 3.9vw, 54px);
+  font-weight: 900;
+  line-height: 1.28;
+  letter-spacing: 0.015em;
+}
+.tlp-hero-h2 {
+  color: #e6eefb;
+  letter-spacing: 0.01em;
+}
+.tlp-hero-body {
+  color: rgba(255, 255, 255, 0.9);
+}
+/* 主CTA=赤、副導線=金の枠（同じ高さで並べる） */
+.tlp-hero .tlp-hero-cta-main {
+  background: linear-gradient(135deg, #f4182a 0%, var(--red) 55%, var(--red-dark) 100%);
+  box-shadow: 0 10px 26px -10px rgba(230, 0, 18, 0.75);
+  animation: none;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+.tlp-hero .tlp-hero-cta-main:hover {
+  background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+}
+.tlp-hero-redbanner {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(232, 179, 58, 0.85);
+  border-radius: 4px;
+  box-shadow: none;
+}
+.tlp-hero-redbanner::after {
+  animation: none;
+  opacity: 0;
+}
+.tlp-hero-redbanner:hover {
+  background: rgba(232, 179, 58, 0.14);
+  border-color: var(--gold-light);
+  box-shadow: none;
+  filter: none;
+}
+.tlp-hero-redbanner-main {
+  color: #fff;
+  text-decoration: none;
+}
+.tlp-hero-redbanner-lead {
+  color: var(--gold-pale);
+}
+.tlp-hero-redbanner-arrow {
+  color: var(--gold-light);
+}
+
+/* ===== Z1.5 実績：白の面。上下の余白だけ整える ===== */
+.tlp-page .tlp-stats {
+  padding: var(--space-section) 0 0;
+  background: #fff;
+}
+
+/* ===== Z3.5 成功事例：濃紺の面＋白のカード ===== */
+.tlp-page .tlp-cases {
+  padding: var(--space-section) 0;
+  background: var(--navy);
+}
+.tlp-cases .tlp-h2,
+.tlp-page .tlp-cases-h2 {
+  color: #fff;
+  font-size: 40px;
+  letter-spacing: 0.07em;
+}
+.tlp-page .tlp-cases-h2::after {
+  width: 64px;
+  height: 2px;
+  margin-top: 18px;
+}
+.tlp-cases-lead {
+  color: rgba(255, 255, 255, 0.88);
+}
+.tlp-page .tlp-case {
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  box-shadow: 0 20px 44px -28px rgba(0, 0, 0, 0.65);
+}
+.tlp-page .tlp-case:hover {
+  border-color: rgba(232, 179, 58, 0.6);
+  box-shadow: 0 24px 52px -26px rgba(0, 0, 0, 0.7);
+  transform: translateY(-3px);
+}
+.tlp-page .tlp-case-label {
+  background: #eef2f9;
+  color: var(--navy);
+}
+/* 金額は「赤で数字を強調」 */
+.tlp-page .tlp-case-raised {
+  color: var(--red);
+  letter-spacing: 0.01em;
+}
+.tlp-page .tlp-case-raised-label {
+  color: var(--ink-note);
+}
+.tlp-cases .tlp-cta-note {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* ===== Z3.55 挑戦者交流会バナー（横長・全幅・全体をリンク） ===== */
+.tlp-page .tlp-event {
+  padding: var(--space-section) 0 0;
+  background: #fff;
+}
+.tlp-event-link {
+  display: block;
+  color: var(--ink) !important;
+}
+.tlp-event-media {
+  display: block;
+  overflow: hidden;
+  border: 1px solid rgba(11, 29, 58, 0.14);
+  border-radius: 4px;
+  background: var(--navy-deep);
+  box-shadow: 0 22px 50px -30px rgba(11, 29, 58, 0.6);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.tlp-event-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.tlp-event-link:hover .tlp-event-media {
+  transform: translateY(-3px);
+  border-color: var(--gold);
+  box-shadow: 0 28px 58px -28px rgba(11, 29, 58, 0.7);
+}
+.tlp-event-caption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.7;
+  color: var(--ink-sub);
+}
+.tlp-event-caption::before {
+  content: '';
+  width: 26px;
+  height: 1px;
+  flex: 0 0 26px;
+  background: var(--gold);
+}
+.tlp-event-link:hover .tlp-event-caption {
+  color: var(--navy);
+}
+
+/* ===== Z3.6 支援内容・流れ・費用：明るいグレーの面＋白のカード ===== */
+.tlp-page .tlp-support {
+  padding: var(--space-section) 0;
+  background: #f4f6fb;
+}
+.tlp-support .tlp-h2 {
+  color: var(--navy);
+}
+.tlp-support-lead {
+  color: var(--ink-sub);
+}
+.tlp-page .tlp-support-block {
+  background: #fff;
+  border: 1px solid rgba(11, 29, 58, 0.09);
+  border-radius: 6px;
+  box-shadow: 0 16px 40px -30px rgba(11, 29, 58, 0.45);
+}
+.tlp-support-title::before {
+  background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 100%);
+}
+.tlp-support-service::before {
+  background: linear-gradient(90deg, var(--navy) 0%, var(--gold) 100%);
+}
+.tlp-page .tlp-support-service-icon {
+  background-color: #eef2f9 !important;
+}
+.tlp-page .tlp-support-service-no {
+  color: #dfe6f2;
+}
+.tlp-support-step-no {
+  background: linear-gradient(135deg, var(--navy-soft) 0%, var(--navy) 100%);
+  box-shadow: 0 6px 14px rgba(11, 29, 58, 0.28);
+}
+.tlp-support-step-label {
+  color: var(--gold-ink);
+}
+.tlp-support-fees {
+  border-top-color: rgba(11, 29, 58, 0.12);
+}
+.tlp-page .tlp-support-fee {
+  border-bottom-color: rgba(11, 29, 58, 0.08);
+}
+.tlp-page .tlp-support-fee-value {
+  color: var(--navy);
+}
+/* 強調カード＝濃紺地＋金の枠（費用の直後のCTA） */
+.tlp-page .tlp-support-cta {
+  margin-top: 56px;
+  padding: 52px 32px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(200, 144, 26, 0.16) 0%, rgba(200, 144, 26, 0) 55%),
+    var(--navy);
+  border: 1px solid rgba(232, 179, 58, 0.55);
+  border-radius: 6px;
+  box-shadow: 0 30px 60px -34px rgba(11, 29, 58, 0.8);
+}
+.tlp-support-cta-heading {
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+.tlp-support-cta-body {
+  color: rgba(255, 255, 255, 0.86);
+}
+.tlp-support-cta .tlp-cta-note {
+  color: rgba(255, 255, 255, 0.72);
+}
+/* 既存の黒×金の告知帯は金の枠だけ揃える */
+.tlp-page .tlp-support-event {
+  background: var(--navy-deep);
+  border-color: rgba(232, 179, 58, 0.7);
+  border-radius: 4px;
+}
+.tlp-support-event-label {
+  background: linear-gradient(135deg, var(--gold-pale) 0%, var(--gold-light) 55%, var(--gold) 100%);
+}
+.tlp-support-event-place {
+  color: var(--gold-pale);
+}
+
+/* ===== Z2/Z3 4つの入り口：濃紺の面＋白のカード ===== */
+.tlp-page .tlp-hub {
+  padding: var(--space-section) 0;
+  background: var(--navy);
+}
+.tlp-hub .tlp-h2 {
+  color: #fff;
+}
+.tlp-hub .tlp-body {
+  color: rgba(255, 255, 255, 0.84);
+}
+.tlp-hub .tlp-empathy-lead {
+  color: #fff;
+}
+.tlp-page .tlp-card {
+  position: relative;
+  background: #fff;
+  border: 0;
+  border-radius: 4px;
+  box-shadow: 0 22px 48px -30px rgba(0, 0, 0, 0.7);
+}
+.tlp-page .tlp-card::after {
+  /* カード上端の金の細い罫線 */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 60%, rgba(232, 179, 58, 0) 100%);
+}
+.tlp-page .tlp-card:hover {
+  border-color: transparent;
+  box-shadow: 0 28px 56px -28px rgba(0, 0, 0, 0.78);
+  transform: translateY(-4px);
+}
+/* 4枚のアクセント色は「紺」に統一（色数を増やさない） */
+.tlp-page .tlp-card-1,
+.tlp-page .tlp-card-2,
+.tlp-page .tlp-card-3,
+.tlp-page .tlp-card-4 {
+  --e: var(--navy);
+  --e-bg: #eef2f9;
+  --e-text: var(--navy);
+}
+.tlp-page .tlp-card-badge {
+  border: 1px solid rgba(200, 144, 26, 0.55);
+  background: #fff;
+  color: var(--navy);
+}
+.tlp-page .tlp-card-cta {
+  border-radius: 4px;
+  background: var(--navy);
+  color: #fff;
+  letter-spacing: 0.04em;
+}
+.tlp-page .tlp-card:hover .tlp-card-cta {
+  background: var(--red);
+  filter: none;
+}
+.tlp-page .tlp-card-note,
+.tlp-page .tlp-card-footnote {
+  color: var(--ink-note);
+}
+
+/* ===== Z4 信頼性：白の面＋金の罫線を入れた淡いパネル ===== */
+.tlp-page .tlp-trust {
+  padding: var(--space-section) 0 0;
+  background: #fff;
+}
+.tlp-page .tlp-trust-grid {
+  padding: 44px 24px 38px;
+  background: #f6f8fc;
+  border-top: 2px solid var(--gold);
+  border-radius: 4px;
+}
+.tlp-trust-value {
+  color: var(--navy);
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+/* 3つめ（目標達成率）だけ赤で強調 */
+.tlp-trust-item:nth-child(3) .tlp-trust-value {
+  color: var(--red);
+}
+.tlp-trust-label {
+  color: var(--ink-sub);
+}
+.tlp-trust-source {
+  color: var(--ink-note);
+}
+
+/* ===== Z5 最終CTA：濃紺の帯 ===== */
+.tlp-page .tlp-final {
+  margin-top: var(--space-section);
+  padding: 72px 0 76px;
+  background:
+    repeating-linear-gradient(
+      118deg,
+      rgba(255, 255, 255, 0.035) 0 1px,
+      rgba(255, 255, 255, 0) 1px 76px
+    ),
+    radial-gradient(100% 160% at 50% 0%, rgba(200, 144, 26, 0.18) 0%, rgba(200, 144, 26, 0) 60%),
+    var(--navy);
+  border-top: 1px solid rgba(232, 179, 58, 0.45);
+  border-bottom: 1px solid rgba(232, 179, 58, 0.45);
+  text-align: center;
+}
+.tlp-final .tlp-btn-lg {
+  min-width: 320px;
+  min-height: 62px;
+  font-size: 18px;
+  border-radius: 4px;
+}
+.tlp-final-note {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ===== 相談フォーム：白の面 ===== */
+.tlp-page .tlp-form-section {
+  padding: var(--space-section) 0;
+  background: #fff;
+}
+.tlp-page .tlp-form {
+  background: #fff;
+  border: 1px solid rgba(11, 29, 58, 0.12);
+  border-top: 2px solid var(--navy);
+  border-radius: 4px;
+  box-shadow: 0 20px 50px -38px rgba(11, 29, 58, 0.5);
+}
+.tlp-page .tlp-input {
+  border-color: rgba(11, 29, 58, 0.22);
+  border-radius: 3px;
+}
+.tlp-page .tlp-input:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(11, 29, 58, 0.12);
+}
+.tlp-page .tlp-radio {
+  border-color: rgba(11, 29, 58, 0.22);
+  border-radius: 3px;
+}
+.tlp-page .tlp-required {
+  background: #fdecec;
+  color: #a5120f;
+}
+.tlp-page .tlp-consent a {
+  color: var(--navy);
+  text-decoration: underline;
+}
+.tlp-page .tlp-form-done {
+  border-color: rgba(200, 144, 26, 0.55);
+  background: #fdf8ee;
+  border-radius: 4px;
+}
+
+/* ===== 今後の構想（3ステップ）：明るいグレーの面＋金の罫線のカード ===== */
+.tlp-page .tlp-steps {
+  padding: var(--space-section) 0;
+  background: #f4f6fb;
+}
+.tlp-steps-title {
+  color: var(--navy);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+}
+.tlp-steps-title::after {
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold-light) 0%, var(--gold) 100%);
+}
+.tlp-page .tlp-step {
+  border: 1px solid rgba(11, 29, 58, 0.09);
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 16px 40px -32px rgba(11, 29, 58, 0.5);
+}
+.tlp-page .tlp-step::before {
+  height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 60%, rgba(232, 179, 58, 0) 100%);
+}
+.tlp-page .tlp-step.is-future::before {
+  background: linear-gradient(90deg, rgba(11, 29, 58, 0.25) 0%, rgba(11, 29, 58, 0.05) 100%);
+}
+.tlp-page .tlp-step-no {
+  background: none;
+  color: var(--navy);
+  -webkit-text-fill-color: var(--navy);
+  font-size: 46px;
+  letter-spacing: 0.02em;
+}
+.tlp-page .tlp-step.is-future .tlp-step-no {
+  background: none;
+  color: #97a2b5;
+  -webkit-text-fill-color: #97a2b5;
+}
+.tlp-page .tlp-step:hover {
+  border-color: rgba(200, 144, 26, 0.5);
+  box-shadow: 0 22px 46px -30px rgba(11, 29, 58, 0.55);
+}
+.tlp-step-tag {
+  border-color: rgba(11, 29, 58, 0.15);
+  background: #eef2f9;
+  color: var(--navy);
+}
+.tlp-step-tag::before {
+  background: var(--gold);
+}
+.tlp-page .tlp-steps-note {
+  background: #fff;
+  border: 1px dashed rgba(200, 144, 26, 0.5);
+  border-radius: 4px;
+  color: var(--ink-note);
+}
+
+/* ===== 追従CTA：赤（主CTAと同じ） ===== */
+.tlp-page .tlp-follow-link {
+  background: var(--red);
+  border-radius: 4px;
+  box-shadow: 0 12px 28px -10px rgba(230, 0, 18, 0.7);
+  letter-spacing: 0.04em;
+}
+.tlp-page .tlp-follow-link:hover {
+  background: var(--red-dark);
+}
+
+/* ===== フッター：白地＋金の細い罫線 ===== */
+.tlp-page .tlp-footer {
+  border-top: 1px solid rgba(200, 144, 26, 0.55);
+  background: #fff;
+}
+
+/* ============================ タブレット ============================ */
+@media (max-width: 1023px) {
+  .tlp-page {
+    --space-section: 76px;
+  }
+  .tlp-page .tlp-h2 {
+    font-size: 30px;
+  }
+  .tlp-page .tlp-cases-h2 {
+    font-size: 34px;
+  }
+  .tlp-hero-h1 {
+    font-size: clamp(28px, 4.2vw, 40px);
+  }
+  .tlp-page .tlp-support-cta {
+    padding: 42px 24px;
+  }
+}
+
+/* ============================ スマホ ============================ */
+@media (max-width: 767px) {
+  .tlp-page {
+    --space-section: 64px;
+  }
+  /* FVは画像の下も濃紺にして、白の大見出しで続ける */
+  .tlp-page .tlp-hero {
+    background: var(--navy-deep);
+  }
+  .tlp-hero-copy2 {
+    padding: 22px 16px 26px;
+  }
+  .tlp-page .tlp-hero-eyebrow {
+    color: var(--gold-pale);
+    font-size: 13.5px;
+    border-left-width: 2px;
+    padding-left: 10px;
+    margin-left: 0;
+  }
+  .tlp-page .tlp-hero-h1 {
+    color: #fff;
+    font-size: 28px;
+    line-height: 1.38;
+    letter-spacing: 0.01em;
+    text-shadow: none;
+  }
+  .tlp-page .tlp-hero-h2 {
+    color: #e6eefb;
+  }
+  .tlp-page .tlp-hero-body {
+    color: rgba(255, 255, 255, 0.86);
+  }
+  .tlp-page .tlp-hero-note {
+    color: rgba(255, 255, 255, 0.68);
+  }
+  .tlp-hero-copy .tlp-btn {
+    border-radius: 4px;
+  }
+  .tlp-page .tlp-hero-cta-main,
+  .tlp-page .tlp-hero-redbanner {
+    min-height: 54px;
+    border-radius: 4px;
+  }
+  .tlp-page .tlp-h2 {
+    font-size: 24px;
+    letter-spacing: 0.03em;
+  }
+  .tlp-page .tlp-h2::after {
+    width: 44px;
+    height: 2px;
+    margin-top: 14px;
+  }
+  .tlp-page .tlp-cases-h2 {
+    font-size: 26px;
+    letter-spacing: 0.04em;
+  }
+  .tlp-eyebrow {
+    font-size: 10.5px;
+    letter-spacing: 0.26em;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .tlp-eyebrow::before,
+  .tlp-eyebrow::after {
+    width: 20px;
+    flex-basis: 20px;
+  }
+  /* バナーは画像全体を見せる（左右を切らない）。文字が潰れない高さは幅なり */
+  .tlp-event-caption {
+    font-size: 12.5px;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .tlp-event-caption::before {
+    width: 18px;
+    flex-basis: 18px;
+  }
+  .tlp-page .tlp-support-cta {
+    padding: 32px 18px;
+    margin-top: 36px;
+  }
+  .tlp-support-cta-heading {
+    font-size: 19px;
+  }
+  .tlp-page .tlp-final {
+    padding: 48px 0 52px;
+  }
+  .tlp-final .tlp-btn-lg {
+    min-width: 0;
+    min-height: 56px;
+    font-size: 16px;
+  }
+  .tlp-page .tlp-trust-grid {
+    padding: 30px 16px 26px;
+  }
+  .tlp-page .tlp-step-no {
+    font-size: 38px;
+  }
+}
+
+/* 2026-11-22: 「今後の構想」タグを右上のバッジに置き、3枚の見出しの高さを行で揃える */
+.tlp-page .tlp-step {
+  position: relative;
+}
+.tlp-page .tlp-step-tag {
+  position: absolute;
+  top: 22px;
+  right: 18px;
+  margin: 0;
+}
+@media (max-width: 767px) {
+  .tlp-page .tlp-step-tag {
+    top: 18px;
+    right: 14px;
+  }
+}
+/* 装飾の番号（aria-hidden）は薄すぎない濃さに */
+.tlp-page .tlp-step.is-future .tlp-step-no {
+  color: #5e6b80;
+  -webkit-text-fill-color: #5e6b80;
+}
+
+/* 2026-11-22: 見出しの語中折り返しを防ぐ（スマホで「掲載ま／で」等に割れないように） */
+.tlp-page .tlp-h2,
+.tlp-page .tlp-cases-h2,
+.tlp-page .tlp-steps-title,
+.tlp-page .tlp-support-title,
+.tlp-page .tlp-support-cta-heading,
+.tlp-page .tlp-event-caption {
+  word-break: auto-phrase;
+  line-break: strict;
+}
+.tlp-page .tlp-hero-eyebrow,
+.tlp-page .tlp-hero-h1 {
+  word-break: auto-phrase;
+  line-break: strict;
+}
+@media (max-width: 767px) {
+  /* 長い見出しは1行に収めるより、語句の切れ目で2行に落とす */
+  .tlp-page .tlp-support .tlp-h2 {
+    font-size: 22px;
+    line-height: 1.5;
+  }
+  .tlp-page .tlp-hero-eyebrow {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}

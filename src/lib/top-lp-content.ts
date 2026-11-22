@@ -245,6 +245,39 @@ export const LP_SUCCESS = {
   ],
 } as const;
 
+// ===== Z3.55 挑戦者交流会バナー（2026-11-22 t iku指示） =====
+/**
+ * 成功事例の直後・支援内容の前に置く横長バナー。
+ * 画像は t iku 支給の 2172×724 を 1600×533（JPEG q85）に縮小したもの。
+ * 🔴 置き場所・リンク先（/real-seminar）・alt は t iku 指定。文言（キャプション）以外は足さない。
+ */
+export const LP_EVENT = {
+  eyebrow: 'EVENT',
+  image: '/lp/challenger-meetup-20261122.jpg',
+  imageAlt: 'KAMOファンディング 挑戦者交流会・鴨頭嘉人参加会',
+  caption: '挑戦者交流会・鴨頭嘉人参加会の様子',
+  href: '/real-seminar',
+  /** 実際の画像寸法（レイアウトシフト防止のため width/height に渡す） */
+  width: 1600,
+  height: 533,
+} as const;
+
+// ===== セクションの英字小見出し（2026-11-22 t iku指示のデザイン統一） =====
+/**
+ * 「英字の小見出し＋和文の大見出し＋金の罫線」で全セクションを揃えるための飾り文字。
+ * 🔴 本文・数値・CTAの文言ではない（表示位置の目印だけ）。和文の見出しは各セクションの既存文言のまま。
+ */
+export const LP_SECTION_LABELS = {
+  cases: 'SUCCESS STORIES',
+  event: 'EVENT',
+  support: 'SUPPORT',
+  hub: 'ENTRANCE',
+  trust: 'TRACK RECORD',
+  final: 'START',
+  form: 'CONTACT',
+  steps: 'GROWTH',
+} as const;
+
 // ===== Z3.6 支援内容・掲載までの流れ・費用（2026-11-22 t iku承認） =====
 /**
  * 🔴 掲載手数料・期間は src/lib/site-fees.ts の定数から組み立てる（直書き禁止）。

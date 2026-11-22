@@ -9,10 +9,12 @@ import { CONSULT_URL, CONSULT_MINUTES } from '@/lib/seminar-info-content';
 import {
   LP_CARDS,
   LP_EMPATHY,
+  LP_EVENT,
   LP_FINAL,
   LP_FOLLOW,
   LP_FORM,
   LP_HERO,
+  LP_SECTION_LABELS,
   LP_STEPS,
   LP_SUCCESS,
   LP_SUPPORT,
@@ -260,7 +262,7 @@ export default function TopLandingPage() {
         {/* ===== Z3.5 成功事例への案内（2026-11-22 t iku指示: 実績の直後に追加） ===== */}
         <section className="tlp-cases" aria-label="成功事例">
           <div className="tlp-inner">
-            <p className="tlp-cases-eyebrow">SUCCESS STORIES</p>
+            <p className="tlp-eyebrow">{LP_SECTION_LABELS.cases}</p>
             <h2 className="tlp-h2 tlp-cases-h2">{LP_SUCCESS.heading}</h2>
             <p className="tlp-cases-lead">
               {LP_SUCCESS.leadLines.map(line => (
@@ -313,11 +315,35 @@ export default function TopLandingPage() {
           </div>
         </section>
 
+        {/* ===== Z3.55 挑戦者交流会バナー（2026-11-22 t iku指示） =====
+            成功事例の直後・支援内容の前に、横長バナーをコンテナ幅で置く。
+            画像全体をリンク（/real-seminar）にし、下に1行のキャプションを添える。
+            SPでも画像全体が見えるように width:100% / height:auto（左右を切らない）。 */}
+        <section className="tlp-event" aria-label={LP_EVENT.caption}>
+          <div className="tlp-inner">
+            <p className="tlp-eyebrow">{LP_SECTION_LABELS.event}</p>
+            <a className="tlp-event-link" href={LP_EVENT.href}>
+              <span className="tlp-event-media">
+                <img
+                  className="tlp-event-img"
+                  src={LP_EVENT.image}
+                  alt={LP_EVENT.imageAlt}
+                  width={LP_EVENT.width}
+                  height={LP_EVENT.height}
+                  loading="lazy"
+                />
+              </span>
+              <span className="tlp-event-caption">{LP_EVENT.caption}</span>
+            </a>
+          </div>
+        </section>
+
         {/* ===== Z3.6 支援内容・掲載までの流れ・費用（2026-11-22 t iku承認） =====
             手数料は利用規約 第4条と一致（総支援額の20%・税別・その他無料）。
             数値は src/lib/site-fees.ts が唯一の情報源。 */}
         <section className="tlp-support" aria-label={LP_SUPPORT.heading}>
           <div className="tlp-inner">
+            <p className="tlp-eyebrow">{LP_SECTION_LABELS.support}</p>
             <h2 className="tlp-h2">{LP_SUPPORT.heading}</h2>
             <p className="tlp-support-lead">{LP_SUPPORT.lead}</p>
 
@@ -421,6 +447,7 @@ export default function TopLandingPage() {
         <section className="tlp-hub" id="hub">
           <div className="tlp-inner">
             <div className="tlp-hub-lead">
+              <p className="tlp-eyebrow">{LP_SECTION_LABELS.hub}</p>
               <h2 className="tlp-h2">{LP_EMPATHY.heading}</h2>
               <p className="tlp-body">{LP_EMPATHY.body}</p>
               <p className="tlp-empathy-lead">{LP_EMPATHY.lead}</p>
@@ -467,6 +494,7 @@ export default function TopLandingPage() {
         <section className="tlp-trust">
           <div className="tlp-inner">
             <h2 className="tlp-sr-only">実績</h2>
+            <p className="tlp-eyebrow">{LP_SECTION_LABELS.trust}</p>
             <div className="tlp-trust-grid">
               <div className="tlp-trust-item">
                 <div className="tlp-trust-value">{LP_TRUST.countLabel}</div>
@@ -488,6 +516,7 @@ export default function TopLandingPage() {
         {/* ===== Z5 最終CTA ===== */}
         <section className="tlp-final">
           <div className="tlp-inner">
+            <p className="tlp-eyebrow tlp-eyebrow-onDark">{LP_SECTION_LABELS.final}</p>
             <a
               className="tlp-btn tlp-btn-primary tlp-btn-lg"
               href={CONSULT_URL}
@@ -504,6 +533,7 @@ export default function TopLandingPage() {
         {/* ===== 相談フォーム（§10） ===== */}
         <section className="tlp-form-section" id="consult" ref={formRef}>
           <div className="tlp-inner">
+            <p className="tlp-eyebrow">{LP_SECTION_LABELS.form}</p>
             <h2 className="tlp-h2">{LP_FORM.heading}</h2>
             <p className="tlp-form-lead">{LP_FORM.lead}</p>
 
@@ -642,6 +672,7 @@ export default function TopLandingPage() {
             提供前の02・03には「今後の構想」を付け、現在相談できる内容と区別する。 */}
         <section className="tlp-steps" aria-label="クラファンから、その先の事業成長へ">
           <div className="tlp-inner">
+            <p className="tlp-eyebrow">{LP_SECTION_LABELS.steps}</p>
             <h2 className="tlp-steps-title">{LP_STEPS.heading}</h2>
             <div className="tlp-steps-grid">
               {LP_STEPS.items.map((step) => (
