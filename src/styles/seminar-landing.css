@@ -669,9 +669,13 @@
   font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* ---- 最上部の告知バナー（切り抜かない・幅100%/高さ自動） ---- */
+/* ---- 最上部の告知バナー（切り抜かない・幅100%/高さ自動） ----
+   共通ヘッダーは固定で、実際の高さ（PC67px / SP61px）が SiteHeader の
+   余白（61px / 47px）より少し高い。その差分だけ白の余白を足して、
+   バナー上部がヘッダーに隠れないようにする（白地どうしなので継ぎ目は見えない）。 */
 .seminar-lp.is-real .sl-top-banner {
   background: #fff;
+  padding-top: 7px;
   line-height: 0;
 }
 .seminar-lp.is-real .sl-top-banner img {
@@ -1131,4 +1135,5 @@
   .seminar-lp.is-real .sl-date { font-size: 24px; }
   .seminar-lp.is-real .sl-price-box { width: 100%; max-width: 360px; }
   .seminar-lp.is-real .sl-r-community .sl-container { margin: 0 16px; padding: 28px 18px; max-width: none; }
+  .seminar-lp.is-real .sl-top-banner { padding-top: 14px; }
 }
