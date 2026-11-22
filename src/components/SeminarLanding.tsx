@@ -207,7 +207,12 @@ export default function SeminarLanding({
               {config.venue && (
                 <span>
                   会場：{config.venue.seminar}
-                  {config.venue.party && `（懇親会：${config.venue.party}）`}
+                  {/* 懇親会も同じ会場のときは「懇親会：同会場」と短く書く
+                      （同名を2回並べると別会場に見える） */}
+                  {config.venue.party &&
+                    (config.venue.party === config.venue.seminar
+                      ? '（懇親会も同会場）'
+                      : `（懇親会：${config.venue.party}）`)}
                 </span>
               )}
             </p>
@@ -327,6 +332,43 @@ export default function SeminarLanding({
         </div>
       </section>
 
+      {/* 当日のタイムテーブル（リアル回のみ・2026-11-22 t iku案）
+          「内容」で全体像を出したあとに、当日の流れを時間割で見せる。
+          各コマは1行説明まで（パートの狙いの長文は program 側が担う）。 */}
+      {config.timetables && config.timetables.length > 0 && (
+        <section className={'sl-section' + rc('timetable')}>
+          <div className="sl-container">
+            {eyebrow('timetable')}
+            <h2>当日の<span className="sl-h2-accent">流れ</span></h2>
+            {config.timetables.map(tt => (
+              <div className="sl-tt-block" key={tt.heading}>
+                <div className="sl-tt-head">
+                  {tt.kicker && <span className="sl-tt-kicker">{tt.kicker}</span>}
+                  <h3 className="sl-tt-heading">{tt.heading}</h3>
+                  {tt.lead && <p className="sl-tt-lead">{tt.lead}</p>}
+                </div>
+                <ol className="sl-tt-list">
+                  {tt.rows.map(r => (
+                    <li className="sl-tt-row" key={`${r.time}-${r.title}`}>
+                      <div className="sl-tt-time">
+                        <span className="sl-tt-clock">{r.time}</span>
+                        {r.minutes && <span className="sl-tt-min">{r.minutes}</span>}
+                      </div>
+                      <div className="sl-tt-body">
+                        <p className="sl-tt-title">{r.title}</p>
+                        <p className="sl-tt-desc">{r.body}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+                {tt.totalLabel && <p className="sl-tt-total">{tt.totalLabel}</p>}
+                {tt.note && <p className="sl-tt-note">{tt.note}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* 成功者から直接聞ける機会（リアル回のみ・今回の差別化） */}
       {config.community && (
         <section className={'sl-section sl-community' + rc('community')}>
@@ -413,7 +455,12 @@ export default function SeminarLanding({
                   {config.venue ? (
                     <p className="sl-venue">
                       会場：{config.venue.seminar}
-                      {config.venue.party && <><br />懇親会：{config.venue.party}</>}
+                      {config.venue.party && config.venue.party !== config.venue.seminar && (
+                        <><br />懇親会：{config.venue.party}</>
+                      )}
+                      {config.venue.party && config.venue.party === config.venue.seminar && (
+                        <><br />セミナー・懇親会とも同じ会場です</>
+                      )}
                     </p>
                   ) : (
                     <p className="sl-venue">オンライン（Zoom）</p>
@@ -435,7 +482,7 @@ export default function SeminarLanding({
                   <p className="sl-tier-time">🕒 {t.timeLabel}</p>
                   <p className="sl-tier-venue">
                     📍 {t.venue.main}
-                    {t.venue.sub && <>（懇親会：{t.venue.sub}）</>}
+                    {t.venue.sub && t.venue.sub !== t.venue.main && <>（懇親会：{t.venue.sub}）</>}
                   </p>
                   <p className="sl-tier-cap">👥 定員 {t.capacity}名</p>
                   <p className="sl-tier-summary">{t.summary}</p>

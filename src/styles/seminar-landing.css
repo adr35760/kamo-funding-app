@@ -691,6 +691,7 @@
 .seminar-lp.is-real .sl-section-alt { background: #fff; }
 
 .seminar-lp.is-real .sl-r-values,
+.seminar-lp.is-real .sl-r-timetable,
 .seminar-lp.is-real .sl-r-community,
 .seminar-lp.is-real .sl-r-schedule,
 .seminar-lp.is-real .sl-r-audience,
@@ -964,6 +965,109 @@
 .seminar-lp.is-real .sl-r-program .sl-program-closing p { color: var(--sl-navy); }
 
 /* ===== 成功者から直接聞ける機会（白）===== */
+/* ===== 当日のタイムテーブル（白）=====================================
+   セミナー150分と懇親会120分を、時間割として縦に並べる。
+   左に時刻（数字は等幅で桁を揃える）、右に1行説明。 */
+.seminar-lp.is-real .sl-tt-block {
+  max-width: 860px;
+  margin: 0 auto 26px;
+  padding: 30px 34px 26px;
+  background: #fff;
+  border: 1px solid var(--sl-line);
+  border-top: 3px solid var(--sl-gold);
+  border-radius: 6px;
+  box-shadow: 0 22px 46px -38px rgba(11, 29, 58, .75);
+}
+.seminar-lp.is-real .sl-tt-block:last-child { margin-bottom: 0; }
+.seminar-lp.is-real .sl-tt-head { margin-bottom: 6px; }
+.seminar-lp.is-real .sl-tt-kicker {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 3px 10px;
+  border: 1px solid rgba(200, 144, 26, .55);
+  border-radius: 3px;
+  font-family: Montserrat, 'Noto Sans JP', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .16em;
+  color: var(--sl-gold-ink);
+}
+.seminar-lp.is-real .sl-tt-heading {
+  margin: 0 0 6px;
+  font-size: clamp(18px, 2vw, 22px);
+  font-weight: 900;
+  line-height: 1.55;
+  color: var(--sl-navy);
+}
+.seminar-lp.is-real .sl-tt-lead {
+  margin: 0 0 6px;
+  font-size: 14.5px;
+  line-height: 1.9;
+  color: var(--sl-ink-sub);
+}
+.seminar-lp.is-real .sl-tt-list {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+.seminar-lp.is-real .sl-tt-row {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 0 20px;
+  padding: 14px 0;
+  border-top: 1px solid var(--sl-line);
+}
+.seminar-lp.is-real .sl-tt-row:first-child { border-top: 1px solid rgba(200, 144, 26, .45); }
+.seminar-lp.is-real .sl-tt-time {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 1px;
+}
+.seminar-lp.is-real .sl-tt-clock {
+  font-family: Montserrat, 'Noto Sans JP', sans-serif;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: .01em;
+  color: var(--sl-navy);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.seminar-lp.is-real .sl-tt-min {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--sl-gold-ink);
+}
+.seminar-lp.is-real .sl-tt-title {
+  margin: 0 0 3px;
+  font-size: 15.5px;
+  font-weight: 900;
+  line-height: 1.55;
+  color: var(--sl-navy);
+}
+.seminar-lp.is-real .sl-tt-desc {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--sl-ink-sub);
+}
+.seminar-lp.is-real .sl-tt-total {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(200, 144, 26, .45);
+  text-align: right;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  color: var(--sl-navy);
+}
+.seminar-lp.is-real .sl-tt-note {
+  margin: 6px 0 0;
+  text-align: right;
+  font-size: 12px;
+  color: var(--sl-ink-note);
+}
+
 .seminar-lp.is-real .sl-r-community { background: #fff; color: var(--sl-ink); }
 /* 白い長文セクションに面の骨格を与える（白カード＋金の細い天端） */
 .seminar-lp.is-real .sl-r-community .sl-container {
@@ -1135,5 +1239,11 @@
   .seminar-lp.is-real .sl-date { font-size: 24px; }
   .seminar-lp.is-real .sl-price-box { width: 100%; max-width: 360px; }
   .seminar-lp.is-real .sl-r-community .sl-container { margin: 0 16px; padding: 28px 18px; max-width: none; }
+  .seminar-lp.is-real .sl-tt-block { padding: 22px 18px 20px; margin-bottom: 18px; }
+  .seminar-lp.is-real .sl-tt-row { grid-template-columns: 96px minmax(0, 1fr); gap: 0 12px; padding: 12px 0; }
+  .seminar-lp.is-real .sl-tt-clock { font-size: 12.5px; }
+  .seminar-lp.is-real .sl-tt-title { font-size: 15px; }
+  .seminar-lp.is-real .sl-tt-desc { font-size: 13px; line-height: 1.75; }
+  .seminar-lp.is-real .sl-tt-total { font-size: 12.5px; }
   .seminar-lp.is-real .sl-top-banner { padding-top: 14px; }
 }

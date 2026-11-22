@@ -24,7 +24,8 @@ import {
   SUPPORTED_PROJECTS_LABEL,
   TOTAL_RAISED_LABEL,
   ACHIEVEMENT_RATE_LABEL,
-  STATS_DEFINITION_SHORT,
+  STATS_DEFINITION,
+  STATS_PERIOD_NOTE,
 } from './site-stats';
 
 
@@ -59,10 +60,17 @@ export function splitPriceLabel(v: PendingValue): { amount: string; suffix?: str
 
 export const ZOOM_NOTE = 'オンライン（Zoom）で開催します。参加URLは開催が近づきましたらメールでご案内します。';
 
-/** 会場情報（リアル回） */
+/**
+ * 会場情報（リアル回）。
+ *
+ * 🔴 2026-11-22 t iku確定: **懇親会もセミナーと同会場（エデュケーションギャラリー）**。
+ *   以前は懇親会だけ別会場だったため party を分けて持っていたが、いまは同じ建物の中で
+ *   続けて行う。将来また分かれた場合は party に別名を入れれば、
+ *   ページ・メールは「会場を移す」前提の表示に自動で戻る（描画側で同名判定をしている）。
+ */
 export const REAL_VENUE = {
   seminar: 'エデュケーションギャラリー',
-  party: 'YAKINIKUMAFIA',
+  party: 'エデュケーションギャラリー',
 } as const;
 
 export interface SeminarSession {
@@ -85,6 +93,38 @@ export interface SeminarSession {
    * 未指定なら配列インデックス+1にフォールバックする。
    */
   round?: number;
+}
+
+/**
+ * 当日のタイムテーブルの1コマ（リアル回のみ・2026-11-22 t iku案）。
+ *
+ * 🔴 ここは「当日の流れが分かる粒度」に留める。各パートの狙いを長文で説明しない
+ *    （詳細プログラムは上の program / CORE_PROGRAM が担う）。
+ */
+export interface TimetableRow {
+  /** 時刻の表示（例: 16:00〜16:10） */
+  time: string;
+  /** 所要時間の表示（例: 10分） */
+  minutes?: string;
+  /** コマの見出し */
+  title: string;
+  /** 何をするかの1行説明 */
+  body: string;
+}
+
+/** タイムテーブル1本（セミナー150分／懇親会120分） */
+export interface Timetable {
+  /** 見出しの上に出す小さなラベル（例: セミナー 150分） */
+  kicker?: string;
+  /** 見出し */
+  heading: string;
+  /** 見出し下の1行リード */
+  lead?: string;
+  rows: TimetableRow[];
+  /** 合計時間の表示（例: セミナー合計 150分） */
+  totalLabel?: string;
+  /** 表の下に置く注記（不確実な約束は書かない） */
+  note?: string;
 }
 
 /** 詳細プログラムの1ブロック（見出し＋説明文） */
@@ -151,6 +191,11 @@ export interface SeminarConfig {
   program?: ProgramBlock[];
   /** プログラム末尾に強調表示する締めの一文 */
   programClosing?: string;
+  /**
+   * 当日のタイムテーブル（リアル回のみ）。
+   * 🔴 未設定ならセクションごと描画しない（/ai-seminar は持たない）。
+   */
+  timetables?: Timetable[];
   /** 講師紹介（プロフィール文は未提供のため役割＋お名前のみ） */
   speakers?: Speaker[];
   sessions: SeminarSession[];
@@ -180,6 +225,7 @@ export interface SeminarConfig {
   eyebrows?: {
     values?: string;
     program?: string;
+    timetable?: string;
     community?: string;
     speakers?: string;
     schedule?: string;
@@ -352,8 +398,11 @@ export const REAL_SEMINAR: SeminarConfig = {
   pillar: 3,
   title: 'リアルセミナー＆懇親会（支援者と繋がる交流会）',
   shortTitle: 'リアルセミナー＆懇親会',
+  // 2026-11-22 t iku案のファーストビュー本文。数値は site-stats の定数から組み立てる
   lead:
-    '実績のあるプロから戦略を直接学び、AIで企画を形にする実践ワーク。クラファン成功者や挑戦する仲間と交流し、鴨頭嘉人さんのリアル登壇と直接の会話も体験できる1日です。',
+    `5年間で${SUPPORTED_PROJECTS_LABEL}・${TOTAL_RAISED_LABEL}の支援実績、達成率${ACHIEVEMENT_RATE_LABEL}。` +
+    '実績あるコンサルタントの直接指導で、あなたの挑戦を具体的なプロジェクトへ。' +
+    'AIを使った企画づくり、クラファン成功者との交流、鴨頭嘉人さんとの特別な時間も。',
   format: 'リアル開催（セミナー＋懇親会）',
 
   /* ---- ページ最上部の告知バナー（2026-11-22 t iku指示） --------------
@@ -372,6 +421,7 @@ export const REAL_SEMINAR: SeminarConfig = {
     program: 'PROGRAM',
     community: 'COMMUNITY',
     speakers: 'SPEAKERS',
+    timetable: 'TIMETABLE',
     schedule: 'DATE & FEE',
     included: 'WHAT’S INCLUDED',
     audience: 'FOR WHOM',
@@ -384,7 +434,9 @@ export const REAL_SEMINAR: SeminarConfig = {
    *    capacity を正とする。文章に金額や時刻を直書きしない。
    * ------------------------------------------------------------------ */
   heroTagline: 'クラファン実践セミナー × 成功者交流会 × 鴨頭嘉人特別参加会',
-  heroCatch: 'あなたの挑戦を、成功へ近づける特別な1日。',
+  // 🔴 2026-11-22 t iku案。「リアルセミナー＆懇親会」はイベント名で購入理由にならないため、
+  //    誰から何を学べるかをファーストビューで言い切る（見出し＝約束、本文＝根拠）。
+  heroCatch: 'クラファン成功のプロに直接学び、成功者とつながる特別な1日。',
   ctaLabel: '参加枠を確認して申し込む',
   heroStats: [
     { value: SUPPORTED_PROJECTS_LABEL, label: '累計支援件数', note: '両サービス合計' },
@@ -392,7 +444,9 @@ export const REAL_SEMINAR: SeminarConfig = {
     // 93.7%だけはKAMO単独。数値の直下に必ず明記する（他ページのバナーと同じ扱い）
     { value: ACHIEVEMENT_RATE_LABEL, label: '目標達成率', note: 'KAMOファンディング単独' },
   ],
-  heroStatNote: STATS_DEFINITION_SHORT,
+  // 🔴 実績の主体を必ず明記する（577件・約19.5億円は両サービスのサポート案件の合算、
+  //    93.7%はKAMOファンディング単独）。他ページのバナーと同じ文を使う。
+  heroStatNote: `${STATS_PERIOD_NOTE}${STATS_DEFINITION}`,
   valueProps: {
     heading: 'セミナーの3つの価値',
     lead: '「学ぶ」「つながる」「会える」を、1日で。',
@@ -451,7 +505,7 @@ export const REAL_SEMINAR: SeminarConfig = {
       },
       {
         label: '懇親会',
-        body: '会場を移して、鴨頭嘉人さんや参加者との交流会',
+        body: 'セミナーと同じ会場で、鴨頭嘉人さんや参加者との交流会',
         seminar: true,
         party: true,
       },
@@ -520,13 +574,123 @@ export const REAL_SEMINAR: SeminarConfig = {
     {
       label: '懇親会',
       title: '支援者と繋がる交流会',
-      body: '18:00〜20:00、会場を移して懇親会を行います。鴨頭嘉人さんをはじめ、あなたの挑戦を応援してくれる支援者や、同じように挑戦する仲間と直接話せる場です。',
+      body: '18:30〜20:30、セミナーと同じ会場で懇親会を行います。鴨頭嘉人さんをはじめ、あなたの挑戦を応援してくれる支援者や、同じように挑戦する仲間と直接話せる場です。',
       party: true,
     },
   ],
-  // セミナー本編は15:30〜18:00＝2時間半（懇親会を足すと受付から5時間だが、
-  // 企画が完成するのはセミナー部分なので「2時間半」が正しい）
-  programClosing: '2時間半後には、あなたのクラウドファンディング企画と掲載ページのたたき台が完成します。',
+  // セミナー本編は16:00〜18:30＝150分（受付15:30・懇親会18:30〜20:30まで含めると5時間）。
+  // 企画が完成するのはセミナー部分なので、締めの一文は本編の長さに合わせる。
+  programClosing: 'セミナー150分で、あなたのクラウドファンディング企画と掲載ページのたたき台が完成します。',
+  /* ---- 当日のタイムテーブル（2026-11-22 t iku案） ----------------------
+   * 🔴 時刻は sessions（受付15:30／セミナー16:00〜18:30／懇親会18:30〜20:30）
+   *    と必ず一致させる。片方だけ直すと当日の案内と食い違う。
+   * 🔴 各コマは「何をするか」の1行まで。パートの狙いの長文は載せない。
+   * 🔴 鴨頭嘉人さんの時間は本人の予定に合わせて動きうるため、
+   *    「確定」「必ず」といった約束は書かず、時間割としてだけ示す。
+   * ------------------------------------------------------------------ */
+  timetables: [
+    {
+      kicker: 'セミナー 150分',
+      heading: '当日のタイムテーブル（セミナー150分）',
+      lead: '講義を聞くだけで終わらせず、企画を作り、プロの指導を受け、応援者に伝える準備までを1日で行います。',
+      rows: [
+        {
+          time: '16:00〜16:10',
+          minutes: '10分',
+          title: 'オープニング・ゴール設定',
+          body: '今日のゴールを確認し、自分の挑戦を一文で書き出します。',
+        },
+        {
+          time: '16:10〜16:30',
+          minutes: '20分',
+          title: '成功するクラファンの共通点',
+          body: '支援される企画に共通する特徴と、つまずきやすいポイントを学びます。',
+        },
+        {
+          time: '16:30〜16:50',
+          minutes: '20分',
+          title: '企画・コンセプト設計',
+          body: '誰のどんな課題を、何で解決するのかを整理します。',
+        },
+        {
+          time: '16:50〜17:25',
+          minutes: '35分',
+          title: 'AI実践ワーク',
+          body: 'AIツールで、タイトル・コンセプト・ページ構成・リターン案のたたき台を作ります。',
+        },
+        {
+          time: '17:25〜17:35',
+          minutes: '10分',
+          title: '休憩・企画提出',
+          body: '休憩をとりながら、ここまでに作った企画を提出します。',
+        },
+        {
+          time: '17:35〜18:05',
+          minutes: '30分',
+          title: '鴨頭さん特別セッション',
+          body: '応援される人の考え方を、鴨頭嘉人さんが会場で直接お話しします。',
+        },
+        {
+          time: '18:05〜18:20',
+          minutes: '15分',
+          title: 'プロの公開添削・質問',
+          body: '参加者の企画に、プロがその場で具体的な改善案を返します。',
+        },
+        {
+          time: '18:20〜18:30',
+          minutes: '10分',
+          title: 'まとめ・交流準備',
+          body: '懇親会で自分の企画を30秒で伝えられるように準備します。',
+        },
+      ],
+      totalLabel: 'セミナー合計 150分',
+      note: '進行の状況により、時刻が前後する場合があります。',
+    },
+    {
+      kicker: '懇親会 120分',
+      heading: '懇親会（120分）のプログラム',
+      lead: 'セミナーと同じ会場で、成功者・挑戦者・応援したい人が混ざって話せる時間です。',
+      rows: [
+        {
+          time: '18:30〜18:40',
+          minutes: '10分',
+          title: '開会・乾杯・交流ルール',
+          body: '乾杯と、交流の進め方・名札の使い方をご案内します。',
+        },
+        {
+          time: '18:40〜19:00',
+          minutes: '20分',
+          title: '成功者のショートトーク',
+          body: 'クラファン成功者が、経験と苦労した点を短く語ります。',
+        },
+        {
+          time: '19:00〜19:30',
+          minutes: '30分',
+          title: '鴨頭さんを交えた交流タイム',
+          body: '鴨頭嘉人さんを囲んで、テーブルごとに話します。',
+        },
+        {
+          time: '19:30〜20:10',
+          minutes: '40分',
+          title: '自由交流・マッチング',
+          body: '挑戦する人、成功した人、応援したい人が入り混じって話せます。',
+        },
+        {
+          time: '20:10〜20:20',
+          minutes: '10分',
+          title: 'つながりの共有',
+          body: '今日生まれたつながりや気づきを、全体で共有します。',
+        },
+        {
+          time: '20:20〜20:30',
+          minutes: '10分',
+          title: '締め・集合写真',
+          body: '締めの挨拶と、集合写真の撮影です。',
+        },
+      ],
+      totalLabel: '懇親会 合計 120分',
+    },
+  ],
   // オンライン回と同じ3名。鴨頭嘉人は会場に実際に立つので役割ラベルだけ変える
   speakers: coreSpeakers('特別登壇（リアル登壇）'),
   // 10/25 第1回は開催中止（2026-09-05・t iku判断）。
@@ -538,10 +702,13 @@ export const REAL_SEMINAR: SeminarConfig = {
     {
       round: 2,
       dateLabel: '12/8（火）',
-      receptionTimeLabel: '受付 15:00〜',
-      timeLabel: 'セミナー 15:30〜18:00',
-      partyTimeLabel: '懇親会 18:00〜20:00',
-      isoDate: '2026-12-08T15:00:00+09:00',
+      // 🔴 2026-11-22 t iku確定の新日程（受付15:30／セミナー16:00〜18:30／懇親会18:30〜20:30）。
+      //    isoDate は「受付開始」の時刻。DBの events.event_date もこの値に揃えること
+      //    （揃っていないと realTierFor() が区分を引けず、時間・会場・決済券が出ない）。
+      receptionTimeLabel: '受付 15:30〜',
+      timeLabel: 'セミナー 16:00〜18:30',
+      partyTimeLabel: '懇親会 18:30〜20:30',
+      isoDate: '2026-12-08T15:30:00+09:00',
     },
   ],
   venue: { seminar: REAL_VENUE.seminar, party: REAL_VENUE.party },
@@ -559,7 +726,7 @@ export const REAL_SEMINAR: SeminarConfig = {
  *   既存の申込フロー（/api/apply の満席判定・中止判定・完了メール・
  *   当日リマインドcron）が**そのまま両区分に効く**。
  *   完了メールの日時も events.event_date から出るので、
- *   交流会のみの方には自動的に「18:00〜20:00」が入る（15:00・受付行は出ない）。
+ *   交流会のみの方には自動的に「18:30〜20:30」が入る（15:30・受付行は出ない）。
  *
  * 🔴 定員の注意: 懇親会の上限は40名で、**セミナー参加者20名も懇親会に入る**。
  *   そのため交流会のみの枠は 40 − 20 = **20名** を上限にしてあり、
@@ -586,7 +753,7 @@ export interface RealAttendTier {
    * この区分の決済券。
    *
    * 🔴 **区分と券の対応を絶対に間違えないこと。** セミナー参加の方に
-   *   交流会のみ券が届くと、参加費を払って15:00に入場できない。
+   *   交流会のみ券が届くと、参加費を払って15:30に入場できない。
    * 🔴 productName は**ストア掲載名と一字一句同じ**にする（全角数字もそのまま）。
    *   お客様がストアで見る文字と違うと、どれを買うか判断できない。
    * 未確定のあいだは undefined にし、リンクを貼らず「追ってご案内」とする。
@@ -597,12 +764,15 @@ export interface RealAttendTier {
 export const REAL_ATTEND_TIERS: RealAttendTier[] = [
   {
     label: 'セミナーから参加',
-    isoDate: '2026-12-08T15:00:00+09:00',
-    timeLabel: '15:00〜20:00（懇親会込み）',
-    venue: { main: REAL_VENUE.seminar, sub: REAL_VENUE.party },
+    // 🔴 2026-11-22 t iku確定: 受付15:30／セミナー16:00〜18:30／懇親会18:30〜20:30。
+    //    isoDate は受付開始。DBの events.event_date（A区分の行）も同じ値にする。
+    isoDate: '2026-12-08T15:30:00+09:00',
+    timeLabel: '15:30〜20:30（懇親会込み）',
+    // 懇親会も同会場なので sub は持たない（会場を移さない）
+    venue: { main: REAL_VENUE.seminar },
     capacity: 20,
     summary:
-      'セミナー本編（第1部〜第5部・鴨頭嘉人リアル登壇）から参加し、そのまま懇親会にも参加できます。プロの直接指導とAI実践ワークを含みます。',
+      'セミナー本編（第1部〜第5部・鴨頭嘉人リアル登壇）から参加し、そのまま同じ会場の懇親会にも参加できます。プロの直接指導とAI実践ワークを含みます。',
     // ストア実測（2026-09-09）。商品名の【１２／８】は全角のまま
     payment: {
       productName: 'リアルセミナー参加＆合同交流会セット券【１２／８】',
@@ -611,13 +781,14 @@ export const REAL_ATTEND_TIERS: RealAttendTier[] = [
   },
   {
     label: '交流会から参加',
-    isoDate: '2026-12-08T18:00:00+09:00',
-    timeLabel: '18:00〜20:00（懇親会のみ）',
-    // 懇親会のみの方はエデュケーションギャラリーには来ないので出さない
+    // 🔴 A区分と同じく 2026-11-22 の新日程に合わせる（18:30〜20:30）。
+    isoDate: '2026-12-08T18:30:00+09:00',
+    timeLabel: '18:30〜20:30（懇親会のみ）',
+    // 懇親会もセミナーと同会場（エデュケーションギャラリー）になった
     venue: { main: REAL_VENUE.party },
     capacity: 20,
     summary:
-      '懇親会からの参加です。鴨頭嘉人さんや成功者、挑戦する仲間と直接話せます。セミナー本編・AI実践ワーク・講師による指導は含まれません。',
+      '懇親会からの参加です。会場はセミナーと同じエデュケーションギャラリーで、鴨頭嘉人さんや成功者、挑戦する仲間と直接話せます。セミナー本編・AI実践ワーク・講師による指導は含まれません。',
     partyOnly: true,
     // ストア実測（2026-09-09）
     payment: {
@@ -671,9 +842,17 @@ export interface AwardPart {
   party?: boolean;
 }
 
+/**
+ * 11/9アワードの会場。
+ *
+ * 🔴 アワードは2026-11-09で終了し、`/award` は `/seminar` へ308転送している
+ *   （2026-11-23）。当時の懇親会の会場名はサイトから外したため、
+ *   ここには具体的な店名を残さず「当日ご案内」としておく
+ *   （12/8の会場と読み違えられる文字列を残さないため）。
+ */
 export const AWARD_VENUE = {
   main: '池袋 harevutai',
-  party: 'YAKINIKUMAFIA',
+  party: '当日ご案内',
 } as const;
 
 export const AWARD_EVENT = {
@@ -811,7 +990,7 @@ export function paymentInfoFor(pillar?: number | null, eventDate?: string | null
   }
   if (pillar === 3) {
     // 🔴 リアル回は**参加区分ごとに決済券が違う**（2026-09-09 に専用券が用意された）。
-    //   セミナー参加の方に交流会のみ券を案内すると、参加費を払って15:00に
+    //   セミナー参加の方に交流会のみ券を案内すると、参加費を払って15:30に
     //   入場できない。**区分から引いた券以外は絶対に出さない**。
     const tier = realTierFor(eventDate);
     if (!tier?.payment) {
@@ -831,14 +1010,14 @@ export function paymentInfoFor(pillar?: number | null, eventDate?: string | null
 /**
  * リアル回の「セミナー／懇親会」の内訳表記を返す。
  *
- * 🔴 リアル回の開催日時は DB では **セミナー開始〜懇親会終了（15:00〜20:00）** の
- *   ひとつの範囲になっている。範囲だけを見せると「18:00に終わる」あるいは
- *   逆に「20:00までセミナー」と誤解されるため、**内訳を必ず添える**。
+ * 🔴 リアル回の開催日時は DB では **受付開始〜懇親会終了（15:30〜20:30）** の
+ *   ひとつの範囲になっている。範囲だけを見せると「18:30に終わる」あるいは
+ *   逆に「20:30までセミナー」と誤解されるため、**内訳を必ず添える**。
  *   ページ（/real-seminar）はこの内訳を元から出しているので、
  *   メール側も同じ値を出して数字を揃える。
  *
  * @param eventDate DBの events.event_date（ISO文字列）
- * @returns 内訳の文字列（例: 受付 15:00〜／セミナー 15:30〜18:00／懇親会 18:00〜20:00）。
+ * @returns 内訳の文字列（例: 受付 15:30〜／セミナー 16:00〜18:30／懇親会 18:30〜20:30）。
  *          該当セッションが設定に無ければ null（推測で書かない）。
  */
 export function realSessionBreakdown(eventDate?: string | null): string | null {
@@ -847,7 +1026,7 @@ export function realSessionBreakdown(eventDate?: string | null): string | null {
   if (Number.isNaN(target)) return null;
 
   // 「交流会から参加」の区分は懇親会だけなので、
-  // セミナー本編の 15:30 や受付 15:00 を出すと**来る時間を間違える**。懇親会の時間だけ返す。
+  // セミナー本編の 16:00 や受付 15:30 を出すと**来る時間を間違える**。懇親会の時間だけ返す。
   const tier = realTierFor(eventDate);
   if (tier?.partyOnly) {
     const party = REAL_SEMINAR.sessions[0]?.partyTimeLabel;

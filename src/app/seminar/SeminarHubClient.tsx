@@ -265,7 +265,7 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
                     <div className={`sh-slot${isSelected ? ' is-selected' : ''}`} key={ev.id}>
                       <div className={`sh-slot-date sh-accent-${kindOf(ev) === 'networking' ? 'gold' : 'red'}`}>
                         {formatEventDateJa(ev.event_date, ev.duration_minutes)}
-                        {/* リアル回は「15:00〜20:00」だけだと懇親会の存在が伝わらないため内訳を添える
+                        {/* リアル回は「15:30〜20:30」だけだと懇親会の存在が伝わらないため内訳を添える
                             （メールと同じ realSessionBreakdown を使い、数字を必ず揃える） */}
                         {realSessionBreakdown(ev.event_date) && (
                           <span className="sh-slot-breakdown">{realSessionBreakdown(ev.event_date)}</span>

@@ -15,6 +15,7 @@ import {
   AWARD_EVENT,
   awardBreakdown,
   realTierFor,
+  REAL_VENUE,
 } from '@/lib/seminar-config';
 
 /**
@@ -97,19 +98,23 @@ export function paymentBlockHtml(pillar?: number | null, eventDate?: string | nu
 /**
  * リアル開催回の会場案内ブロック（Zoom情報の代わり）
  *
- * 🔴 参加区分で会場が変わる。「交流会から参加」の方は
- *   エデュケーションギャラリーには来ないので出さない（別会場へ行ってしまう）。
+ * 🔴 参加区分で案内が変わる。「交流会から参加」の方はセミナー本編に来ないので
+ *   セミナー会場の行は出さない（来る時間と場所を間違える）。
+ * 🔴 2026-11-22 t iku確定: 懇親会もセミナーと同会場（エデュケーションギャラリー）。
+ *   **同じ会場名なら「懇親会会場」の行を2行に分けて出さない**
+ *   （同名を並べると別の部屋・別の建物に見える）。会場が再び分かれた場合は
+ *   REAL_VENUE.party を変えるだけで2行表示に戻る。
  */
 function venueBlockHtml(eventDate?: string | null): string {
   const tier = realTierFor(eventDate);
-  const rows = tier
-    ? tier.partyOnly
-      ? `<p style="margin: 0 0 8px;">懇親会会場: <strong>${tier.venue.main}</strong></p>`
-      : `<p style="margin: 0 0 4px;">セミナー会場: <strong>${tier.venue.main}</strong></p>
-         ${tier.venue.sub ? `<p style="margin: 0 0 8px;">懇親会会場: <strong>${tier.venue.sub}</strong></p>` : ''}`
-    : // 区分が特定できない行は従来どおり両方出す（情報を減らさない）
-      `<p style="margin: 0 0 4px;">セミナー会場: <strong>エデュケーションギャラリー</strong></p>
-       <p style="margin: 0 0 8px;">懇親会会場: <strong>YAKINIKUMAFIA</strong></p>`;
+  const main = tier?.venue.main ?? REAL_VENUE.seminar;
+  const party = tier ? tier.venue.sub ?? main : REAL_VENUE.party;
+  const rows = tier?.partyOnly
+    ? `<p style="margin: 0 0 8px;">懇親会会場: <strong>${main}</strong></p>`
+    : `<p style="margin: 0 0 4px;">セミナー会場: <strong>${main}</strong>${
+        party === main ? '（懇親会も同会場）' : ''
+      }</p>
+       ${party === main ? '' : `<p style="margin: 0 0 8px;">懇親会会場: <strong>${party}</strong></p>`}`;
   return `
     <div style="margin: 16px 0; padding: 16px; background: #FFFBF0; border: 1px solid #E6D9A8; border-radius: 8px; font-size: 14px;">
       <p style="margin: 0 0 8px; font-weight: 700; color: #8A6D1F;">📍 会場のご案内</p>
@@ -132,7 +137,7 @@ function awardVenueBlockHtml(): string {
       <p style="margin: 0 0 8px; font-weight: 700; color: #8A6D1F;">📍 会場のご案内</p>
       <p style="margin: 0 0 4px;">表彰式会場: <strong>${AWARD_EVENT.venue.main}</strong></p>
       <p style="margin: 0 0 8px;">懇親会会場: <strong>${AWARD_EVENT.venue.party}</strong></p>
-      <p style="margin: 0; font-size: 13px; color: #666;">第二部の終了後、会場を移して懇親会を行います。会場の詳しい住所・アクセス、当日の持ち物などは、開催が近づきましたら改めてご案内します。</p>
+      <p style="margin: 0; font-size: 13px; color: #666;">第二部の終了後、懇親会を行います（会場は当日ご案内します）。会場の詳しい住所・アクセス、当日の持ち物などは、開催が近づきましたら改めてご案内します。</p>
     </div>
   `;
 }
@@ -312,7 +317,7 @@ export function applyConfirmationHtml({
       : isOnlineSeminar
         ? 'オンラインセミナー'
         : '掲載説明会';
-  // リアル回は「15:00〜20:00」だけだと懇親会の存在が伝わらないため内訳を添える
+  // リアル回は「15:30〜20:30」だけだと懇親会の存在が伝わらないため内訳を添える
   // （ページと同じ値。設定に無い回では null になり、何も足さない）
   const breakdown = isReal
     ? realSessionBreakdown(eventDate)
@@ -365,7 +370,9 @@ export function applyConfirmationHtml({
         ${isReal ? venueBlockHtml(eventDate) : isAward ? awardVenueBlockHtml() : zoomBlockHtml()}
         <p style="margin-top: 20px;">${isReal
           ? (tier
-              ? `当日は、${tier.timeLabel.split('（')[0]} の開始時刻までに ${tier.venue.main} へお越しください。`
+              // 表示は「15:30〜20:30」のような範囲なので、開始時刻だけを取り出して案内する
+              // （「15:30〜20:30 の開始時刻までに」は、どの時刻までに来るのか分からない）
+              ? `当日は、${tier.timeLabel.split('〜')[0]} までに ${tier.venue.main} へお越しください。`
               : '当日は、開始時刻までに会場へお越しください。')
           : isAward
             // 受付開始と本編開始が別時刻なので、12/8の文（開始時刻のみ）とは分けている

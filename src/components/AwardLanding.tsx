@@ -131,7 +131,7 @@ export default function AwardLanding({ initialEvents = [] }: { initialEvents?: E
             ))}
           </div>
           <p className="sl-note">
-            第二部の終了後、会場を移して懇親会を行います（{AWARD_EVENT.venue.party}）。
+            第二部の終了後、懇親会を行います（会場は参加者へ当日ご案内します）。
           </p>
         </div>
       </section>
