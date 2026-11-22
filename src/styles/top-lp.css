@@ -265,11 +265,121 @@
   font-size: 13px;
 }
 
-/* ===== Z1.5 支援実績バナー（3ステップ見出しの直上・2026-11-20 t iku指示） =====
+/* ===== Z1.5 支援実績バナー（2026-11-20 t iku指示）
    2026-11-21 t iku指示: バナー本体は3ページ共通の StatsBanner に移した
-   （見た目・中身は src/styles/stats-banner.css が持つ）。ここはトップ側の余白だけ。 */
+   （見た目・中身は src/styles/stats-banner.css が持つ）。ここはトップ側の余白だけ。
+   2026-11-22 t iku指示: 構想（3ステップ）より前に単独セクションとして置く。 */
+.tlp-stats {
+  padding: var(--space-section) 0 0;
+}
 .kamo-stats-banner.tlp-stats-banner {
-  margin-bottom: 44px;
+  margin-bottom: 0;
+}
+
+/* ===== Z3.5 成功事例への案内（2026-11-22 t iku指示・実績の直後） ===== */
+.tlp-cases {
+  padding: var(--space-section) 0 0;
+}
+.tlp-cases .tlp-h2 {
+  text-align: center;
+}
+.tlp-cases-lead {
+  max-width: 640px;
+  margin: 14px auto 0;
+  text-align: center;
+  font-size: 15.5px;
+  line-height: 1.8;
+  color: var(--text-sub);
+}
+.tlp-cases-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 32px;
+}
+.tlp-case {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  color: var(--text) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+.tlp-case:hover {
+  border-color: #c9d3e8;
+  box-shadow: 0 10px 30px rgba(20, 32, 64, 0.12);
+  transform: translateY(-2px);
+}
+.tlp-case:focus-visible {
+  outline: 3px solid var(--cta-primary);
+  outline-offset: 2px;
+}
+.tlp-case-media {
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: #eef1f6;
+  overflow: hidden;
+}
+.tlp-case-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.tlp-case-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  flex: 1;
+  padding: 16px 18px 18px;
+}
+.tlp-case-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: #eef1f6;
+  color: #5b6270;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.7;
+}
+.tlp-case-heading {
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.7;
+  color: var(--text);
+  text-wrap: balance;
+}
+.tlp-case-raised {
+  margin-top: 2px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cta-primary);
+}
+.tlp-case-raised-label {
+  margin-right: 8px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-note);
+}
+.tlp-cases-cta {
+  margin-top: 28px;
+  text-align: center;
+}
+.tlp-btn-outline {
+  background: #fff;
+  border: 1.5px solid var(--cta-primary);
+  color: var(--cta-primary) !important;
+}
+.tlp-btn-outline:hover {
+  background: #fff5f5;
 }
 
 /* ===== Z1.5 3ステップ（クラファン→商品化→メンター支援） =====
@@ -916,6 +1026,13 @@
   .tlp-cards {
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
+  }
+  .tlp-cases-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .tlp-case-heading {
+    font-size: 15px;
   }
   .tlp-trust-grid {
     grid-template-columns: minmax(0, 1fr);

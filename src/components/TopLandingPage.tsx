@@ -14,9 +14,17 @@ import {
   LP_FORM,
   LP_HERO,
   LP_STEPS,
+  LP_SUCCESS,
   LP_TRUST,
   type LpCard,
 } from '@/lib/top-lp-content';
+import {
+  allSuccessCases,
+  caseImage,
+  formatManYen,
+  CASE_IMAGE_WIDTH,
+  CASE_IMAGE_HEIGHT,
+} from '@/lib/success-cases';
 import {
   CONSULT_CATEGORIES,
   CONSULT_SUMMARY_MAX,
@@ -45,6 +53,17 @@ import { initAnalytics, track, type CtaPosition } from '@/lib/analytics';
 
 /** TODO(t iku確認中: 仕様書§7は「30分」。実際の予約枠は45分のため定数で表示／PM判断 2026-10-27) */
 const FINAL_NOTE = `${CONSULT_MINUTES}分のオンライン相談。経験豊富なアドバイザーが対応します`;
+
+/**
+ * Z3.5 成功事例カード（2026-11-22 t iku指示）。
+ * 事例の本文・金額・画像は success-cases.ts が正。ここでは slug で引き当てるだけ。
+ */
+type SuccessCaseCard = { slug: string; label: string; raised: number; heading: string };
+const SUCCESS_CASES: SuccessCaseCard[] = LP_SUCCESS.items.flatMap(({ slug, label }) => {
+  const found = allSuccessCases().find(c => c.slug === slug);
+  if (!found || !('heading' in found)) return [];
+  return [{ slug, label, raised: found.raised, heading: found.heading }];
+});
 
 type SubmitState = 'idle' | 'submitting' | 'error' | 'done';
 
@@ -264,35 +283,52 @@ export default function TopLandingPage() {
           </div>
         </section>
 
-        {/* ===== Z1.5 3ステップ（クラファン→商品化→メンター支援） ===== */}
-        <section className="tlp-steps" aria-label="クラファンから、その先の事業成長へ">
+        {/* ===== Z1.5 実績（2026-11-22 t iku指示: 構想より前に置く） =====
+            2026-11-21 t iku指示: 3ページ共通の StatsBanner（コンパクトな横長） */}
+        <section className="tlp-stats" aria-label="クラウドファンディング支援実績">
           <div className="tlp-inner">
-            {/* 2026-11-20 t iku指示: 3ステップ見出しの直上に支援実績バナー
-                2026-11-21 t iku指示: 3ページ共通の StatsBanner（コンパクトな横長）に置き換え */}
             <StatsBanner className="tlp-stats-banner" />
-            <h2 className="tlp-steps-title">{LP_STEPS.heading}</h2>
-            <div className="tlp-steps-grid">
-              {LP_STEPS.items.map((step) => (
-                <div className={`tlp-step${step.future ? ' is-future' : ''}`} key={step.no}>
-                  <span className="tlp-step-no" aria-hidden="true">
-                    {step.no}
+          </div>
+        </section>
+
+        {/* ===== Z3.5 成功事例への案内（2026-11-22 t iku指示: 実績の直後に追加） ===== */}
+        <section className="tlp-cases" aria-label="成功事例">
+          <div className="tlp-inner">
+            <h2 className="tlp-h2">{LP_SUCCESS.heading}</h2>
+            <p className="tlp-cases-lead">{LP_SUCCESS.lead}</p>
+            <div className="tlp-cases-grid">
+              {SUCCESS_CASES.map(item => (
+                <a className="tlp-case" href={`${LP_SUCCESS.href}#${item.slug}`} key={item.slug}>
+                  <span className="tlp-case-media">
+                    <img
+                      className="tlp-case-img"
+                      src={caseImage(item.slug)}
+                      alt={`${item.heading}（プロジェクトのメイン画像）`}
+                      width={CASE_IMAGE_WIDTH}
+                      height={CASE_IMAGE_HEIGHT}
+                      loading="lazy"
+                    />
                   </span>
-                  {step.future ? <span className="tlp-step-tag">{LP_STEPS.futureTag}</span> : null}
-                  <h3 className="tlp-step-title">{step.title}</h3>
-                  <p className="tlp-step-body">{step.body}</p>
-                </div>
+                  <span className="tlp-case-body">
+                    <span className="tlp-case-label">{item.label}</span>
+                    <span className="tlp-case-heading">{item.heading}</span>
+                    <span className="tlp-case-raised">
+                      <span className="tlp-case-raised-label">支援総額</span>
+                      {formatManYen(item.raised)}
+                    </span>
+                  </span>
+                </a>
               ))}
             </div>
-            <p className="tlp-steps-note">{LP_STEPS.note}</p>
-            <div className="tlp-steps-cta">
-              <a className="tlp-btn tlp-btn-primary tlp-btn-lg" href="#consult" onClick={onStepsCta}>
-                {LP_STEPS.cta}
+            <div className="tlp-cases-cta">
+              <a className="tlp-btn tlp-btn-outline" href={LP_SUCCESS.href}>
+                {LP_SUCCESS.cta}
               </a>
             </div>
           </div>
         </section>
 
-        {/* ===== Z2 共感＋Z3 分岐ハブ（2×2） =====
+        {/* ===== Z3 分岐ハブ（4つの入り口） =====
             共感の見出しは4つの入り口の導入として、カードの直前に置く */}
         <section className="tlp-hub" id="hub">
           <div className="tlp-inner">
@@ -505,6 +541,32 @@ export default function TopLandingPage() {
                 </button>
               </form>
             )}
+          </div>
+        </section>
+
+        {/* ===== Z6 今後の構想（2026-11-22 t iku指示: 相談フォームより後ろへ移動） =====
+            提供前の02・03には「今後の構想」を付け、現在相談できる内容と区別する。 */}
+        <section className="tlp-steps" aria-label="クラファンから、その先の事業成長へ">
+          <div className="tlp-inner">
+            <h2 className="tlp-steps-title">{LP_STEPS.heading}</h2>
+            <div className="tlp-steps-grid">
+              {LP_STEPS.items.map((step) => (
+                <div className={`tlp-step${step.future ? ' is-future' : ''}`} key={step.no}>
+                  <span className="tlp-step-no" aria-hidden="true">
+                    {step.no}
+                  </span>
+                  {step.future ? <span className="tlp-step-tag">{LP_STEPS.futureTag}</span> : null}
+                  <h3 className="tlp-step-title">{step.title}</h3>
+                  <p className="tlp-step-body">{step.body}</p>
+                </div>
+              ))}
+            </div>
+            <p className="tlp-steps-note">{LP_STEPS.note}</p>
+            <div className="tlp-steps-cta">
+              <a className="tlp-btn tlp-btn-primary tlp-btn-lg" href="#consult" onClick={onStepsCta}>
+                {LP_STEPS.cta}
+              </a>
+            </div>
           </div>
         </section>
       </main>

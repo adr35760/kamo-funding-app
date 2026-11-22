@@ -129,7 +129,9 @@ export const LP_CARDS: LpCard[] = [
     badge: '①',
     image: '/lp/card1.jpg',
     heading: 'クラファンに挑戦したい',
-    body: '企画・ページ制作・集客まで、約4ヶ月間プロが伴走。目標達成100%を一緒に狙います。',
+    // 2026-11-22 t iku指示: 「目標達成100%を一緒に狙います」を差し替え
+    // （約4か月の支援範囲は契約内容との一致を t iku 確認中。月数の表現は変えない）
+    body: '企画設計からリターン、ページ制作、集客まで。目標達成に向けて、約4か月間伴走します。',
     footnote: '※プロジェクト例・支援者データを説明会で公開',
     cta: '相談する（無料）',
     note: '相談無料・最短24時間返信',
@@ -197,17 +199,36 @@ export {
 export const LP_TRUST = {
   /** 2026-11-21 t iku指示: 下部の実績欄も新数値（577件／約19.5億円／93.7%）に統一 */
   countLabel: SUPPORTED_PROJECTS_LABEL,
-  countNote: '5年間の支援実績',
+  countNote: '5年間の支援実績（両サービス合計）',
   rateLabel: ACHIEVEMENT_RATE_LABEL,
-  rateNote: '掲載プロジェクトの平均達成率',
+  // 2026-11-22 t iku指示: 93.7%はKAMOファンディング単独。平均とは書かない
+  rateNote: 'KAMOファンディングの目標達成率',
   raisedLabel: TOTAL_RAISED_LABEL,
-  raisedNote: '関与プロジェクトの累計支援総額',
+  raisedNote: '両サービスの累計支援総額',
   /**
    * 2026-11-08 t iku指示: 実績数値には定義を添え、確認済みの値だけを載せる。
    *   未確定の「伴走プロジェクト数」は表示しない（実績準備中も置かない）。
    * 2026-11-21 t iku指示: 集計期間（直近5年間）を明記。内訳の説明はバナー側にだけ足す。
+   * 2026-11-22 t iku指示: バナーと同じ注記（両サービス合算・内訳・KAMO単独の93.7%）に統一。
    */
   source: `${STATS_PERIOD_NOTE}${STATS_DEFINITION}`,
+} as const;
+
+// ===== Z3.5 成功事例への案内（2026-11-22 t iku指示: 実績の直後に追加） =====
+/**
+ * 事例の本文・画像・金額は src/lib/success-cases.ts が正。
+ * ここでは「どの事例を、どの分野名で出すか」だけを持つ（数値は直書きしない）。
+ */
+export const LP_SUCCESS = {
+  heading: '成功事例',
+  lead: '新商品、店舗開業、出版。あなたに近い挑戦の記録から、実現までの道のりを見てください。',
+  cta: '成功事例を見る',
+  href: '/success',
+  items: [
+    { slug: 'tenmeikaika', label: '新商品' },
+    { slug: 'akahoshi', label: '店舗開業' },
+    { slug: 'nakajima01', label: '出版' },
+  ],
 } as const;
 
 // ===== Z5 最終CTA / Z6 追従CTA =====

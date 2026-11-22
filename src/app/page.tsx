@@ -22,7 +22,7 @@ const LP_TITLE = 'KAMOファンディング｜クラファンから、その先�
 const LP_DESCRIPTION =
   `新しい商品やサービスを、クラウドファンディングで最初のお客様へ。` +
   `企画づくりから先行販売、ファンづくりまで、KAMOファンディングが伴走します。` +
-  `累計支援総額${TOTAL_RAISED_LABEL}・目標達成率${ACHIEVEMENT_RATE_LABEL}。相談無料・最短24時間返信。`;
+  `累計支援総額${TOTAL_RAISED_LABEL}（両サービス合計）・KAMOファンディングの目標達成率${ACHIEVEMENT_RATE_LABEL}。相談無料・最短24時間返信。`;
 
 export const metadata: Metadata = {
   title: LP_TITLE,

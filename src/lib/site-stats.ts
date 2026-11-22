@@ -44,10 +44,19 @@ export const ACHIEVEMENT_RATE_LABEL = `${ACHIEVEMENT_RATE}%`;
 export const STATS_PERIOD = '直近5年間';
 export const STATS_PERIOD_NOTE = `※集計期間は${STATS_PERIOD}です。`;
 
-/** 実績の定義文（バナー注記・下部実績欄で共有） */
+/**
+ * 実績の定義文（バナー注記・下部実績欄で共有）。
+ *
+ * 2026-11-22 t iku指示: 両サービス合算であることと内訳、93.7%の対象（KAMO単独）を
+ * 1つの注記で明示する。数値はこのファイルの定数から組み立てる（直書き禁止）。
+ * 🔴 バナーとトップ下部の実績欄は**まったく同じ文**を出す（片方だけ直さない）。
+ */
 export const STATS_DEFINITION =
-  '累計支援総額は、KAMOファンディングが関与したプロジェクトの累計支援総額です。' +
-  '平均達成率は、掲載プロジェクトの目標達成率の平均です。';
+  `累計支援件数${SUPPORTED_PROJECTS_LABEL}・累計支援総額${TOTAL_RAISED_LABEL}は、` +
+  'KAMOファンディングおよび未来の扉のサポート案件を合算した実績です。' +
+  `累計支援総額の内訳は、KAMOファンディング${formatOkuYen(RAISED_BREAKDOWN[0].amount)}億円、` +
+  `未来の扉${formatOkuYen(RAISED_BREAKDOWN[1].amount)}億円です。` +
+  `${ACHIEVEMENT_RATE_LABEL}はKAMOファンディング単独の目標達成実績です。`;
 
 /**
  * 3ページ共通の実績バナー（トップ／success／lp）の中身。
@@ -74,6 +83,6 @@ export const STATS_BANNER = {
     })),
     total: { label: '合計', value: `${formatOkuYen(RAISED_BREAKDOWN_TOTAL)}億円` },
   },
-  /** バナー下端の注記（12px・1行） */
-  source: `※集計期間は${STATS_PERIOD}。${SUPPORTED_PROJECTS}件は両サービスの合計。目標達成率${ACHIEVEMENT_RATE_LABEL}はKAMOファンディングの実績です。`,
+  /** バナー下端の注記（12px）。トップ下部の実績欄とまったく同じ文にする */
+  source: `${STATS_PERIOD_NOTE}${STATS_DEFINITION}`,
 } as const;
