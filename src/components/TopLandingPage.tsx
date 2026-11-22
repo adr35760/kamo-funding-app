@@ -261,8 +261,13 @@ export default function TopLandingPage() {
         {/* ===== Z3.5 成功事例への案内（2026-11-22 t iku指示: 実績の直後に追加） ===== */}
         <section className="tlp-cases" aria-label="成功事例">
           <div className="tlp-inner">
-            <h2 className="tlp-h2">{LP_SUCCESS.heading}</h2>
-            <p className="tlp-cases-lead">{LP_SUCCESS.lead}</p>
+            <p className="tlp-cases-eyebrow">SUCCESS STORIES</p>
+            <h2 className="tlp-h2 tlp-cases-h2">{LP_SUCCESS.heading}</h2>
+            <p className="tlp-cases-lead">
+              {LP_SUCCESS.leadLines.map(line => (
+                <span className="tlp-cases-lead-line" key={line}>{line}</span>
+              ))}
+            </p>
             <div className="tlp-cases-grid">
               {SUCCESS_CASES.map(item => (
                 <a className="tlp-case" href={`${LP_SUCCESS.href}#${item.slug}`} key={item.slug}>
