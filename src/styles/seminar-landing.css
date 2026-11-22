@@ -337,3 +337,296 @@
 .sl-speaker-profile p:last-child { margin-bottom: 0; }
 .sl-speaker.is-special .sl-speaker-profile { border-top-color: rgba(255,255,255,.22); }
 .sl-speaker.is-special .sl-speaker-profile p { color: rgba(255,255,255,.88); }
+
+/* ============================================
+   リアル回（/real-seminar）の訴求ブロック
+   🔴 /ai-seminar はこれらのクラス自体を出力しないため、
+      ここに何を足しても /ai-seminar の見た目は変わりません。
+   ============================================ */
+
+/* ヒーロー: タグライン＋キャッチ＋実績＋日時 */
+.sl-hero-tagline {
+  margin: 0 auto 10px;
+  font-size: clamp(13px, 1.6vw, 15px);
+  font-weight: 700;
+  color: var(--kamo-gold);
+  letter-spacing: .02em;
+  line-height: 1.7;
+}
+.theme-real .sl-hero h1 { font-size: clamp(26px, 4.6vw, 44px); line-height: 1.38; margin-bottom: 18px; }
+.theme-real .sl-lead { font-size: clamp(15px, 1.9vw, 17px); line-height: 2; max-width: 780px; }
+
+.sl-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  max-width: 720px;
+  margin: 4px auto 0;
+  background: rgba(212, 160, 23, .5);
+  border: 1px solid rgba(212, 160, 23, .5);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.sl-hero-stat { background: rgba(11, 29, 58, .72); padding: 16px 8px; text-align: center; }
+/* 3列に「577件／約19.5億円／93.7%」を1行で収める（折り返すと数字が読めない） */
+.sl-hero-stat-value {
+  font-size: clamp(17px, 3.4vw, 34px);
+  font-weight: 900;
+  color: var(--kamo-gold);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.sl-hero-stat-label { margin-top: 4px; font-size: 13px; font-weight: 700; color: #fff; line-height: 1.5; }
+.sl-hero-stat-note { font-size: 11px; color: rgba(255, 255, 255, .62); line-height: 1.5; }
+.sl-hero-stat-src {
+  max-width: 720px;
+  margin: 10px auto 0;
+  font-size: 11px;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, .55);
+  text-align: left;
+}
+
+.sl-hero-when {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 20px;
+  margin: 22px auto 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.7;
+}
+
+/* セクション共通のリード文 */
+.sl-section-lead {
+  max-width: 720px;
+  margin: -12px auto 30px;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.95;
+  color: #555;
+}
+
+/* 3大価値 */
+.sl-values { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.sl-value-card {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, .08);
+  border-top: 4px solid var(--kamo-gold);
+  border-radius: var(--radius-lg);
+  padding: 26px 24px;
+  box-shadow: 0 4px 16px rgba(11, 29, 58, .07);
+}
+.sl-value-no {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  color: #fff; font-weight: 900; font-size: 14px; margin-bottom: 12px;
+}
+.sl-value-card h3 {
+  margin: 0 0 10px;
+  font-size: clamp(17px, 1.6vw, 20px);
+  font-weight: 900;
+  line-height: 1.55;
+  color: var(--kamo-navy);
+}
+.sl-value-card p { margin: 0; font-size: 15px; line-height: 1.95; color: #444; }
+
+/* 成功者から直接聞ける機会（紺背景） */
+.sl-community { background: linear-gradient(160deg, var(--kamo-navy) 0%, #16305c 100%); color: #fff; }
+.sl-eyebrow {
+  margin: 0 0 14px; text-align: center;
+  font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--kamo-gold);
+}
+.sl-community h2 {
+  color: #fff;
+  font-size: clamp(22px, 3.2vw, 32px);
+  line-height: 1.6;
+  max-width: 860px;
+  margin-left: auto; margin-right: auto;
+}
+.sl-community-body { max-width: 760px; margin: 0 auto; }
+.sl-community-body p {
+  margin: 0 0 16px;
+  font-size: clamp(15px, 1.9vw, 17px);
+  line-height: 2;
+  color: rgba(255, 255, 255, .86);
+}
+.sl-punch {
+  max-width: 840px;
+  margin: 6px auto 0;
+  text-align: center;
+  font-size: clamp(18px, 2.4vw, 24px);
+  font-weight: 900;
+  line-height: 1.65;
+  color: var(--kamo-gold);
+}
+.sl-community-after {
+  max-width: 760px; margin: 18px auto 0; text-align: center;
+  font-size: 15px; line-height: 1.9; color: rgba(255, 255, 255, .72);
+}
+
+/* 参加費に含まれるもの（区分別の可否表） */
+.sl-value-table {
+  max-width: 860px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, .08);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(11, 29, 58, .06);
+}
+.sl-value-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 150px;
+  background: var(--kamo-navy);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.sl-value-head > span {
+  display: flex; align-items: center; justify-content: center;
+  padding: 12px 12px; text-align: center; line-height: 1.45;
+}
+.sl-value-head .sl-value-head-label { justify-content: flex-start; text-align: left; color: rgba(255, 255, 255, .72); }
+.sl-value-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 150px;
+  align-items: center;
+  border-top: 1px solid rgba(0, 0, 0, .07);
+}
+.sl-value-main { padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.sl-value-label { font-size: 15px; font-weight: 900; color: var(--kamo-navy); }
+.sl-value-body { font-size: 13px; color: #666; line-height: 1.6; }
+.sl-value-mark {
+  padding: 14px 8px; text-align: center;
+  font-size: 18px; font-weight: 900; color: #C9CDD6;
+}
+.sl-value-mark.is-on { color: #B8860B; }
+
+/* 価値の総まとめ（金のカード）— ここで価格を提示する */
+.sl-value-closing {
+  max-width: 860px;
+  margin: 26px auto 0;
+  padding: 28px 24px;
+  text-align: center;
+  background: linear-gradient(135deg, var(--kamo-gold) 0%, #E8C25A 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(212, 160, 23, .28);
+}
+.sl-value-closing-text {
+  margin: 0;
+  font-size: clamp(17px, 2.2vw, 22px);
+  font-weight: 900;
+  line-height: 1.6;
+  color: var(--kamo-navy);
+}
+.sl-value-closing-price { margin: 10px 0 0; font-size: 16px; font-weight: 700; color: var(--kamo-navy); }
+.sl-value-closing-price strong {
+  margin-left: 6px;
+  font-size: clamp(30px, 4.6vw, 42px);
+  font-weight: 900;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.sl-value-closing-suffix { font-size: 14px; font-weight: 700; }
+.sl-value-closing-note { margin: 6px 0 0; font-size: 13px; color: rgba(11, 29, 58, .72); }
+/* 金背景の上のCTAは紺（金×金で沈まないように） */
+.sl-value-closing .sl-cta { margin-top: 18px; background: var(--kamo-navy); color: #fff; box-shadow: 0 8px 20px rgba(11, 29, 58, .28); }
+
+/* 対象者別メッセージ */
+.sl-audience {
+  max-width: 880px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;
+}
+.sl-audience-card {
+  background: #fff;
+  border-left: 4px solid var(--kamo-gold);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: 0 3px 12px rgba(11, 29, 58, .06);
+}
+.sl-audience-card h3 { margin: 0 0 8px; font-size: 18px; font-weight: 900; color: var(--kamo-navy); line-height: 1.5; }
+.sl-audience-card p { margin: 0; font-size: 15px; line-height: 1.95; color: #444; }
+
+/* クロージング */
+.sl-closing { background: linear-gradient(160deg, #0B1D3A 0%, #16305c 100%); color: #fff; }
+.sl-closing h2 {
+  color: #fff;
+  font-size: clamp(23px, 3.6vw, 36px);
+  line-height: 1.55;
+  max-width: 860px;
+  margin-left: auto; margin-right: auto;
+}
+.sl-closing-body { max-width: 760px; margin: 0 auto; }
+.sl-closing-body p {
+  margin: 0 0 16px;
+  font-size: clamp(15px, 1.9vw, 17px);
+  line-height: 2;
+  color: rgba(255, 255, 255, .86);
+}
+.sl-closing-box {
+  max-width: 520px;
+  margin: 26px auto 0;
+  padding: 26px 22px;
+  text-align: center;
+  background: rgba(255, 255, 255, .06);
+  border: 2px solid var(--kamo-gold);
+  border-radius: var(--radius-lg);
+}
+.sl-closing-price-label { margin: 0; font-size: 14px; font-weight: 700; color: rgba(255, 255, 255, .82); }
+.sl-closing-price {
+  margin: 2px 0 0;
+  display: flex; align-items: baseline; justify-content: center;
+  gap: 8px; flex-wrap: wrap;
+}
+.sl-closing-amount {
+  font-size: clamp(30px, 5.6vw, 52px);
+  font-weight: 900;
+  color: var(--kamo-gold);
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.sl-closing-suffix { font-size: 15px; font-weight: 700; color: rgba(255, 255, 255, .82); }
+.sl-closing-note { margin: 6px 0 0; font-size: 13px; color: rgba(255, 255, 255, .72); }
+.sl-closing-when { margin: 14px 0 0; font-size: 14px; font-weight: 700; color: #fff; line-height: 1.7; }
+.sl-closing-cap { margin: 12px 0 0; font-size: 13px; color: rgba(255, 255, 255, .7); }
+.sl-closing .sl-cta { margin-top: 20px; background: var(--kamo-gold); color: var(--kamo-navy); }
+
+/* タブレット・スマホ */
+@media (max-width: 900px) {
+  .sl-values { grid-template-columns: 1fr; gap: 16px; }
+  .sl-value-card { padding: 22px 20px; }
+  .sl-audience { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  /* 表は2列（区分）を保てないため、行ごとに区分チップを並べる */
+  .sl-value-head { display: none; }
+  .sl-value-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 10px;
+    padding: 16px;
+  }
+  .sl-value-main { grid-column: 1 / -1; padding: 0; }
+  .sl-value-mark {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; padding: 9px 8px; border-radius: 8px;
+    background: #F1F3F7; font-size: 15px;
+  }
+  .sl-value-mark.is-on { background: #FDF6E3; }
+  .sl-value-mark::before { content: attr(data-tier); font-size: 12px; font-weight: 700; color: #555; }
+  .sl-section-lead { margin-top: -8px; font-size: 15px; }
+  .sl-hero-stat-label { font-size: 12px; }
+  .sl-hero-stat-note { font-size: 10px; }
+  .sl-hero-when { font-size: 14px; gap: 2px 12px; }
+  .sl-value-closing { padding: 24px 18px; }
+  .sl-closing-box { padding: 22px 18px; }
+  .sl-audience-card { padding: 20px; }
+}
+
+/* アンカー移動時、固定ヘッダーの下にセクション見出しが隠れないようにする */
+.seminar-lp section[id] { scroll-margin-top: 96px; }
+@media (max-width: 768px) {
+  .seminar-lp section[id] { scroll-margin-top: 84px; }
+}

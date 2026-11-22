@@ -21,6 +21,35 @@ interface EventRow {
 }
 
 /**
+ * ISO日時 →「2026年12月8日（火）」。
+ * 日付は設定の isoDate（JST）から作る（ページに日付を直書きしない）。
+ * 端末のタイムゾーンに関係なくJSTで出すため timeZone を固定する。
+ */
+function jstDateLabel(isoDate?: string): string {
+  if (!isoDate) return '';
+  const d = new Date(isoDate);
+  if (Number.isNaN(d.getTime())) return '';
+  try {
+    const parts = new Intl.DateTimeFormat('ja-JP', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      weekday: 'short',
+    }).formatToParts(d);
+    const get = (t: string) => parts.find(p => p.type === t)?.value ?? '';
+    const y = get('year');
+    const m = get('month');
+    const day = get('day');
+    const w = get('weekday');
+    if (!y || !m || !day) return '';
+    return w ? `${y}年${m}月${day}日（${w}）` : `${y}年${m}月${day}日`;
+  } catch {
+    return '';
+  }
+}
+
+/**
  * 新規セミナーLPの共通コンポーネント（/ai-seminar・/real-seminar で共用）
  *
  * - 日程は events テーブルから pillar で絞って動的取得し、
@@ -119,6 +148,9 @@ export default function SeminarLanding({
   const priceParts = splitPriceLabel(config.price);
   const hasSpeakers = !!config.speakers && config.speakers.length > 0;
   const capacityText = pendingLabel(config.capacity);
+  // ヒーローの日付は設定の isoDate（JST）から作る（ページに日付を直書きしない）
+  const heroDate = jstDateLabel(config.sessions[0]?.isoDate);
+  const ctaLabel = config.ctaLabel ?? '申し込む →';
 
   return (
     <div className={isReal ? 'seminar-lp theme-real' : 'seminar-lp theme-online'}>
@@ -128,8 +160,35 @@ export default function SeminarLanding({
       <section className="sl-hero">
         <div className="sl-container">
           <div className="sl-badge">{config.format}</div>
-          <h1>{config.title}</h1>
+          {/* タグラインとキャッチはリアル回だけが持つ（/ai-seminar は未設定＝従来どおり title がH1） */}
+          {config.heroTagline && <p className="sl-hero-tagline">{config.heroTagline}</p>}
+          <h1>{config.heroCatch ?? config.title}</h1>
           <p className="sl-lead">{config.lead}</p>
+          {config.heroStats && (
+            <>
+              <div className="sl-hero-stats">
+                {config.heroStats.map(s => (
+                  <div className="sl-hero-stat" key={s.label}>
+                    <div className="sl-hero-stat-value">{s.value}</div>
+                    <div className="sl-hero-stat-label">{s.label}</div>
+                    {s.note && <div className="sl-hero-stat-note">{s.note}</div>}
+                  </div>
+                ))}
+              </div>
+              {config.heroStatNote && <p className="sl-hero-stat-src">{config.heroStatNote}</p>}
+            </>
+          )}
+          {isReal && heroDate && (
+            <p className="sl-hero-when">
+              <span>{heroDate}</span>
+              {config.venue && (
+                <span>
+                  会場：{config.venue.seminar}
+                  {config.venue.party && `（懇親会：${config.venue.party}）`}
+                </span>
+              )}
+            </p>
+          )}
           {config.emphasizePrice ? (
             <div className="sl-price-box">
               <div className="sl-price-main">
@@ -155,7 +214,7 @@ export default function SeminarLanding({
               </span>
             </div>
           )}
-          <a href="#apply" className="sl-cta">申し込む →</a>
+          <a href="#apply" className="sl-cta">{ctaLabel}</a>
           {heroImage && (
             <div className="sl-hero-image">
               <Image
@@ -172,6 +231,27 @@ export default function SeminarLanding({
           )}
         </div>
       </section>
+
+      {/* 3大価値（リアル回のみ） */}
+      {config.valueProps && (
+        <section className="sl-section sl-section-alt">
+          <div className="sl-container">
+            <h2>{config.valueProps.heading}</h2>
+            {config.valueProps.lead && <p className="sl-section-lead">{config.valueProps.lead}</p>}
+            <div className="sl-values">
+              {config.valueProps.items.map((v, i) => (
+                <div className="sl-value-card" key={v.title}>
+                  <div className="sl-value-no" style={{ background: accent }}>
+                    {String(i + 1).padStart(2, '0')}
+                  </div>
+                  <h3>{v.title}</h3>
+                  <p>{v.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 内容 */}
       <section className="sl-section">
@@ -224,6 +304,23 @@ export default function SeminarLanding({
           )}
         </div>
       </section>
+
+      {/* 成功者から直接聞ける機会（リアル回のみ・今回の差別化） */}
+      {config.community && (
+        <section className="sl-section sl-community">
+          <div className="sl-container">
+            {config.community.eyebrow && <p className="sl-eyebrow">{config.community.eyebrow}</p>}
+            <h2>{config.community.heading}</h2>
+            <div className="sl-community-body">
+              {config.community.paragraphs.map((text, i) => (
+                <p key={i}>{text}</p>
+              ))}
+            </div>
+            <p className="sl-punch">{config.community.punch}</p>
+            {config.community.after && <p className="sl-community-after">{config.community.after}</p>}
+          </div>
+        </section>
+      )}
 
       {/* 講師紹介 */}
       {hasSpeakers && config.speakers && (
@@ -341,6 +438,106 @@ export default function SeminarLanding({
           </p>
         </div>
       </section>
+
+      {/* 参加費に含まれるもの（リアル回のみ）— 価格の直前に何が含まれるかを並べる */}
+      {config.valueTable && (
+        <section className="sl-section" id="value">
+          <div className="sl-container">
+            <h2>{config.valueTable.heading}</h2>
+            {config.valueTable.lead && <p className="sl-section-lead">{config.valueTable.lead}</p>}
+            <div className="sl-value-table">
+              <div className="sl-value-head">
+                <span className="sl-value-head-label">参加すると得られること</span>
+                <span className="sl-value-head-tier">{REAL_ATTEND_TIERS[0]?.label}</span>
+                <span className="sl-value-head-tier">{REAL_ATTEND_TIERS[1]?.label}</span>
+              </div>
+              {config.valueTable.rows.map(r => (
+                <div className="sl-value-row" key={r.label}>
+                  <div className="sl-value-main">
+                    <span className="sl-value-label">{r.label}</span>
+                    <span className="sl-value-body">{r.body}</span>
+                  </div>
+                  <div
+                    className={r.seminar ? 'sl-value-mark is-on' : 'sl-value-mark'}
+                    data-tier={REAL_ATTEND_TIERS[0]?.label}
+                    aria-label={`${r.label}：${REAL_ATTEND_TIERS[0]?.label}は${r.seminar ? '含む' : '含まない'}`}
+                  >
+                    {r.seminar ? '✓' : '—'}
+                  </div>
+                  <div
+                    className={r.party ? 'sl-value-mark is-on' : 'sl-value-mark'}
+                    data-tier={REAL_ATTEND_TIERS[1]?.label}
+                    aria-label={`${r.label}：${REAL_ATTEND_TIERS[1]?.label}は${r.party ? '含む' : '含まない'}`}
+                  >
+                    {r.party ? '✓' : '—'}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="sl-value-closing">
+              <p className="sl-value-closing-text">{config.valueTable.closing}</p>
+              <p className="sl-value-closing-price">
+                参加費 <strong>{priceParts.amount}</strong>
+                {priceParts.suffix && <span className="sl-value-closing-suffix">（{priceParts.suffix}）</span>}
+              </p>
+              {config.priceNote && <p className="sl-value-closing-note">{config.priceNote}</p>}
+              <a href="#apply" className="sl-cta sl-cta-inline">{ctaLabel}</a>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 対象者別メッセージ（リアル回のみ） */}
+      {config.audience && (
+        <section className="sl-section sl-section-alt">
+          <div className="sl-container">
+            <h2>{config.audience.heading}</h2>
+            {config.audience.lead && <p className="sl-section-lead">{config.audience.lead}</p>}
+            <div className="sl-audience">
+              {config.audience.items.map(a => (
+                <div className="sl-audience-card" key={a.label}>
+                  <h3>{a.label}</h3>
+                  <p>{a.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* クロージング（リアル回のみ） */}
+      {config.closing && (
+        <section className="sl-section sl-closing">
+          <div className="sl-container">
+            <h2>{config.closing.heading}</h2>
+            <div className="sl-closing-body">
+              {config.closing.paragraphs.map((text, i) => (
+                <p key={i}>{text}</p>
+              ))}
+            </div>
+            <p className="sl-punch">{config.closing.punch}</p>
+            <div className="sl-closing-box">
+              <p className="sl-closing-price-label">参加費</p>
+              <p className="sl-closing-price">
+                <span className="sl-closing-amount">{priceParts.amount}</span>
+                {priceParts.suffix && <span className="sl-closing-suffix">（{priceParts.suffix}）</span>}
+              </p>
+              {config.priceNote && <p className="sl-closing-note">{config.priceNote}</p>}
+              {heroDate && (
+                <p className="sl-closing-when">
+                  {heroDate}
+                  {config.venue && `／${config.venue.seminar}`}
+                </p>
+              )}
+              <a href="#apply" className="sl-cta sl-cta-inline">{ctaLabel}</a>
+              <p className="sl-closing-cap">
+                定員：{capacityText}
+                {config.capacityParty && `（${pendingLabel(config.capacityParty)}）`}
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 申込フォーム */}
       <section className="sl-section" id="apply">

@@ -5,7 +5,7 @@ import SiteHeader from '@/components/SiteHeader';
 import { formatEventDateJa } from '@/lib/event-format';
 import { realSessionBreakdown, realTierFor } from '@/lib/seminar-config';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
-import { AI_SEMINAR, REAL_SEMINAR, AWARD_EVENT, awardBreakdown } from '@/lib/seminar-config';
+import { AI_SEMINAR, REAL_SEMINAR, REAL_ATTEND_TIERS, pendingLabel } from '@/lib/seminar-config';
 import '@/styles/seminar-hub.css';
 import LegalFooter from '@/components/LegalFooter';
 
@@ -67,32 +67,13 @@ const COMPARE = [
     price: REAL_SEMINAR.price.label,
     priceNote: REAL_SEMINAR.priceNote ?? null,
     format: 'リアル開催（セミナー＋懇親会）',
-    // 参加区分が2つあるため、比較カードでは両方の時間を示す
-    duration: 'セミナーから参加 15:00〜20:00 / 交流会から参加 18:00〜20:00',
-    capacity: 'セミナー20名 / 懇親会40名',
+    // 参加区分が2つあるため、比較カードでは両方の時間を示す（設定から引く）
+    duration: REAL_ATTEND_TIERS.map(t => `${t.label} ${t.timeLabel.split('（')[0]}`).join(' / '),
+    capacity: REAL_SEMINAR.capacityParty
+      ? `${pendingLabel(REAL_SEMINAR.capacity)} / ${pendingLabel(REAL_SEMINAR.capacityParty)}`
+      : pendingLabel(REAL_SEMINAR.capacity),
     includes: REAL_SEMINAR.contents,
     detailHref: '/real-seminar',
-    accent: 'gold' as const,
-  },
-  {
-    // 🔴 11/9アワードは pillar 4 の別イベント。12/8（networking / pillar 3）とは
-    //   会場も内訳も違うので、比較カードだけを出し、申込は /award で受ける。
-    //   （日程一覧は type で絞っており、そちらには pillar 4 を出さない — 出すと
-    //     「リアルセミナー＆懇親会」というラベルが付いて誤案内になる）
-    id: 'award',
-    key: 'networking' as KindKey,
-    title: AWARD_EVENT.title,
-    price: AWARD_EVENT.price.label,
-    priceNote: `${AWARD_EVENT.dateLabel}／${AWARD_EVENT.venue.main}` as string | null,
-    format: AWARD_EVENT.format,
-    duration: awardBreakdown(),
-    capacity: AWARD_EVENT.capacity.label,
-    includes: [
-      'KAMOファンディング表彰式',
-      '第二部 KAMOファンディングLIVE',
-      '表彰者との懇親会（お食事付き）',
-    ],
-    detailHref: '/award',
     accent: 'gold' as const,
   },
 ];
@@ -112,7 +93,7 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
       .then(r => r.json())
       .then(d => {
         const rows: HubEvent[] = (d.events || []).filter(
-          // 🔴 pillar 4（11/9アワード）は type が networking なので type だけでは除けない。
+          // 🔴 pillar 4（アワード・終了済み）は type が networking なので type だけでは除けない。
           //   サーバー側（page.tsx）と同じ条件にしないと、フォールバック時だけ混入する。
           (e: HubEvent) =>
             (e.type === 'seminar' || e.type === 'networking') &&
@@ -217,7 +198,10 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
         <section className="sh-section" id="compare">
           <div className="sh-container">
             <div className="sh-section-title">
-              <h2>3つの<span className="accent">参加スタイル</span></h2>
+              {/* 枚数を直書きしない（アワード終了で2つになった）。COMPARE の件数から出す */}
+              <h2>
+                {COMPARE.length}つの<span className="accent">参加スタイル</span>
+              </h2>
               <p>ご都合と目的に合わせてお選びください。</p>
             </div>
             <div className="sh-compare">

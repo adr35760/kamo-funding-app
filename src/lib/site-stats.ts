@@ -59,6 +59,18 @@ export const STATS_DEFINITION =
   `${ACHIEVEMENT_RATE_LABEL}はKAMOファンディング単独の目標達成実績です。`;
 
 /**
+ * 短縮版の定義文（LPヒーローなど、横幅が狭く長文を置けない場所向け）。
+ *
+ * 🔴 数値は上の定数から組み立てる（直書き禁止）。内訳（16.88億／2.6億）だけを省いた形で、
+ *    「両サービス合算」「93.7%はKAMO単独」の2点は必ず残す。
+ *    フル注記（STATS_DEFINITION）を出せる場所ではそちらを使う。
+ */
+export const STATS_DEFINITION_SHORT =
+  `${STATS_PERIOD_NOTE}${SUPPORTED_PROJECTS_LABEL}・${TOTAL_RAISED_LABEL}は` +
+  'KAMOファンディングおよび未来の扉のサポート案件を合算した実績です。' +
+  `${ACHIEVEMENT_RATE_LABEL}はKAMOファンディング単独の目標達成実績です。`;
+
+/**
  * 3ページ共通の実績バナー（トップ／success／lp）の中身。
  *
  * 🔴 構成は t iku 指定のモックに合わせる:

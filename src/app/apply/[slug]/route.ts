@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
  *   /apply/briefing        → /seminar-info#apply（掲載説明会）
  *   /apply/online-seminar  → /ai-seminar#apply（オンラインセミナー）
  *   /apply/real-event      → /real-seminar#apply（リアルセミナー＆交流会）
- *   /apply/award           → /award#apply（アワード）
+ *   /apply/award           → /seminar（アワードは2026-11-23に終了・/ seminarへ転送）
  *   /apply/partner         → /partners#register（パートナー登録）
  *   /apply/supporter       → /supporters#apply（サポーター登録）
  *
@@ -27,7 +27,9 @@ const DESTINATIONS: Record<string, string> = {
   'real-event': '/real-seminar#apply',
   // 🔴 2026-09-27 追加。未登録の間は FALLBACK（掲載説明会）へ落ちていたため、
   //   例えば /apply/award がアワードではなく掲載説明会に転送される誤誘導が起きていた。
-  award: '/award#apply',
+  // 2026-11-23: アワード終了。/award は /seminar へ恒久転送するので、ここも同じ先にする
+  //   （/award#apply を経由すると二段転送になるうえ、#apply が失われる）。
+  award: '/seminar',
   partner: '/partners#register',
   supporter: '/supporters#apply',
 };

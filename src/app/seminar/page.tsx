@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import SeminarHubClient from './SeminarHubClient';
+import { AI_SEMINAR, REAL_SEMINAR } from '@/lib/seminar-config';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { filterVisibleEvents, isEventFinished } from '@/lib/event-visibility';
 import type { HubEvent } from './SeminarHubClient';
@@ -17,8 +18,8 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'セミナー日程・お申し込み | KAMOファンディング',
-  description:
-    'オンラインセミナー（9,800円）とリアルセミナー＆懇親会（25,000円）の日程を比較して、そのままお申し込みいただけます。参加者はAIクラファンページ作成ツールをその場で体験できます。',
+  // 金額は seminar-config.ts から引く（ページに直書きすると改定時にズレる）
+  description: `オンラインセミナー（${AI_SEMINAR.price.status === 'fixed' ? AI_SEMINAR.price.label : ''}）とリアルセミナー＆懇親会（${REAL_SEMINAR.price.status === 'fixed' ? REAL_SEMINAR.price.label : ''}）の日程を比較して、そのままお申し込みいただけます。参加者はAIクラファンページ作成ツールをその場で体験できます。`,
 };
 
 /** このページに載せるイベント種別（有料セミナー2種のみ） */
@@ -32,9 +33,9 @@ async function fetchHubEvents(): Promise<HubEvent[]> {
       .select('id, title, type, pillar, event_date, duration_minutes, location, capacity')
       .eq('status', 'upcoming')
       .in('type', HUB_TYPES as unknown as string[])
-      // 🔴 11/9アワード（pillar 4）は type が networking なので type だけでは除けない。
-      //   日程一覧に出すと「リアルセミナー＆懇親会」のラベルが付いて誤案内になるため、
-      //   pillar で明示的に除外する（比較カードから /award へ誘導する）。
+      // 🔴 pillar 4（アワード）は type が networking なので type だけでは除けない。
+      //   アワードは2026-11-23に終了（/award は /seminar へ転送）。DBの行は残るため、
+      //   誤って「リアルセミナー＆懇親会」のラベルで出ないよう pillar で除外し続ける。
       .in('pillar', [2, 3])
       .order('event_date', { ascending: true });
     if (error || !data) return [];

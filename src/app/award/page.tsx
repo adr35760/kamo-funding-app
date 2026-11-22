@@ -1,16 +1,14 @@
-import AwardLanding from '@/components/AwardLanding';
-import { AWARD_EVENT } from '@/lib/seminar-config';
-import { fetchSeminarEvents } from '@/lib/fetch-seminar-events';
+import { permanentRedirect } from 'next/navigation';
 
-export const revalidate = 60;
-
-export const metadata = {
-  title: 'KAMOファンディングアワード | KAMOファンディング',
-  description:
-    'KAMOファンディングで挑戦した方々を表彰する年に一度の式典。2026年11月9日（月）池袋 harevutai。表彰式のあとは懇親会で挑戦者・支援者と直接つながれます。',
-};
-
-export default async function AwardPage() {
-  const events = await fetchSeminarEvents(AWARD_EVENT.pillar);
-  return <AwardLanding initialEvents={events} />;
+/**
+ * /award — 2026-11-23 t iku指示で終了（11/9に開催済み）。
+ *
+ * 🔴 **表示は廃止**し、`/seminar`（セミナー日程・お申し込み）へ恒久リダイレクトする。
+ *    404で消すより、ブックマーク・被リンク・過去の告知からの流入を拾える。
+ *
+ * 🔴 AWARD_EVENT の定数自体と、DBの申込データ・メール送信ロジックは残している
+ *    （過去の申込者への案内が壊れないように）。表示にだけ出さない。
+ */
+export default function AwardPage() {
+  permanentRedirect('/seminar');
 }
