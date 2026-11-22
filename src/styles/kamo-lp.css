@@ -679,3 +679,39 @@ img { max-width: 100%; height: auto; }
 @media (max-width: 768px) {
   .lp-consult-cta { font-size: 15px; padding: 14px 18px; }
 }
+
+/* ===== 2026-11-22 t iku指示: 説明会LPを「クラファン掲載の入口」に絞る ===== */
+/* 説明会で分かること（4項目）の直後に置く個別相談の帯 */
+.lp-consult-band {
+  margin-top: 32px;
+  padding: 24px 20px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--kamo-border, #e5e5e5);
+  border-radius: 16px;
+}
+.lp-consult-band p {
+  margin-bottom: 14px;
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.7;
+  color: var(--kamo-dark, #222);
+}
+/* 主導線から外したパートナー・協業の小さな導線 */
+.lp-partner-links {
+  padding: 28px 20px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--kamo-gray, #666);
+}
+.lp-partner-links a {
+  color: var(--kamo-red, #e60012);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+@media (max-width: 768px) {
+  .lp-consult-band { padding: 20px 16px; }
+  .lp-consult-band p { font-size: 15px; }
+}

@@ -127,7 +127,7 @@ export default function LPClient({
         cta={{ href: '#apply', label: 'お申込み' }}
         pageLinks={[
           { href: '#about', label: '説明会とは' },
-          { href: '#pillars', label: '4本柱' },
+          { href: '#pillars', label: '説明会で分かること' },
           { href: '#schedule', label: '開催日程' },
           { href: '#faq', label: 'よくある質問' },
         ]}
@@ -140,18 +140,21 @@ export default function LPClient({
             <div className="hero-content">
               <div className="hero-badge">
                 <span className="hero-badge-dot"></span>
-                月2回開催・参加費無料
+                オンライン開催・参加費無料
               </div>
+              {/* 2026-11-22 t iku指示: 「4つのサービス紹介」ではなく、
+                  クラファン掲載を考えている人の入口として対象者・タイトルを見直す。
+                  開催日時・形式（90分講座への変更）は未確定のため触らない。 */}
               <h1>
-                <span className="accent">夢を叶える</span>実現装置<br />
-                <span className="gold">共犯者</span>を集めよう。<br />
-                KAMOファンディング<br />活用プログラム
+                <span className="accent">クラファン掲載まで</span>の<br />
+                すべてが分かる<br />
+                <span className="gold">無料オンライン説明会</span>
               </h1>
               <p className="hero-sub">
-                クラウドファンディングは、お金を集めるのではなく——<br />
-                「あなたの夢を応援したい」と言ってくれる人を集める仕組みです。<br />
-                説明会・セミナーで、掲載から成功までの全てが分かります。<br />
-                リアル交流会で挑戦者とのつながりを積極的におこないます！
+                新商品、出版、店舗開業、イベント、地域活動。<br />
+                クラファンでの実現を考えている方のための説明会です。<br />
+                企画の立て方、目標金額とリターンの設計、公開までの準備、<br />
+                応援を集める考え方を、実際の成功事例をもとに解説します。
               </p>
               {/* 主導線（2026-10-26 t iku決定）: 個別相談が主・説明会申込と日程が二番手。
                   URLと所要時間は seminar-info-content.ts の定数を共有する。 */}
@@ -164,7 +167,9 @@ export default function LPClient({
               </div>
             </div>
             <div className="hero-visual">
-              <img src="/lp-hero.png" alt="KAMOファンディング — 夢を叶える場所、共犯者を集めよう" style={{ width: '100%', height: 'auto', borderRadius: '16px', objectFit: 'contain' }} />
+              {/* 2026-11-22: 旧ヒーロー画像には「95%」「90分」が焼き込まれていて
+                  現在の実績・開催形式と食い違うため、実際の説明会の写真に差し替える。 */}
+              <img src="/seminar-community.jpg" alt="オンライン説明会に参加する皆さん" style={{ width: '100%', height: 'auto', borderRadius: '16px', objectFit: 'cover' }} />
             </div>
           </div>
         </div>
@@ -179,60 +184,70 @@ export default function LPClient({
         </div>
       </section>
 
-      {/* ===== 4 PILLARS ===== */}
+      {/* ===== 説明会で分かること（2026-11-22 t iku指示） =====
+          旧「4つの具体策」は説明会・有料セミナー・交流会・パートナー制度の紹介で、
+          クラファン掲載を考えている人の入口になっていなかったため、
+          講座内容（企画・設計・準備・集客）の4項目に絞り直した。
+          パートナー・交流会の案内はページ下部の小さな導線に移す。 */}
       <section className="section section-alt" id="pillars">
         <div className="container">
           <div className="section-title">
-            <span className="label">PROJECT STRUCTURE</span>
-            <h2>今の現状を突破したいと思ってる方へ！<span className="accent">４つの具体策</span>提案します！</h2>
-            <p className="nowrap-pc">認知からコミット、そして伝道者へ。見込み客を段階的に引き上げるファネル構造。</p>
+            <span className="label">PROGRAM</span>
+            <h2>説明会で<span className="accent">分かること</span></h2>
+            <p className="nowrap-pc">クラファンを実施したい人のための、実践的な4つの内容です。</p>
           </div>
           <div className="pillars-grid">
             <div className="pillar-card">
               <div className="pillar-number">01</div>
-              <span className="pillar-tag">集客</span>
-              <h3>掲載説明会（月2回）</h3>
-              <p>KAMOファンディングの掲載方法から成功のコツまで、参加費無料で学べます。</p>
+              <span className="pillar-tag">企画</span>
+              <h3>企画の立て方</h3>
+              <p>何を、誰に、どう届けるか。頭の中のアイデアを、クラファンの企画のかたちにする考え方を解説します。</p>
               <ul>
-                <li>KAMOファンディングの特徴 — KAMOファンディング単独で累計支援総額{KAMO_RAISED_LABEL}・目標達成率{ACHIEVEMENT_RATE_LABEL}のノウハウの一端をご紹介</li>
-                <li>クラウドファンディングの集める構造を理解する — クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</li>
-                <li>応援支援で高額支援を集めるノウハウを伝授 — スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</li>
+                <li>実現したいことの整理の仕方</li>
+                <li>実際の成功事例から学ぶ企画のつくり方</li>
+                <li>クラファンに向く企画・向かない企画</li>
               </ul>
-              <p style={{ fontSize: '13px', color: '#E60012', fontWeight: '700', marginTop: '8px' }}>※KAMOファンディングに掲載希望者は参加必須です。</p>
             </div>
             <div className="pillar-card">
               <div className="pillar-number">02</div>
-              <span className="pillar-tag">教育・熱量</span>
-              <h3>【鴨頭嘉人特別参加会】AI時代のクラウドファンディング活用セミナー</h3>
-              <p>本業が停滞している方向けに、クラファンで売上を上げる短期キャンペーン手法を解説。<br />※各会20名限定（有料）</p>
+              <span className="pillar-tag">設計</span>
+              <h3>目標金額とリターン設計</h3>
+              <p>無理のない目標金額の決め方と、支援してくれる人が選びやすいリターンの組み立て方を学びます。</p>
               <ul>
-                <li>鴨頭嘉人が後半で熱量を注入！</li>
-                <li>3つの設計＋3つのポイント</li>
-                <li>AI活用でページ作成を簡略化</li>
+                <li>目標金額と期間の現実的な決め方</li>
+                <li>リターンの種類と価格の考え方</li>
+                <li>高額支援につながるスポンサー・VIP設計</li>
               </ul>
             </div>
             <div className="pillar-card">
               <div className="pillar-number">03</div>
-              <span className="pillar-tag">深掘り・コミュニティ</span>
-              <h3>リアルセミナー＆懇親会</h3>
-              <p>池袋で約20名規模のリアルイベントを定期開催。鴨頭嘉人参加する会もあります！即売り切れなので詳細チェックを忘れずに！</p>
+              <span className="pillar-tag">準備</span>
+              <h3>公開までの準備</h3>
+              <p>ページ制作から公開日までのスケジュールまで。掲載が決まってから公開するまでに必要なことを整理します。</p>
               <ul>
-                <li>二か月毎に池袋開催</li>
-                <li>約20名の交流会的な深いつながり</li>
-                <li>経営者・挑戦者しかない濃い交流会</li>
+                <li>プロジェクトページの作り方</li>
+                <li>公開前に用意するもの</li>
+                <li>掲載までの流れとスケジュール</li>
               </ul>
             </div>
             <div className="pillar-card">
               <div className="pillar-number">04</div>
-              <span className="pillar-tag">エコシステム拡張</span>
-              <h3>パートナーシッププログラム説明会</h3>
-              <p>あなたのできることを、応援される仕事へ。<br />挑戦者の想いを、資金・仲間・顧客が集まるプロジェクトに変える専門家を育成します</p>
+              <span className="pillar-tag">集客</span>
+              <h3>応援を集める考え方</h3>
+              <p>公開前に味方を増やし、支援につなげる方法を、実際の事例をもとに解説します。</p>
               <ul>
-                <li>アドバイザー養成講座</li>
-                <li>紹介パートナープログラム</li>
-                <li>プロジェクトサポーター育成制度</li>
+                <li>公開前から応援してくれる人を集める方法</li>
+                <li>支援が広がるページ・発信の作り方</li>
+                <li>期間中の動き方と終了までの進め方</li>
               </ul>
             </div>
+          </div>
+          {/* 個別相談への導線を、説明会の内容の直後にも置く */}
+          <div className="lp-consult-band">
+            <p>自分の企画でどうなるか知りたい方は、個別相談が早いです。</p>
+            <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
+              個別相談を予約する（無料・{CONSULT_MINUTES}分）
+            </a>
           </div>
         </div>
       </section>
@@ -404,7 +419,7 @@ export default function LPClient({
                 参加費はかかりますか？
               </div>
               <div className="faq-answer"><div className="faq-answer-inner">
-                説明会・一部のセミナーは参加費無料です。鴨頭参加会及び経営者懇親会は有料になります。
+                この掲載説明会は参加費無料です。個別相談も無料です。有償サポートは必要な場合のみ、個別にお見積もりします。
               </div></div>
             </div>
             <div className="faq-item">
@@ -420,7 +435,7 @@ export default function LPClient({
                 説明会に参加した後、どうなりますか？
               </div>
               <div className="faq-answer"><div className="faq-answer-inner">
-                説明会参加後、希望者にはオンラインセミナー→リアル懇親会と段階的に進んでいただけます。各段階で掲載に向けたサポートを受けられます。
+                説明会のあと、希望者は無料の個別相談へ進みます。企画・目標金額・リターンを具体的に整理し、掲載が決まったら企画設計から公開まで伴走します。
               </div></div>
             </div>
             <div className="faq-item">
@@ -428,12 +443,18 @@ export default function LPClient({
                 AIツールでクラファンページが作れると聞きましたが？
               </div>
               <div className="faq-answer"><div className="faq-answer-inner">
-                はい。セミナーではAIを活用したページ作成テンプレートとリターン設計のひな形生成ツールを体験いただけます。他のプラットフォームにはない差別化機能です。
+                はい。説明会では、KAMOファンディング独自のAIツールの体験案内を行っています。ページ作成のテンプレートとリターン設計のひな形をその場で試せます。
               </div></div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* アドバイザー・協業・セミナー依頼（主導線から外して小さく逃がす） */}
+      <p className="lp-partner-links">
+        アドバイザーとして働きたい方・協業やセミナーのご依頼は
+        <a href="/partners">パートナー募集のページ</a>へ。
+      </p>
 
       {/* ===== FOOTER ===== */}
       <footer className="footer">
@@ -461,8 +482,8 @@ export default function LPClient({
                 <h5>イベント</h5>
                 <ul>
                   <li><a href="#about">掲載説明会</a></li>
-                  <li><a href="#pillars">CFセミナー</a></li>
-                  <li><a href="#schedule">懇親会</a></li>
+                  <li><a href="#pillars">説明会で分かること</a></li>
+                  <li><a href="#schedule">開催日程</a></li>
                 </ul>
               </div>
               <div>
