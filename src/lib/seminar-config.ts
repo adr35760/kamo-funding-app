@@ -165,6 +165,29 @@ export interface SeminarConfig {
    *   リアル回（/real-seminar）だけが値を持つ。
    * ------------------------------------------------------------------ */
 
+  /**
+   * ページ最上部（ヒーローより上）に置く告知バナー。
+   * 🔴 装飾ではなく告知なので、必ず alt を付け、リンクは張らない（ページ内の告知）。
+   *    画像全体が見えるよう width:100% / height:auto で表示する。
+   *    未設定なら要素ごと描画しない（/ai-seminar は未設定）。
+   */
+  topBanner?: { src: string; alt: string; width: number; height: number };
+  /**
+   * セクション見出しの上の英字小見出し（リアル回のみ）。
+   * 「英字の小見出し＋和文の大見出し＋金の細い罫線」で見出しを統一するための飾り。
+   * 未設定のキーは何も出さない（/ai-seminar は undefined のまま）。
+   */
+  eyebrows?: {
+    values?: string;
+    program?: string;
+    community?: string;
+    speakers?: string;
+    schedule?: string;
+    included?: string;
+    audience?: string;
+    closing?: string;
+    apply?: string;
+  };
   /** ヒーロー最上部の小さなタグライン（例: A × B × C）。未設定なら出さない */
   heroTagline?: string;
   /** ヒーローのH1。未設定なら title をH1にする（/ai-seminar はこちら） */
@@ -332,6 +355,29 @@ export const REAL_SEMINAR: SeminarConfig = {
   lead:
     '実績のあるプロから戦略を直接学び、AIで企画を形にする実践ワーク。クラファン成功者や挑戦する仲間と交流し、鴨頭嘉人さんのリアル登壇と直接の会話も体験できる1日です。',
   format: 'リアル開催（セミナー＋懇親会）',
+
+  /* ---- ページ最上部の告知バナー（2026-11-22 t iku指示） --------------
+   * 🔴 「表彰式」の行を削除済みの版（public/real-seminar-challenger-meetup.jpg）。
+   *    画像は差し替えるだけでよく、ページ側はこの設定を見て描画する。
+   * ------------------------------------------------------------------ */
+  topBanner: {
+    src: '/real-seminar-challenger-meetup.jpg',
+    alt: 'KAMOファンディング 挑戦者交流会・鴨頭嘉人参加会',
+    width: 1728,
+    height: 576,
+  },
+  /* ---- 見出しの英字小見出し（見た目のみ・文言は変えない） ---- */
+  eyebrows: {
+    values: 'THREE VALUES',
+    program: 'PROGRAM',
+    community: 'COMMUNITY',
+    speakers: 'SPEAKERS',
+    schedule: 'DATE & FEE',
+    included: 'WHAT’S INCLUDED',
+    audience: 'FOR WHOM',
+    closing: 'MESSAGE',
+    apply: 'ENTRY',
+  },
 
   /* ---- 訴求ブロック（リアル回のみ） ----------------------------------
    * 🔴 数値は site-stats.ts、料金・日時・定員は下の price / sessions /

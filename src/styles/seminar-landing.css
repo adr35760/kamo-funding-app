@@ -45,6 +45,8 @@
 /* Sections */
 .sl-section { padding: 64px 0; }
 .sl-section-alt { background: #F7F9FC; }
+.sl-h2-accent { color: var(--kamo-red); }
+.sl-back-link { color: var(--kamo-red); font-weight: 700; }
 .sl-section h2 { text-align: center; font-size: clamp(22px, 3.4vw, 30px); font-weight: 900; margin-bottom: 32px; }
 
 /* 内容リスト */
@@ -59,7 +61,7 @@
    上限を470pxにし中央寄せする。:only-child なので2枚以上のときは無効。 */
 .sl-schedule-card:only-child { max-width: 470px; width: 100%; margin-left: auto; margin-right: auto; }
 .sl-schedule-card { background: #fff; border: 1px solid rgba(0,0,0,.08); border-radius: var(--radius-lg); overflow: hidden; box-shadow: 0 6px 20px rgba(11,29,58,.08); }
-.sl-schedule-date { color: #fff; padding: 18px 20px; text-align: center; }
+.sl-schedule-date { background: var(--kamo-red); color: #fff; padding: 18px 20px; text-align: center; }
 .sl-round { display: block; font-size: 12px; font-weight: 700; opacity: .85; margin-bottom: 2px; }
 .sl-date { display: block; font-size: 26px; font-weight: 900; }
 .sl-schedule-body { padding: 20px; }
@@ -79,7 +81,7 @@
 .sl-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .sl-hint { font-size: 13px; color: var(--kamo-gray); margin-top: 6px; }
 .sl-error { color: var(--kamo-red); font-weight: 700; margin-bottom: 12px; }
-.sl-submit { width: 100%; color: #fff; padding: 18px; border: none; border-radius: var(--radius); font-size: 17px; font-weight: 900; cursor: pointer; transition: opacity .2s, transform .2s; }
+.sl-submit { width: 100%; background: var(--kamo-red); color: #fff; padding: 18px; border: none; border-radius: var(--radius); font-size: 17px; font-weight: 900; cursor: pointer; transition: opacity .2s, transform .2s; }
 .sl-submit:hover:not(:disabled) { transform: translateY(-2px); }
 .sl-submit:disabled { opacity: .6; cursor: wait; }
 
@@ -104,6 +106,7 @@
 }
 .sl-program-label {
   flex-shrink: 0; min-width: 76px; text-align: center;
+  background: var(--kamo-red);
   color: #fff; font-weight: 900; font-size: 14px;
   padding: 8px 12px; border-radius: 999px; line-height: 1.4;
 }
@@ -421,6 +424,7 @@
 }
 .sl-value-no {
   display: inline-flex; align-items: center; justify-content: center;
+  background: var(--kamo-red);
   width: 38px; height: 38px; border-radius: 50%;
   color: #fff; font-weight: 900; font-size: 14px; margin-bottom: 12px;
 }
@@ -629,4 +633,502 @@
 .seminar-lp section[id] { scroll-margin-top: 96px; }
 @media (max-width: 768px) {
   .seminar-lp section[id] { scroll-margin-top: 84px; }
+}
+
+/* ============================================================================
+   2026-11-22 t iku指示: /real-seminar を「紺・赤・金・白」の4色で組み直す
+   ----------------------------------------------------------------------------
+   トップページ（/）を先に作り直したのと同じ設計言語に合わせる:
+     ・面は濃紺と白を交互に置く（薄いグレーは補助だけ）
+     ・ヒーローは濃紺ベタ＋白の大見出し＋金の細い罫線、CTAは赤、数字の強調は金
+     ・見出しは「英字の小見出し＋和文＋金の罫線」で統一
+   🔴 文言・数値・CTAのリンク先・並び順・計測イベントは変えない（見た目だけ）。
+   🔴 すべて .seminar-lp.is-real 配下に限定する。is-real はリアル回
+      （config.pillar === 3）だけが付け、/ai-seminar は theme-online のまま
+      一切この層の影響を受けない。
+   ============================================================================ */
+
+.seminar-lp.is-real {
+  /* 4色のトークン（面に使う色はこの4色だけ） */
+  --sl-navy: #0b1d3a;
+  --sl-navy-deep: #071528;
+  --sl-navy-soft: #14284a;
+  --sl-red: #e60012;
+  --sl-red-dark: #c20010;
+  --sl-gold: #c8901a;
+  --sl-gold-light: #e8b33a;
+  --sl-gold-pale: #f6e7c3;
+  --sl-gold-ink: #8a6212; /* 白地で 5.4:1。白地の小さい金文字はこれを使う */
+
+  --sl-ink: #0f1b2d;
+  --sl-ink-sub: #44536a;
+  --sl-ink-note: #5c6778;
+  --sl-line: #e3e8f1;
+
+  color: var(--sl-ink);
+  font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* ---- 最上部の告知バナー（切り抜かない・幅100%/高さ自動） ---- */
+.seminar-lp.is-real .sl-top-banner {
+  background: #fff;
+  line-height: 0;
+}
+.seminar-lp.is-real .sl-top-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 1728px; /* 原寸より大きく引き伸ばさない */
+  margin: 0 auto;
+}
+
+/* ---- セクションの面：濃紺と白を交互に ---- */
+.seminar-lp.is-real .sl-section { padding: 84px 0; }
+.seminar-lp.is-real .sl-section-alt { background: #fff; }
+
+.seminar-lp.is-real .sl-r-values,
+.seminar-lp.is-real .sl-r-community,
+.seminar-lp.is-real .sl-r-schedule,
+.seminar-lp.is-real .sl-r-audience,
+.seminar-lp.is-real .sl-r-apply { background: #fff; }
+
+.seminar-lp.is-real .sl-r-program,
+.seminar-lp.is-real .sl-r-included,
+.seminar-lp.is-real .sl-r-closing {
+  background: var(--sl-navy-deep);
+  color: #fff;
+}
+.seminar-lp.is-real .sl-r-speakers {
+  background: var(--sl-navy);
+  color: #fff;
+}
+
+/* 濃紺の面では見出し・リードを白系に（.sl-community の白文字指定もここで吸収） */
+.seminar-lp.is-real .sl-r-program h2,
+.seminar-lp.is-real .sl-r-speakers h2,
+.seminar-lp.is-real .sl-r-included h2,
+.seminar-lp.is-real .sl-r-closing h2 { color: #fff; }
+.seminar-lp.is-real .sl-r-program .sl-section-lead,
+.seminar-lp.is-real .sl-r-included .sl-section-lead,
+.seminar-lp.is-real .sl-r-speakers .sl-section-lead { color: rgba(255, 255, 255, .82); }
+
+/* ---- 見出し：英字の小見出し＋和文＋金の細い罫線 ---- */
+.seminar-lp.is-real .sl-r-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 0 12px;
+  text-align: center;
+  font-family: Montserrat, 'Noto Sans JP', sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .34em;
+  line-height: 1.6;
+  color: var(--sl-gold-ink);
+}
+.seminar-lp.is-real .sl-r-eyebrow::before,
+.seminar-lp.is-real .sl-r-eyebrow::after {
+  content: '';
+  width: 34px;
+  height: 1px;
+  flex: 0 0 34px;
+  background: linear-gradient(90deg, rgba(200, 144, 26, 0), var(--sl-gold));
+}
+.seminar-lp.is-real .sl-r-eyebrow::after {
+  background: linear-gradient(90deg, var(--sl-gold), rgba(200, 144, 26, 0));
+}
+.seminar-lp.is-real .sl-r-program .sl-r-eyebrow,
+.seminar-lp.is-real .sl-r-speakers .sl-r-eyebrow,
+.seminar-lp.is-real .sl-r-included .sl-r-eyebrow,
+.seminar-lp.is-real .sl-r-closing .sl-r-eyebrow { color: var(--sl-gold-light); }
+.seminar-lp.is-real .sl-r-program .sl-r-eyebrow::before,
+.seminar-lp.is-real .sl-r-speakers .sl-r-eyebrow::before,
+.seminar-lp.is-real .sl-r-included .sl-r-eyebrow::before,
+.seminar-lp.is-real .sl-r-closing .sl-r-eyebrow::before {
+  background: linear-gradient(90deg, rgba(232, 179, 58, 0), rgba(232, 179, 58, .8));
+}
+.seminar-lp.is-real .sl-r-program .sl-r-eyebrow::after,
+.seminar-lp.is-real .sl-r-speakers .sl-r-eyebrow::after,
+.seminar-lp.is-real .sl-r-included .sl-r-eyebrow::after,
+.seminar-lp.is-real .sl-r-closing .sl-r-eyebrow::after {
+  background: linear-gradient(90deg, rgba(232, 179, 58, .8), rgba(232, 179, 58, 0));
+}
+
+.seminar-lp.is-real .sl-section h2 {
+  font-size: clamp(24px, 3.2vw, 34px);
+  font-weight: 900;
+  letter-spacing: .03em;
+  line-height: 1.5;
+  color: var(--sl-navy);
+  margin-bottom: 30px;
+  text-wrap: balance;
+}
+.seminar-lp.is-real .sl-section h2::after {
+  content: '';
+  display: block;
+  width: 56px;
+  height: 2px;
+  margin: 16px auto 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--sl-gold-light) 0%, var(--sl-gold) 100%);
+}
+.seminar-lp.is-real .sl-section.sl-r-program h2,
+.seminar-lp.is-real .sl-section.sl-r-speakers h2,
+.seminar-lp.is-real .sl-section.sl-r-included h2,
+.seminar-lp.is-real .sl-section.sl-r-closing h2 { color: #fff; }
+.seminar-lp.is-real .sl-h2-accent { color: var(--sl-gold-ink); }
+.seminar-lp.is-real .sl-r-program .sl-h2-accent,
+.seminar-lp.is-real .sl-r-speakers .sl-h2-accent,
+.seminar-lp.is-real .sl-r-included .sl-h2-accent,
+.seminar-lp.is-real .sl-r-closing .sl-h2-accent { color: var(--sl-gold-light); }
+
+.seminar-lp.is-real .sl-section-lead { color: var(--sl-ink-sub); }
+.seminar-lp.is-real .sl-eyebrow { color: var(--sl-gold-ink); letter-spacing: .1em; }
+.seminar-lp.is-real .sl-r-community .sl-eyebrow { color: var(--sl-gold-ink); }
+
+/* 日本語の見出し・リードは文節単位で折り返す（「近／づける」のような
+   語の途中での改行を防ぐ）。未対応ブラウザでは通常の折り返しに戻るだけ。 */
+.seminar-lp.is-real h1,
+.seminar-lp.is-real h2,
+.seminar-lp.is-real h3,
+.seminar-lp.is-real .sl-value-card h3,
+.seminar-lp.is-real .sl-program-body h3,
+.seminar-lp.is-real .sl-audience-card h3,
+.seminar-lp.is-real .sl-tier-name {
+  word-break: auto-phrase;
+}
+
+/* フォーカスは金（濃紺・白どちらでも見える） */
+.seminar-lp.is-real a:focus-visible,
+.seminar-lp.is-real button:focus-visible,
+.seminar-lp.is-real input:focus-visible,
+.seminar-lp.is-real select:focus-visible,
+.seminar-lp.is-real textarea:focus-visible {
+  outline: 3px solid var(--sl-gold);
+  outline-offset: 2px;
+}
+
+/* ===== ファーストビュー：濃紺ベタ＋白の大見出し＋金の細い罫線＋赤のCTA ===== */
+.seminar-lp.is-real .sl-hero {
+  position: relative;
+  background: var(--sl-navy-deep);
+  background-image:
+    repeating-linear-gradient(118deg, rgba(255, 255, 255, .035) 0 1px, rgba(255, 255, 255, 0) 1px 92px),
+    radial-gradient(120% 90% at 50% 0%, rgba(200, 144, 26, .16), rgba(200, 144, 26, 0) 62%);
+  padding: 72px 0 80px;
+  border-bottom: 2px solid rgba(200, 144, 26, .55);
+}
+.seminar-lp.is-real .sl-badge {
+  border: 1px solid rgba(232, 179, 58, .6);
+  color: var(--sl-gold-light);
+  background: rgba(200, 144, 26, .1);
+  letter-spacing: .08em;
+  border-radius: 3px;
+}
+.seminar-lp.is-real .sl-hero-tagline {
+  color: var(--sl-gold-light);
+  letter-spacing: .05em;
+  font-weight: 800;
+}
+.seminar-lp.is-real .sl-hero h1 {
+  color: #fff;
+  font-size: clamp(27px, 4.3vw, 46px);
+  font-weight: 900;
+  line-height: 1.34;
+  letter-spacing: .01em;
+}
+.seminar-lp.is-real .sl-hero h1::after {
+  content: '';
+  display: block;
+  width: 76px;
+  height: 2px;
+  margin: 22px auto 0;
+  background: linear-gradient(90deg, rgba(232, 179, 58, 0), var(--sl-gold-light), rgba(232, 179, 58, 0));
+}
+.seminar-lp.is-real .sl-lead { color: rgba(255, 255, 255, .84); }
+.seminar-lp.is-real .sl-hero-stats {
+  background: rgba(232, 179, 58, .45);
+  border-color: rgba(232, 179, 58, .45);
+  border-radius: 6px;
+}
+.seminar-lp.is-real .sl-hero-stat { background: rgba(7, 21, 40, .94); }
+.seminar-lp.is-real .sl-hero-stat-value { color: var(--sl-gold-light); }
+.seminar-lp.is-real .sl-hero-stat-label { color: #fff; }
+.seminar-lp.is-real .sl-hero-stat-note { color: rgba(255, 255, 255, .74); }
+.seminar-lp.is-real .sl-hero-stat-src { color: rgba(255, 255, 255, .55); }
+.seminar-lp.is-real .sl-hero-when { color: #fff; }
+.seminar-lp.is-real .sl-hero-when span:first-child { color: var(--sl-gold-light); }
+
+/* 参加費（ヒーロー）：金の細枠＋金の数字。
+   価格ボックスとCTAを横に並べず、価格→その下にCTAの順で中央に積む
+   （1440pxで横並びになると赤いボタンが浮いて見えるため）。 */
+.seminar-lp.is-real .sl-price-box {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 4px auto 22px;
+  background: rgba(255, 255, 255, .035);
+  border: 1px solid rgba(232, 179, 58, .7);
+  border-radius: 6px;
+  box-shadow: 0 18px 40px -30px rgba(0, 0, 0, .9);
+}
+.seminar-lp.is-real .sl-price-label { color: rgba(255, 255, 255, .8); }
+.seminar-lp.is-real .sl-price-amount { color: var(--sl-gold-light); text-shadow: none; }
+.seminar-lp.is-real .sl-price-suffix { color: rgba(255, 255, 255, .78); }
+.seminar-lp.is-real .sl-price-note { color: rgba(255, 255, 255, .78); }
+.seminar-lp.is-real .sl-price-capacity { color: rgba(255, 255, 255, .9); border-top-color: rgba(255, 255, 255, .18); }
+
+/* CTAは赤（ヒーロー・価値カード・クロージング・フォームで共通） */
+.seminar-lp.is-real .sl-cta {
+  background: linear-gradient(180deg, #f0182a 0%, var(--sl-red) 55%, var(--sl-red-dark) 100%);
+  color: #fff;
+  border-radius: 4px;
+  letter-spacing: .04em;
+  box-shadow: 0 14px 30px -16px rgba(230, 0, 18, .9);
+}
+.seminar-lp.is-real .sl-cta:hover {
+  background: linear-gradient(180deg, var(--sl-red) 0%, var(--sl-red-dark) 100%);
+  transform: translateY(-2px);
+}
+.seminar-lp.is-real .sl-value-closing .sl-cta,
+.seminar-lp.is-real .sl-closing .sl-cta { background: linear-gradient(180deg, #f0182a 0%, var(--sl-red) 55%, var(--sl-red-dark) 100%); color: #fff; }
+
+/* ===== 3つの価値（白） ===== */
+.seminar-lp.is-real .sl-value-card {
+  background: #fff;
+  border: 1px solid var(--sl-line);
+  border-top: 3px solid var(--sl-gold);
+  border-radius: 6px;
+  box-shadow: 0 18px 40px -34px rgba(11, 29, 58, .65);
+}
+.seminar-lp.is-real .sl-value-no {
+  background: var(--sl-navy);
+  color: var(--sl-gold-light);
+  border-radius: 4px;
+  font-family: Montserrat, 'Noto Sans JP', sans-serif;
+  letter-spacing: .04em;
+}
+.seminar-lp.is-real .sl-value-card h3 { color: var(--sl-navy); }
+.seminar-lp.is-real .sl-value-card p { color: var(--sl-ink-sub); }
+
+/* ===== 内容（濃紺）— 白カード＋特別枠は紺地に金枠 ===== */
+.seminar-lp.is-real .sl-r-program .sl-program-item {
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 6px;
+  box-shadow: 0 24px 46px -34px rgba(0, 0, 0, .95);
+}
+.seminar-lp.is-real .sl-r-program .sl-program-label {
+  background: var(--sl-gold);
+  color: var(--sl-navy);
+  border-radius: 4px;
+  letter-spacing: .02em;
+}
+.seminar-lp.is-real .sl-r-program .sl-program-body h3 { color: var(--sl-navy); }
+.seminar-lp.is-real .sl-r-program .sl-program-body p { color: var(--sl-ink-sub); }
+
+.seminar-lp.is-real .sl-r-program .sl-program-item.is-special {
+  background: var(--sl-navy-soft);
+  border: 2px solid var(--sl-gold);
+  box-shadow: 0 0 0 1px rgba(232, 179, 58, .18), 0 30px 56px -34px rgba(0, 0, 0, 1);
+}
+.seminar-lp.is-real .sl-r-program .sl-program-item.is-special .sl-program-label {
+  background: var(--sl-gold);
+  color: var(--sl-navy);
+  border-radius: 4px;
+}
+.seminar-lp.is-real .sl-r-program .sl-program-item.is-special .sl-program-body h3 { color: var(--sl-gold-light); }
+.seminar-lp.is-real .sl-r-program .sl-program-item.is-special .sl-program-body p { color: rgba(255, 255, 255, .9); }
+
+.seminar-lp.is-real .sl-r-program .sl-program-item.is-party {
+  background: #fff;
+  border: 2px solid var(--sl-gold);
+}
+.seminar-lp.is-real .sl-r-program .sl-program-item.is-party .sl-program-label {
+  background: var(--sl-gold);
+  color: var(--sl-navy);
+  border-radius: 4px;
+}
+
+.seminar-lp.is-real .sl-r-program .sl-program-closing {
+  background-color: var(--sl-gold);
+  background-image: linear-gradient(135deg, var(--sl-gold-light) 0%, var(--sl-gold) 100%);
+  border-radius: 6px;
+  box-shadow: 0 22px 44px -30px rgba(0, 0, 0, .95);
+}
+.seminar-lp.is-real .sl-r-program .sl-program-closing p { color: var(--sl-navy); }
+
+/* ===== 成功者から直接聞ける機会（白）===== */
+.seminar-lp.is-real .sl-r-community { background: #fff; color: var(--sl-ink); }
+/* 白い長文セクションに面の骨格を与える（白カード＋金の細い天端） */
+.seminar-lp.is-real .sl-r-community .sl-container {
+  max-width: 940px;
+  padding: 52px 48px;
+  background: #fbfcfe;
+  border: 1px solid var(--sl-line);
+  border-top: 3px solid var(--sl-gold);
+  border-radius: 6px;
+  box-shadow: 0 24px 50px -44px rgba(11, 29, 58, .8);
+}
+.seminar-lp.is-real .sl-r-community h2 { color: var(--sl-navy); }
+.seminar-lp.is-real .sl-community-body p { color: var(--sl-ink-sub); }
+.seminar-lp.is-real .sl-punch { color: var(--sl-gold-ink); }
+.seminar-lp.is-real .sl-community-after { color: var(--sl-ink-note); }
+
+/* ===== 講師紹介（濃紺）===== */
+.seminar-lp.is-real .sl-speaker {
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 6px;
+  box-shadow: 0 26px 50px -34px rgba(0, 0, 0, .95);
+}
+.seminar-lp.is-real .sl-speaker.is-special {
+  border: 2px solid var(--sl-gold);
+  box-shadow: 0 0 0 1px rgba(232, 179, 58, .18), 0 30px 56px -34px rgba(0, 0, 0, 1);
+}
+.seminar-lp.is-real .sl-speaker-name { color: var(--sl-navy); }
+
+/* ===== 日程（白）===== */
+.seminar-lp.is-real .sl-schedule-card {
+  background: #fff;
+  border: 1px solid var(--sl-line);
+  border-radius: 6px;
+  box-shadow: 0 18px 40px -34px rgba(11, 29, 58, .65);
+}
+.seminar-lp.is-real .sl-schedule-date {
+  background: var(--sl-navy);
+  color: #fff;
+  text-align: center;
+}
+.seminar-lp.is-real .sl-round { color: rgba(255, 255, 255, .72); letter-spacing: .06em; }
+.seminar-lp.is-real .sl-date {
+  color: var(--sl-gold-light);
+  font-size: 28px;
+  letter-spacing: .01em;
+}
+.seminar-lp.is-real .sl-time { color: var(--sl-navy); }
+.seminar-lp.is-real .sl-time-sub { color: var(--sl-ink-note); }
+.seminar-lp.is-real .sl-venue { color: var(--sl-ink-note); }
+
+.seminar-lp.is-real .sl-tier {
+  background: #fff;
+  border: 1px solid rgba(200, 144, 26, .55);
+  border-radius: 6px;
+  box-shadow: 0 16px 36px -32px rgba(11, 29, 58, .7);
+}
+.seminar-lp.is-real .sl-tier-head { border-bottom-color: var(--sl-line); }
+.seminar-lp.is-real .sl-tier-name { color: var(--sl-navy); }
+.seminar-lp.is-real .sl-tier-price { color: var(--sl-gold-ink); }
+.seminar-lp.is-real .sl-tier p { color: var(--sl-ink-sub); }
+.seminar-lp.is-real .sl-tier-summary { color: var(--sl-ink-note) !important; }
+
+.seminar-lp.is-real .sl-note { color: var(--sl-ink-note); }
+.seminar-lp.is-real .sl-note-amount { color: var(--sl-gold-ink); }
+.seminar-lp.is-real .sl-note-suffix { color: var(--sl-ink-note); }
+.seminar-lp.is-real .sl-empty-schedule { border-color: rgba(200, 144, 26, .45); border-radius: 6px; }
+.seminar-lp.is-real .sl-empty-sub { color: var(--sl-ink-note); }
+
+/* ===== 参加費に含まれるもの（濃紺）— 表は白のまま ===== */
+.seminar-lp.is-real .sl-value-table {
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 6px;
+  box-shadow: 0 30px 56px -34px rgba(0, 0, 0, 1);
+}
+.seminar-lp.is-real .sl-value-head { background: var(--sl-navy) ; }
+.seminar-lp.is-real .sl-value-label { color: var(--sl-navy); }
+.seminar-lp.is-real .sl-value-body { color: var(--sl-ink-note); }
+.seminar-lp.is-real .sl-value-mark { color: #5d6474; } /* 「含まない」の—も読める濃さに */
+.seminar-lp.is-real .sl-value-mark.is-on { color: var(--sl-gold-ink); }
+.seminar-lp.is-real .sl-value-closing-note { color: #3b2f05; }
+.seminar-lp.is-real .sl-value-closing-price { color: var(--sl-navy); }
+.seminar-lp.is-real .sl-value-closing {
+  background-color: var(--sl-gold);
+  background-image: linear-gradient(135deg, var(--sl-gold-light) 0%, var(--sl-gold) 100%);
+  border-radius: 6px;
+  box-shadow: 0 24px 46px -32px rgba(0, 0, 0, .95);
+}
+
+/* ===== 対象者（白）===== */
+.seminar-lp.is-real .sl-audience-card {
+  background: #fff;
+  border: 1px solid var(--sl-line);
+  border-left: 3px solid var(--sl-gold);
+  border-radius: 4px;
+  box-shadow: 0 16px 36px -32px rgba(11, 29, 58, .7);
+}
+.seminar-lp.is-real .sl-audience-card h3 { color: var(--sl-navy); }
+.seminar-lp.is-real .sl-audience-card p { color: var(--sl-ink-sub); }
+
+/* ===== クロージング（濃紺）===== */
+.seminar-lp.is-real .sl-r-closing {
+  background: var(--sl-navy-deep);
+  background-image: radial-gradient(120% 90% at 50% 0%, rgba(200, 144, 26, .14), rgba(200, 144, 26, 0) 62%);
+  color: #fff;
+}
+.seminar-lp.is-real .sl-closing-body p { color: rgba(255, 255, 255, .86); }
+.seminar-lp.is-real .sl-closing .sl-punch { color: var(--sl-gold-light); }
+.seminar-lp.is-real .sl-closing-box {
+  background: rgba(255, 255, 255, .045);
+  border: 1px solid rgba(232, 179, 58, .7);
+  border-radius: 6px;
+}
+.seminar-lp.is-real .sl-closing-price-label { color: rgba(255, 255, 255, .82); }
+.seminar-lp.is-real .sl-closing-amount { color: var(--sl-gold-light); }
+.seminar-lp.is-real .sl-closing-suffix,
+.seminar-lp.is-real .sl-closing-note,
+.seminar-lp.is-real .sl-closing-cap { color: rgba(255, 255, 255, .74); }
+.seminar-lp.is-real .sl-closing-when { color: #fff; }
+
+/* ===== 申込フォーム（白）===== */
+.seminar-lp.is-real .sl-form-card {
+  background: #fff;
+  border: 1px solid var(--sl-line);
+  border-radius: 6px;
+  box-shadow: 0 26px 56px -40px rgba(11, 29, 58, .8);
+}
+.seminar-lp.is-real .sl-form-card h2 { color: var(--sl-navy); }
+.seminar-lp.is-real .sl-form-group label { color: var(--sl-navy); }
+.seminar-lp.is-real .sl-form-group input,
+.seminar-lp.is-real .sl-form-group select,
+.seminar-lp.is-real .sl-form-group textarea {
+  border: 1px solid #d7dee9;
+  border-radius: 4px;
+  background: #fff;
+  color: var(--sl-ink);
+}
+.seminar-lp.is-real .sl-form-group input:focus,
+.seminar-lp.is-real .sl-form-group select:focus,
+.seminar-lp.is-real .sl-form-group textarea:focus { border-color: var(--sl-navy); }
+.seminar-lp.is-real .sl-required { color: var(--sl-red); }
+.seminar-lp.is-real .sl-hint { color: var(--sl-ink-note); }
+.seminar-lp.is-real .sl-error { color: var(--sl-red); }
+.seminar-lp.is-real .sl-submit {
+  background: linear-gradient(180deg, #f0182a 0%, var(--sl-red) 55%, var(--sl-red-dark) 100%);
+  color: #fff;
+  border-radius: 4px;
+  letter-spacing: .04em;
+  box-shadow: 0 14px 30px -18px rgba(230, 0, 18, .9);
+}
+.seminar-lp.is-real .sl-back-link { color: var(--sl-navy); }
+.seminar-lp.is-real .sl-footer { background: var(--sl-navy-deep); color: rgba(255, 255, 255, .55); }
+
+/* ---- スマホ・タブレット ---- */
+@media (max-width: 900px) {
+  .seminar-lp.is-real .sl-section { padding: 64px 0; }
+}
+@media (max-width: 768px) {
+  .seminar-lp.is-real .sl-hero { padding: 52px 0 60px; }
+  .seminar-lp.is-real .sl-hero h1 { font-size: clamp(24px, 7vw, 30px); }
+  .seminar-lp.is-real .sl-hero h1::after { margin-top: 16px; width: 60px; }
+  .seminar-lp.is-real .sl-section { padding: 56px 0; }
+  .seminar-lp.is-real .sl-section h2 { font-size: 22px; margin-bottom: 24px; }
+  .seminar-lp.is-real .sl-section h2::after { margin-top: 12px; width: 44px; }
+  .seminar-lp.is-real .sl-r-eyebrow { font-size: 10.5px; letter-spacing: .28em; gap: 10px; }
+  .seminar-lp.is-real .sl-r-eyebrow::before,
+  .seminar-lp.is-real .sl-r-eyebrow::after { width: 22px; flex-basis: 22px; }
+  .seminar-lp.is-real .sl-date { font-size: 24px; }
+  .seminar-lp.is-real .sl-price-box { width: 100%; max-width: 360px; }
+  .seminar-lp.is-real .sl-r-community .sl-container { margin: 0 16px; padding: 28px 18px; max-width: none; }
 }

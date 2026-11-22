@@ -83,6 +83,12 @@ export default function SeminarLanding({
 
   const isReal = config.pillar === 3;
   const accent = isReal ? 'var(--kamo-gold)' : 'var(--kamo-red)';
+  // リアル回だけに付ける装飾用の目印（isReal=false の /ai-seminar はクラスが増えない）
+  const rc = (name: string) => (isReal ? ` sl-r-${name}` : '');
+  const eyebrow = (key: keyof NonNullable<SeminarConfig['eyebrows']>) => {
+    const label = config.eyebrows?.[key];
+    return label ? <p className="sl-r-eyebrow">{label}</p> : null;
+  };
 
   useEffect(() => {
     if (initialEvents.length > 0) return; // サーバー取得済み
@@ -153,8 +159,25 @@ export default function SeminarLanding({
   const ctaLabel = config.ctaLabel ?? '申し込む →';
 
   return (
-    <div className={isReal ? 'seminar-lp theme-real' : 'seminar-lp theme-online'}>
+    <div className={isReal ? 'seminar-lp theme-real is-real' : 'seminar-lp theme-online'}>
       <SiteHeader cta={{ href: '#apply', label: '申し込む' }} />
+
+      {/* ページ最上部の告知バナー（ヒーローより上）— 画像全体を見せる（切り抜かない）。
+          SiteHeader が固定ヘッダー分の余白を出すので、ここに余白を足さない。 */}
+      {config.topBanner && (
+        <section className="sl-top-banner" aria-label="イベントのお知らせ">
+          <Image
+            src={config.topBanner.src}
+            alt={config.topBanner.alt}
+            width={config.topBanner.width}
+            height={config.topBanner.height}
+            priority
+            quality={92}
+            sizes="100vw"
+            style={{ width: '100%', height: 'auto', display: 'block' }}
+          />
+        </section>
+      )}
 
       {/* Hero */}
       <section className="sl-hero">
@@ -234,14 +257,15 @@ export default function SeminarLanding({
 
       {/* 3大価値（リアル回のみ） */}
       {config.valueProps && (
-        <section className="sl-section sl-section-alt">
+        <section className={'sl-section sl-section-alt' + rc('values')}>
           <div className="sl-container">
+            {eyebrow('values')}
             <h2>{config.valueProps.heading}</h2>
             {config.valueProps.lead && <p className="sl-section-lead">{config.valueProps.lead}</p>}
             <div className="sl-values">
               {config.valueProps.items.map((v, i) => (
                 <div className="sl-value-card" key={v.title}>
-                  <div className="sl-value-no" style={{ background: accent }}>
+                  <div className="sl-value-no">
                     {String(i + 1).padStart(2, '0')}
                   </div>
                   <h3>{v.title}</h3>
@@ -254,9 +278,10 @@ export default function SeminarLanding({
       )}
 
       {/* 内容 */}
-      <section className="sl-section">
+      <section className={'sl-section' + rc('program')}>
         <div className="sl-container">
-          <h2>セミナーの<span style={{ color: accent }}>内容</span></h2>
+          {eyebrow('program')}
+          <h2>セミナーの<span className="sl-h2-accent">内容</span></h2>
           {config.program ? (
             <>
               <div className="sl-program">
@@ -273,10 +298,7 @@ export default function SeminarLanding({
                   >
                     {/* ラベルは設定の値をそのまま使う。配列の位置から採番すると
                         第1部〜第5部の後に懇親会が来たとき「第6部」に化ける */}
-                    <div
-                      className="sl-program-label"
-                      style={b.special || b.party ? undefined : { background: accent }}
-                    >
+                    <div className="sl-program-label">
                       {b.label}
                     </div>
                     <div className="sl-program-body">
@@ -307,8 +329,9 @@ export default function SeminarLanding({
 
       {/* 成功者から直接聞ける機会（リアル回のみ・今回の差別化） */}
       {config.community && (
-        <section className="sl-section sl-community">
+        <section className={'sl-section sl-community' + rc('community')}>
           <div className="sl-container">
+            {eyebrow('community')}
             {config.community.eyebrow && <p className="sl-eyebrow">{config.community.eyebrow}</p>}
             <h2>{config.community.heading}</h2>
             <div className="sl-community-body">
@@ -324,9 +347,10 @@ export default function SeminarLanding({
 
       {/* 講師紹介 */}
       {hasSpeakers && config.speakers && (
-        <section className="sl-section sl-section-alt">
+        <section className={'sl-section sl-section-alt' + rc('speakers')}>
           <div className="sl-container">
-            <h2>講師<span style={{ color: accent }}>紹介</span></h2>
+            {eyebrow('speakers')}
+            <h2>講師<span className="sl-h2-accent">紹介</span></h2>
             <div className="sl-speakers">
               {config.speakers.map(sp => (
                 <div className={sp.special ? 'sl-speaker is-special' : 'sl-speaker'} key={sp.name}>
@@ -363,9 +387,10 @@ export default function SeminarLanding({
       )}
 
       {/* 日程（背景は前セクションと交互になるよう切替） */}
-      <section className={hasSpeakers ? 'sl-section' : 'sl-section sl-section-alt'} id="schedule">
+      <section className={(hasSpeakers ? 'sl-section' : 'sl-section sl-section-alt') + rc('schedule')} id="schedule">
         <div className="sl-container">
-          <h2>開催<span style={{ color: accent }}>日程</span></h2>
+          {eyebrow('schedule')}
+          <h2>開催<span className="sl-h2-accent">日程</span></h2>
           {events.length === 0 && !loadingEvents && (
             <div className="sl-empty-schedule">
               <p className="sl-empty-title">現在募集中の日程はありません</p>
@@ -375,7 +400,7 @@ export default function SeminarLanding({
           <div className="sl-schedule">
             {config.sessions.map((s, i) => (
               <div className="sl-schedule-card" key={s.isoDate}>
-                <div className="sl-schedule-date" style={{ background: accent }}>
+                <div className="sl-schedule-date">
                   <span className="sl-round">第{s.round ?? i + 1}回</span>
                   <span className="sl-date">{s.dateLabel}</span>
                 </div>
@@ -441,8 +466,9 @@ export default function SeminarLanding({
 
       {/* 参加費に含まれるもの（リアル回のみ）— 価格の直前に何が含まれるかを並べる */}
       {config.valueTable && (
-        <section className="sl-section" id="value">
+        <section className={'sl-section' + rc('included')} id="value">
           <div className="sl-container">
+            {eyebrow('included')}
             <h2>{config.valueTable.heading}</h2>
             {config.valueTable.lead && <p className="sl-section-lead">{config.valueTable.lead}</p>}
             <div className="sl-value-table">
@@ -489,8 +515,9 @@ export default function SeminarLanding({
 
       {/* 対象者別メッセージ（リアル回のみ） */}
       {config.audience && (
-        <section className="sl-section sl-section-alt">
+        <section className={'sl-section sl-section-alt' + rc('audience')}>
           <div className="sl-container">
+            {eyebrow('audience')}
             <h2>{config.audience.heading}</h2>
             {config.audience.lead && <p className="sl-section-lead">{config.audience.lead}</p>}
             <div className="sl-audience">
@@ -507,8 +534,9 @@ export default function SeminarLanding({
 
       {/* クロージング（リアル回のみ） */}
       {config.closing && (
-        <section className="sl-section sl-closing">
+        <section className={'sl-section sl-closing' + rc('closing')}>
           <div className="sl-container">
+            {eyebrow('closing')}
             <h2>{config.closing.heading}</h2>
             <div className="sl-closing-body">
               {config.closing.paragraphs.map((text, i) => (
@@ -540,8 +568,9 @@ export default function SeminarLanding({
       )}
 
       {/* 申込フォーム */}
-      <section className="sl-section" id="apply">
+      <section className={'sl-section' + rc('apply')} id="apply">
         <div className="sl-container">
+          {eyebrow('apply')}
           <div className="sl-form-card">
             {submitted ? (
               <div style={{ textAlign: 'center' }}>
@@ -551,7 +580,7 @@ export default function SeminarLanding({
                   参加費などの詳細は、決まり次第あらためてご案内します。
                 </p>
                 <p style={{ marginTop: '20px' }}>
-                  <a href="/" style={{ color: accent, fontWeight: 700 }}>← トップページに戻る</a>
+                  <a href="/" className="sl-back-link">← トップページに戻る</a>
                 </p>
               </div>
             ) : (
@@ -604,7 +633,7 @@ export default function SeminarLanding({
                     <textarea name="challenge" placeholder="クラウドファンディングで実現したいこと、聞きたいことなどをお書きください"></textarea>
                   </div>
                   {error && <p className="sl-error">{error}</p>}
-                  <button type="submit" className="sl-submit" disabled={submitting} style={{ background: accent }}>
+                  <button type="submit" className="sl-submit" disabled={submitting}>
                     {submitting ? '送信中...' : '申し込む →'}
                   </button>
                   <p className="sl-hint" style={{ textAlign: 'center', marginTop: '12px' }}>
