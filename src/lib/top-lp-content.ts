@@ -13,9 +13,8 @@
  *    表示しない（2026-11-08 t iku指示「確認済みの値のみ」）。
  */
 
-import { CONSULT_MINUTES } from './seminar-info-content';
+import { CONSULT_URL, CONSULT_MINUTES } from './seminar-info-content';
 import { REWARD_CONFIG } from './reward-calc';
-import { CONSULT_CATEGORIES, type ConsultCategory } from './consult-shared';
 import {
   SUPPORTED_PROJECTS_LABEL,
   TOTAL_RAISED_LABEL,
@@ -60,7 +59,8 @@ export const LP_HERO = {
   description:
     '資金だけでなく、あなたの企画を応援してくれるお客様とのつながりをつくるために。KAMOファンディングの担当者が企画を伺い、実施に向けた準備と費用の見通しをご案内します。',
   cta: `自分の企画を無料で相談する｜${CONSULT_MINUTES}分`,
-  ctaHref: '#consult',
+  /** 2026-11-22 t iku指示: 本文側の相談CTAはすべてカレンダー予約に統一（CONSULT_URLのみ参照） */
+  ctaHref: CONSULT_URL,
   /** 補助導線（説明会LPへ） */
   subCtaLead: '全体像を知りたい方へ',
   subCta: '無料説明会の日程を見る',
@@ -125,10 +125,8 @@ export interface LpCard {
   note: string;
   /** カード下部の小さな注記（本文2文の制約を守るため本文とは分ける） */
   footnote?: string;
-  /** '#consult' は同一ページ内の相談フォームへ */
+  /** 相談の入り口はすべてカレンダー予約（CONSULT_URL）／それ以外は各ページ */
   href: string;
-  /** フォームへ送る場合、相談区分を初期選択する */
-  consult?: ConsultCategory;
 }
 
 export const LP_CARDS: LpCard[] = [
@@ -143,8 +141,8 @@ export const LP_CARDS: LpCard[] = [
     footnote: '※プロジェクト例・支援者データを説明会で公開',
     cta: '相談する（無料）',
     note: '相談無料・最短24時間返信',
-    href: '#consult',
-    consult: CONSULT_CATEGORIES[0],
+    // 2026-11-22 t iku指示: 個別相談の入口はカレンダー予約に一本化（フォームは下部に残す）
+    href: CONSULT_URL,
   },
   {
     id: 2,
@@ -232,6 +230,9 @@ export const LP_SUCCESS = {
   lead: '新商品、店舗開業、出版。あなたに近い挑戦の記録から、実現までの道のりを見てください。',
   cta: '成功事例を見る',
   href: '/success',
+  /** 2026-11-22 t iku指示: 事例の下に相談ボタンを置き、カレンダー予約へ統一 */
+  consultCta: '自分の企画も無料で相談する',
+  consultNote: `オンライン・${CONSULT_MINUTES}分・相談無料`,
   items: [
     { slug: 'tenmeikaika', label: '新商品' },
     { slug: 'akahoshi', label: '店舗開業' },
@@ -269,13 +270,31 @@ export const LP_SUPPORT = {
     },
   ],
   servicesNote: `この4つを、公開までの${SUPPORT_PERIOD_LABEL}間いっしょに進めます。`,
+  /**
+   * 2026-11-22 t iku指示: 主導線は個別相談が先。4ステップに並べ替える。
+   * 🔴 説明会の所要時間（分数）は書かない（新形式の所要時間が未確定のため）。
+   *    個別相談の分数は CONSULT_MINUTES を参照する。
+   */
   flowHeading: '掲載までの流れ',
   flow: [
-    { title: '無料説明会に参加', body: '全体像と掲載の進め方を聞いてください（参加費無料）。' },
-    { title: '無料個別相談', body: '企画・目標金額・リターンを具体的に整理します（無料）。' },
-    { title: '掲載申込・公開', body: '掲載が決まったら、企画設計から公開まで伴走します。' },
+    {
+      title: '無料個別相談',
+      body: `企画内容・目標金額・必要な準備を、${CONSULT_MINUTES}分のオンライン相談で整理します。`,
+    },
+    {
+      title: '無料掲載説明会',
+      body: '掲載の仕組みと進め方を、オンラインの説明会でご案内します（参加費無料）。',
+    },
+    {
+      title: '掲載申込・企画準備',
+      body: '企画設計・リターン設計・ページ制作まで、公開に向けて一緒に進めます。',
+    },
+    {
+      title: 'プロジェクト公開',
+      body: '公開後も、期間終了まで伴走します。',
+    },
   ],
-  flowNote: '※掲載には、無料説明会への参加が必要です。',
+  flowNote: '※正式掲載には無料掲載説明会への参加が必要です。',
   feeHeading: '費用',
   fees: [
     {
@@ -299,6 +318,18 @@ export const LP_SUPPORT = {
       note: '相談・説明会では費用はかかりません。',
     },
   ],
+  /**
+   * 2026-11-22 t iku指示: 費用の直後に置く唯一のCTA（これ以上セクションを増やさない）。
+   * ボタンの行き先は 個別相談=カレンダー予約 / 説明会=日程。
+   */
+  ctaHeading: 'あなたの企画を、実現への一歩に。',
+  ctaBody:
+    'クラファンが初めてでも大丈夫です。企画内容や目標金額、必要な準備について、一緒に整理しましょう。',
+  ctaConsult: '実現したい企画がある方',
+  ctaConsultNote: 'オンライン・相談無料',
+  ctaSeminar: 'まずは仕組みや進め方を知りたい方',
+  ctaSeminarNote: 'オンライン・参加無料',
+  ctaSeminarHref: '/seminar-info#schedule',
 } as const;
 
 // ===== Z5 最終CTA / Z6 追従CTA =====
@@ -318,8 +349,12 @@ export const LP_FOLLOW = {
 
 // ===== 相談フォーム（§10）=====
 export const LP_FORM = {
-  heading: '無料相談のお申し込み',
-  lead: '下記フォームにご入力ください。担当者より、最短24時間以内にご連絡します。',
+  /**
+   * 2026-11-22 t iku指示: フォームは残し、位置づけを「予約前の質問窓口」に変える。
+   * 送信処理（/api/consult）は変更しない。
+   */
+  heading: '日時を決める前に質問したい方はこちら',
+  lead: '日時が決まっていなくても、まず質問だけ送れます。',
   submit: 'この内容で送信する',
   submitting: '送信中…',
   consent: 'プライバシーポリシーに同意します',

@@ -370,8 +370,24 @@
   color: var(--text-note);
 }
 .tlp-cases-cta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px 28px;
   margin-top: 28px;
   text-align: center;
+}
+.tlp-cases-cta-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+/* CTAに添える小さな注記（オンライン・相談無料 など） */
+.tlp-cta-note {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-note);
 }
 .tlp-btn-outline {
   background: #fff;
@@ -1534,9 +1550,10 @@
   line-height: 1.75;
   color: var(--text-sub);
 }
+/* 2026-11-22 t iku指示: 個別相談を先頭にした4ステップ */
 .tlp-support-flow {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin: 18px 0 0;
   padding: 0;
@@ -1616,8 +1633,49 @@
   color: var(--text-sub);
 }
 
+/* ===== 費用の直後のCTA（1つだけ置く） ===== */
+.tlp-support-cta {
+  margin-top: 48px;
+  padding: 36px 28px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-card);
+  text-align: center;
+}
+.tlp-support-cta-heading {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.55;
+  color: var(--text);
+  text-wrap: balance;
+}
+.tlp-support-cta-body {
+  max-width: 620px;
+  margin: 14px auto 0;
+  font-size: 15.5px;
+  line-height: 1.85;
+  color: var(--text-sub);
+}
+.tlp-support-cta-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px 32px;
+  margin-top: 26px;
+}
+.tlp-support-cta-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 @media (max-width: 1023px) {
   .tlp-support-services {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tlp-support-flow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -1640,5 +1698,23 @@
   }
   .tlp-support-fee-value {
     font-size: 16px;
+  }
+  .tlp-support-cta {
+    margin-top: 32px;
+    padding: 24px 16px;
+  }
+  .tlp-support-cta-heading {
+    font-size: 20px;
+  }
+  .tlp-support-cta-body {
+    font-size: 15px;
+  }
+  .tlp-support-cta-buttons {
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 22px;
+  }
+  .tlp-support-cta-item .tlp-btn {
+    width: 100%;
   }
 }

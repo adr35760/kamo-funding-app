@@ -7,7 +7,7 @@
  *   IDが入れば initAnalytics() が gtag を読み込み、同じ dataLayer 経由で送られる。
  *
  * イベント（§11）:
- *   cta_click    { entrance: 1-4, position: 'fv' | 'hub' | 'footer' | 'follow' }（/）
+ *   cta_click    { position: 'fv' | 'cases' | 'support' | 'seminar' | 'trust' | 'steps' | 'hub' | 'follow' | 'form' }（/）
  *   cta_click    { position: 'case' | 'middle' | 'footer' }（/success）
  *   cta_click    { position: 'consult' | 'schedule' }（/seminar-info・/lp）
  *   case_select  { slug }（/success の事例一覧カード）
@@ -23,10 +23,15 @@ export type TrackParams = Record<string, string | number | boolean | undefined |
 /** cta_click の位置（§11 position） */
 export type CtaPosition =
   | 'fv'
+  | 'cases'
+  | 'support'
+  | 'seminar'
+  | 'trust'
   | 'steps'
   | 'hub'
   | 'footer'
   | 'follow'
+  | 'form'
   // /success
   | 'case'
   | 'middle'

@@ -73,7 +73,7 @@ export default function TopLandingPage() {
   const startedRef = useRef(false);
   const [showFollow, setShowFollow] = useState(false);
   const [category, setCategory] = useState<ConsultCategory>(CONSULT_CATEGORIES[0]);
-  const [formEntrance, setFormEntrance] = useState<number>(1);
+  const [formEntrance] = useState<number>(1);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -115,63 +115,25 @@ export default function TopLandingPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  /** フォームへスクロール（①④のCTA・Z5・追従CTAの共通処理） */
-  const goConsult = useCallback(
-    (entrance: number, position: CtaPosition, preset?: ConsultCategory) => {
-      track('cta_click', { entrance, position });
-      if (preset) setCategory(preset);
-      setFormEntrance(entrance);
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      formRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  /**
+   * 相談CTAの計測（2026-11-22 t iku指示）。
+   * 🔴 遷移先はすべてカレンダー予約（CONSULT_URL）なので、クリックを記録して
+   *    そのままリンクを開かせる（preventDefault しない＝別タブで開く）。
+   *    位置は置き場所ごとに分ける（fv / cases / support / trust / steps / follow / form）。
+   */
+  const trackCta = useCallback(
+    (position: CtaPosition) => () => {
+      track('cta_click', { position });
     },
     []
   );
 
-  const onHeroCta = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>) => {
-      e.preventDefault();
-      goConsult(1, 'fv');
-    },
-    [goConsult]
-  );
-
-  const onStepsCta = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>) => {
-      e.preventDefault();
-      goConsult(1, 'steps');
-    },
-    [goConsult]
-  );
-
-  const onFinalCta = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>) => {
-      e.preventDefault();
-      goConsult(1, 'footer');
-    },
-    [goConsult]
-  );
-
-  const onFollowCta = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>) => {
-      e.preventDefault();
-      goConsult(formEntrance, 'follow');
-    },
-    [goConsult, formEntrance]
-  );
-
   /** カードのクリック。①②③④すべてカード全体がクリック領域（§5.1） */
   const onCardClick = useCallback(
-    (card: LpCard) => (e: React.MouseEvent<HTMLAnchorElement>) => {
-      // ページ内フォームへ行くカード（①④）は goConsult が cta_click を送るので、
-      // ここでは送らない（二重計上になる）。外部ページへ行くカード（②③）だけここで送る。
-      if (card.href.startsWith('#')) {
-        e.preventDefault();
-        goConsult(card.id, 'hub', card.consult);
-        return;
-      }
+    (card: LpCard) => () => {
       track('cta_click', { entrance: card.id, position: 'hub' });
     },
-    [goConsult]
+    []
   );
 
   /** フォーム最初のフィールドにフォーカスした時だけ form_start を送る */
@@ -184,6 +146,8 @@ export default function TopLandingPage() {
   const onSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
+      // 予約前の質問窓口として使われたことを位置「form」で記録する
+      track('cta_click', { position: 'form' });
       const payload = {
         name,
         email,
@@ -266,7 +230,9 @@ export default function TopLandingPage() {
                 <a
                   className="tlp-btn tlp-btn-primary tlp-hero-cta tlp-hero-cta-main"
                   href={LP_HERO.ctaHref}
-                  onClick={onHeroCta}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={trackCta('fv')}
                 >
                   {LP_HERO.cta}
                 </a>
@@ -322,9 +288,23 @@ export default function TopLandingPage() {
               ))}
             </div>
             <div className="tlp-cases-cta">
-              <a className="tlp-btn tlp-btn-outline" href={LP_SUCCESS.href}>
-                {LP_SUCCESS.cta}
-              </a>
+              <div className="tlp-cases-cta-item">
+                <a
+                  className="tlp-btn tlp-btn-primary"
+                  href={CONSULT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={trackCta('cases')}
+                >
+                  {LP_SUCCESS.consultCta}
+                </a>
+                <span className="tlp-cta-note">{LP_SUCCESS.consultNote}</span>
+              </div>
+              <div className="tlp-cases-cta-item">
+                <a className="tlp-btn tlp-btn-outline" href={LP_SUCCESS.href}>
+                  {LP_SUCCESS.cta}
+                </a>
+              </div>
             </div>
           </div>
         </section>
@@ -379,6 +359,36 @@ export default function TopLandingPage() {
                   </div>
                 ))}
               </dl>
+            </div>
+
+            {/* 2026-11-22 t iku指示: 費用の直後に置く唯一のCTA（セクションは増やさない） */}
+            <div className="tlp-support-cta">
+              <h3 className="tlp-support-cta-heading">{LP_SUPPORT.ctaHeading}</h3>
+              <p className="tlp-support-cta-body">{LP_SUPPORT.ctaBody}</p>
+              <div className="tlp-support-cta-buttons">
+                <div className="tlp-support-cta-item">
+                  <a
+                    className="tlp-btn tlp-btn-primary tlp-btn-lg"
+                    href={CONSULT_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={trackCta('support')}
+                  >
+                    {LP_SUPPORT.ctaConsult}
+                  </a>
+                  <span className="tlp-cta-note">{LP_SUPPORT.ctaConsultNote}</span>
+                </div>
+                <div className="tlp-support-cta-item">
+                  <a
+                    className="tlp-btn tlp-btn-outline tlp-btn-lg"
+                    href={LP_SUPPORT.ctaSeminarHref}
+                    onClick={trackCta('seminar')}
+                  >
+                    {LP_SUPPORT.ctaSeminar}
+                  </a>
+                  <span className="tlp-cta-note">{LP_SUPPORT.ctaSeminarNote}</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -455,7 +465,13 @@ export default function TopLandingPage() {
         {/* ===== Z5 最終CTA ===== */}
         <section className="tlp-final">
           <div className="tlp-inner">
-            <a className="tlp-btn tlp-btn-primary tlp-btn-lg" href="#consult" onClick={onFinalCta}>
+            <a
+              className="tlp-btn tlp-btn-primary tlp-btn-lg"
+              href={CONSULT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={trackCta('trust')}
+            >
               {LP_FINAL.cta}
             </a>
             <p className="tlp-final-note">{FINAL_NOTE}</p>
@@ -618,7 +634,13 @@ export default function TopLandingPage() {
             </div>
             <p className="tlp-steps-note">{LP_STEPS.note}</p>
             <div className="tlp-steps-cta">
-              <a className="tlp-btn tlp-btn-primary tlp-btn-lg" href="#consult" onClick={onStepsCta}>
+              <a
+                className="tlp-btn tlp-btn-primary tlp-btn-lg"
+                href={CONSULT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={trackCta('steps')}
+              >
                 {LP_STEPS.cta}
               </a>
             </div>
@@ -639,7 +661,13 @@ export default function TopLandingPage() {
       {/* ===== Z6 追従CTA ===== */}
       {showFollow ? (
         <div className="tlp-follow">
-          <a className="tlp-follow-link" href="#consult" onClick={onFollowCta}>
+          <a
+            className="tlp-follow-link"
+            href={CONSULT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={trackCta('follow')}
+          >
             <span className="tlp-follow-pc">{LP_FOLLOW.pc}</span>
             <span className="tlp-follow-sp">{LP_FOLLOW.sp}</span>
           </a>
