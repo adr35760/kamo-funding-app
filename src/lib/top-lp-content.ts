@@ -23,6 +23,13 @@ import {
   STATS_PERIOD_NOTE,
   STATS_DEFINITION,
 } from './site-stats';
+import {
+  PLATFORM_FEE_LABEL,
+  PLATFORM_FEE_TAX_LABEL,
+  PLATFORM_FEE_SHORT,
+  PAYMENT_FEE_INCLUDED_NOTE,
+  SUPPORT_PERIOD_LABEL,
+} from './site-fees';
 
 /** 万円未満を切り上げた「◯億◯,◯◯◯万円」表記（既存の実績表記と同じ切り上げ方針） */
 export function formatManYen(amount: number): string {
@@ -58,7 +65,8 @@ export const LP_HERO = {
   subCtaLead: '全体像を知りたい方へ',
   subCta: '無料説明会の日程を見る',
   subCtaHref: '/lp',
-  note: '※相談は無料です。掲載に伴う手数料・有償サポートの費用は別途ご案内します。',
+  // 2026-11-22 t iku回答: 手数料は公開（20%に決済手数料5%を含む）。有償サポートは個別見積もり
+  note: `※相談は無料です。掲載手数料は${PLATFORM_FEE_SHORT}。有償サポートは個別にお見積もりします。`,
 } as const;
 
 // ===== Z1.5 3ステップ（クラファン→商品化→メンター支援） =====
@@ -131,7 +139,7 @@ export const LP_CARDS: LpCard[] = [
     heading: 'クラファンに挑戦したい',
     // 2026-11-22 t iku指示: 「目標達成100%を一緒に狙います」を差し替え
     // （約4か月の支援範囲は契約内容との一致を t iku 確認中。月数の表現は変えない）
-    body: '企画設計からリターン、ページ制作、集客まで。目標達成に向けて、約4か月間伴走します。',
+    body: `企画設計からリターン、ページ制作、集客まで。目標達成に向けて、${SUPPORT_PERIOD_LABEL}間伴走します。`,
     footnote: '※プロジェクト例・支援者データを説明会で公開',
     cta: '相談する（無料）',
     note: '相談無料・最短24時間返信',
@@ -228,6 +236,68 @@ export const LP_SUCCESS = {
     { slug: 'tenmeikaika', label: '新商品' },
     { slug: 'akahoshi', label: '店舗開業' },
     { slug: 'nakajima01', label: '出版' },
+  ],
+} as const;
+
+// ===== Z3.6 支援内容・掲載までの流れ・費用（2026-11-22 t iku承認） =====
+/**
+ * 🔴 掲載手数料・期間は src/lib/site-fees.ts の定数から組み立てる（直書き禁止）。
+ *    手数料は利用規約 第4条と一致（総支援金額の20%・税別・その他の費用は無料）。
+ *    有償サポートは「支援内容に応じて個別にお見積もり」。
+ *    決済手数料5%は掲載手数料20%に含まれる（別途上乗せの書き方はしない）。
+ */
+export const LP_SUPPORT = {
+  heading: '支援内容・掲載までの流れ・費用',
+  lead: '掲載が決まったあとも、企画から公開、期間終了まで一緒に走ります。',
+  servicesHeading: '支援内容',
+  services: [
+    {
+      title: '企画設計',
+      body: '誰に何を届けるか、目標金額と期間を一緒に設計します。',
+    },
+    {
+      title: 'リターン設計',
+      body: '支援してくれる人が選びやすいリターンを組み立てます。',
+    },
+    {
+      title: 'ページ制作',
+      body: '想いと企画が伝わるプロジェクトページを作ります。',
+    },
+    {
+      title: '集客',
+      body: '公開前から、応援してくれる人を集める準備を進めます。',
+    },
+  ],
+  servicesNote: `この4つを、公開までの${SUPPORT_PERIOD_LABEL}間いっしょに進めます。`,
+  flowHeading: '掲載までの流れ',
+  flow: [
+    { title: '無料説明会に参加', body: '全体像と掲載の進め方を聞いてください（参加費無料）。' },
+    { title: '無料個別相談', body: '企画・目標金額・リターンを具体的に整理します（無料）。' },
+    { title: '掲載申込・公開', body: '掲載が決まったら、企画設計から公開まで伴走します。' },
+  ],
+  flowNote: '※掲載には、無料説明会への参加が必要です。',
+  feeHeading: '費用',
+  fees: [
+    {
+      label: '掲載手数料',
+      value: `支援総額の${PLATFORM_FEE_LABEL}（${PLATFORM_FEE_TAX_LABEL}）`,
+      note: `${PAYMENT_FEE_INCLUDED_NOTE}。プロジェクトの掲載時にかかり、手数料に対する消費税が別途かかります。`,
+    },
+    {
+      label: 'その他の費用',
+      value: '無料',
+      note: '掲載にあたってのその他の費用はかかりません。',
+    },
+    {
+      label: '有償サポート',
+      value: '支援内容に応じて個別にお見積もり',
+      note: '必要な場合のみ。無理におすすめはしません。',
+    },
+    {
+      label: '無料相談・無料説明会',
+      value: '参加費無料',
+      note: '相談・説明会では費用はかかりません。',
+    },
   ],
 } as const;
 

@@ -24,6 +24,7 @@ import {
   NUM_TASSEI_RATE,
   NUM_JISSEKI_NOTE,
 } from '@/lib/seminar-info-content';
+import { PLATFORM_FEE_SHORT } from '@/lib/site-fees';
 
 /**
  * ④実績セクションで引用する成功事例（/success と同じ既存データを読む）。
@@ -219,7 +220,7 @@ export default function SeminarInfoClient({
               </a>
             </div>
             <p className="hero-note">オンライン開催・相談無料</p>
-            <p className="hero-note">※掲載に伴う手数料や有償サポートの費用は別途ご案内します。</p>
+            <p className="hero-note">※掲載手数料は{PLATFORM_FEE_SHORT}。有償サポートは個別にお見積もりします。</p>
           </div>
         </div>
       </section>
@@ -243,7 +244,7 @@ export default function SeminarInfoClient({
             </a>
           </div>
           <p className="learn-note">オンライン開催・相談無料</p>
-          <p className="learn-note">※掲載に伴う手数料や有償サポートの費用は別途ご案内します。</p>
+          <p className="learn-note">※掲載手数料は{PLATFORM_FEE_SHORT}。有償サポートは個別にお見積もりします。</p>
         </div>
       </section>
 

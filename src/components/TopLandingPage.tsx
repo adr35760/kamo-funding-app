@@ -15,6 +15,7 @@ import {
   LP_HERO,
   LP_STEPS,
   LP_SUCCESS,
+  LP_SUPPORT,
   LP_TRUST,
   type LpCard,
 } from '@/lib/top-lp-content';
@@ -324,6 +325,60 @@ export default function TopLandingPage() {
               <a className="tlp-btn tlp-btn-outline" href={LP_SUCCESS.href}>
                 {LP_SUCCESS.cta}
               </a>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== Z3.6 支援内容・掲載までの流れ・費用（2026-11-22 t iku承認） =====
+            手数料は利用規約 第4条と一致（総支援額の20%・税別・その他無料）。
+            数値は src/lib/site-fees.ts が唯一の情報源。 */}
+        <section className="tlp-support" aria-label={LP_SUPPORT.heading}>
+          <div className="tlp-inner">
+            <h2 className="tlp-h2">{LP_SUPPORT.heading}</h2>
+            <p className="tlp-support-lead">{LP_SUPPORT.lead}</p>
+
+            <div className="tlp-support-block">
+              <h3 className="tlp-support-title">{LP_SUPPORT.servicesHeading}</h3>
+              <div className="tlp-support-services">
+                {LP_SUPPORT.services.map(service => (
+                  <div className="tlp-support-service" key={service.title}>
+                    <h4>{service.title}</h4>
+                    <p>{service.body}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="tlp-support-note">{LP_SUPPORT.servicesNote}</p>
+            </div>
+
+            <div className="tlp-support-block">
+              <h3 className="tlp-support-title">{LP_SUPPORT.flowHeading}</h3>
+              <ol className="tlp-support-flow">
+                {LP_SUPPORT.flow.map((step, i) => (
+                  <li className="tlp-support-step" key={step.title}>
+                    <span className="tlp-support-step-no" aria-hidden="true">
+                      {i + 1}
+                    </span>
+                    <h4>{step.title}</h4>
+                    <p>{step.body}</p>
+                  </li>
+                ))}
+              </ol>
+              <p className="tlp-support-note">{LP_SUPPORT.flowNote}</p>
+            </div>
+
+            <div className="tlp-support-block">
+              <h3 className="tlp-support-title">{LP_SUPPORT.feeHeading}</h3>
+              <dl className="tlp-support-fees">
+                {LP_SUPPORT.fees.map(fee => (
+                  <div className="tlp-support-fee" key={fee.label}>
+                    <dt>{fee.label}</dt>
+                    <dd>
+                      <span className="tlp-support-fee-value">{fee.value}</span>
+                      <span className="tlp-support-fee-note">{fee.note}</span>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             </div>
           </div>
         </section>

@@ -1481,3 +1481,164 @@
     font-size: 13.5px;
   }
 }
+
+/* ===== Z3.6 支援内容・掲載までの流れ・費用（2026-11-22 t iku承認） ===== */
+.tlp-support {
+  padding: var(--space-section) 0 0;
+}
+.tlp-support .tlp-h2 {
+  text-align: center;
+}
+.tlp-support-lead {
+  max-width: 640px;
+  margin: 14px auto 0;
+  text-align: center;
+  font-size: 15.5px;
+  line-height: 1.8;
+  color: var(--text-sub);
+}
+.tlp-support-block {
+  margin-top: 40px;
+  padding: 28px;
+  background: #f6f8fc;
+  border-radius: var(--radius-card);
+}
+.tlp-support-title {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.5;
+  color: var(--text);
+}
+.tlp-support-services {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+.tlp-support-service {
+  min-width: 0;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.tlp-support-service h4 {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--text);
+}
+.tlp-support-service p {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text-sub);
+}
+.tlp-support-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tlp-support-step {
+  min-width: 0;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.tlp-support-step-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--cta-primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.tlp-support-step h4 {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--text);
+}
+.tlp-support-step p {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--text-sub);
+}
+.tlp-support-note {
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-note);
+}
+.tlp-support-fees {
+  margin: 18px 0 0;
+  border-top: 1px solid var(--line);
+}
+.tlp-support-fee {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.tlp-support-fee dt {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.7;
+  color: var(--text);
+}
+.tlp-support-fee dd {
+  margin: 0;
+  min-width: 0;
+}
+.tlp-support-fee-value {
+  display: block;
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.6;
+  color: var(--cta-primary);
+}
+.tlp-support-fee-note {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-sub);
+}
+
+@media (max-width: 1023px) {
+  .tlp-support-services {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .tlp-support-block {
+    padding: 20px 16px;
+  }
+  .tlp-support-title {
+    font-size: 18px;
+  }
+  .tlp-support-services,
+  .tlp-support-flow {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  .tlp-support-fee {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .tlp-support-fee-value {
+    font-size: 16px;
+  }
+}
