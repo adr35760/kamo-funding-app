@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import SeminarInfoClient from './SeminarInfoClient';
 import { fetchSeminarEventState } from '@/lib/fetch-seminar-events';
 import type { EventLike } from '@/lib/event-format';
-import { NUM_JISSEKI, NUM_TASSEI_RATE, CONSULT_MINUTES } from '@/lib/seminar-info-content';
+import { CONSULT_MINUTES } from '@/lib/seminar-info-content';
 import { isReferralCodeShape, normalizeReferralCode } from '@/lib/referral-link';
 
 // 日程をサーバー側で取得して初期HTMLに含める。
@@ -15,10 +15,12 @@ export const revalidate = 60;
  * 構成変更（2026-10-25・t iku指示）に合わせて title/description を更新。
  * 数値は seminar-info-content.ts の定数を参照する（本文と二重管理にしない）。
  */
-const TITLE = `個別相談（無料・${CONSULT_MINUTES}分）｜KAMOファンディングの掲載相談`;
+const TITLE = `個別相談（無料・${CONSULT_MINUTES}分）｜その企画、クラファンで実現できる？`;
+// 2026-11-22 t iku指示: 冒頭の差し替えに合わせる。旧「17億円・95%」は出さない
+// （数値の定義はページ内の実績バナー＝site-stats.ts に一本化）。
 const DESCRIPTION =
-  `クラウドファンディングで、挑戦をかたちにする最初の${CONSULT_MINUTES}分。実績${NUM_JISSEKI}・達成率${NUM_TASSEI_RATE}の担当者が、` +
-  'アイデア・目標金額・スケジュールを直接伺います。掲載説明会については個別にご案内しています。';
+  `クラウドファンディングで、挑戦をかたちにする最初の${CONSULT_MINUTES}分。新商品・出版・店舗開業・イベント・地域活動など、` +
+  '企画段階でも構いません。目標金額・リターン・公開までの準備を、無料の個別相談で整理します。';
 
 export const metadata: Metadata = {
   title: TITLE,

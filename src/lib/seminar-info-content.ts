@@ -1,17 +1,34 @@
 /**
  * /seminar-info の文言・数値のうち、差し替えが発生しうるものを1箇所に集約する。
  *
- * 🔴 実績数値（NUM_JISSEKI / NUM_TASSEI_RATE）は t iku さんの確認待ち。
- *    変更はこのファイルの1行だけを直せば、ヒーロー・実績セクション・
- *    SEO（title/description）すべてに反映される。
- *    （本文側に数値を直接書かないこと）
+ * 🔴 実績数値は src/lib/site-stats.ts が唯一の情報源。
+ *    2026-11-22 t iku指示で旧値（17億円・95%）を廃止し、サイト共通の
+ *    「577件／約19.5億円（両サービス合計）／93.7%（KAMOファンディング単独）」
+ *    に統一した。このファイルでも数値を直書きせず、site-stats.ts の定数から作る。
+ *    本文側に数値を直接書かないこと。
  */
+import {
+  TOTAL_RAISED_LABEL,
+  ACHIEVEMENT_RATE_LABEL,
+  KAMO_RAISED_LABEL,
+} from './site-stats';
 
-/** 累計の支援実績（2026-10-25 t iku 確定＝切り上げ表記。実数は16億8,751万5,999円） */
-export const NUM_JISSEKI = '17億円';
+/** 累計支援総額（両サービス合計・約19.5億円） */
+export const NUM_JISSEKI = TOTAL_RAISED_LABEL;
 
-/** 達成率 */
-export const NUM_TASSEI_RATE = '95%';
+/** 目標達成率（KAMOファンディング単独・93.7%） */
+export const NUM_TASSEI_RATE = ACHIEVEMENT_RATE_LABEL;
+
+/** KAMOファンディング単独の累計支援総額（16.88億円） */
+export const NUM_JISSEKI_KAMO = KAMO_RAISED_LABEL;
+
+/**
+ * 数値を出すときの注記（両サービス合計・KAMO単独の区別）。
+ * 🔴 実績数値を文中に出す箇所には、必ずこの注記を添える。
+ */
+export const NUM_JISSEKI_NOTE =
+  `※${NUM_JISSEKI}はKAMOファンディングと未来の扉のサポート案件の合算、` +
+  `${NUM_TASSEI_RATE}はKAMOファンディング単独の目標達成実績です。`;
 
 /**
  * 個別相談（生島との45分）の予約ページ。

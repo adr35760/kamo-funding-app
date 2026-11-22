@@ -9,35 +9,42 @@ import Image from 'next/image';
 import { captureUtm, getUtmPayload } from '@/lib/utm';
 import { captureReferralCode, getReferralPayload } from '@/lib/referral-link';
 import LegalFooter from '@/components/LegalFooter';
-import { allSuccessCases, formatYen, projectUrl } from '@/lib/success-cases';
-import { CONSULT_URL, CONSULT_MINUTES, NUM_JISSEKI, NUM_TASSEI_RATE } from '@/lib/seminar-info-content';
+import {
+  allSuccessCases,
+  caseImage,
+  formatManYen,
+  CASE_IMAGE_WIDTH,
+  CASE_IMAGE_HEIGHT,
+} from '@/lib/success-cases';
+import StatsBanner from '@/components/StatsBanner';
+import {
+  CONSULT_URL,
+  CONSULT_MINUTES,
+  NUM_JISSEKI,
+  NUM_TASSEI_RATE,
+  NUM_JISSEKI_NOTE,
+} from '@/lib/seminar-info-content';
 
 /**
  * ④実績セクションで引用する成功事例（/success と同じ既存データを読む）。
- * 金額・達成率・タイトルは success-cases.ts が正で、ここでは slug だけ選ぶ
+ * 2026-11-22 t iku指示: 新商品・店舗開業・出版の3分野から1件ずつ。
+ * 金額・見出し・画像は success-cases.ts が正で、ここでは slug と分野名だけ選ぶ
  * （数値を本文に書かない＝データ更新時に古い数字が残らない）。
+ * リンク先は /success の各事例アンカー（article id = slug）。
  */
-const FEATURED_SLUGS = ['nakajima01', 'ooshimakeisuke01', 'takibinokai'];
+const FEATURED_CASES = [
+  { slug: 'tenmeikaika', label: '新商品' },
+  { slug: 'akahoshi', label: '店舗開業' },
+  { slug: 'nakajima01', label: '出版' },
+] as const;
 
-/** ②こんな方へ */
-// 2026-11-03 t iku指示: 相談ニーズが伝わる6項目に差し替え
-const FOR_YOU = [
-  'アイデアを実現したい',
-  '資金が現実的に集まるのか聞きたい',
-  'クラファンのコンサルになりたい',
-  '協業やタイアップの申し出',
-  'セミナーや勉強会を依頼したい',
-  '紹介制度について聞きたい',
-];
-
-/** ③個別相談（CONSULT_MINUTES分）で明確になること（左3・右3の6項目） */
-const CONSULT_GAINS = [
-  { title: 'あなたのアイデアの勝ち筋', body: '誰に・何を・どう届け・どう集めるのかを明確にします' },
-  { title: '企画主旨・目標金額と期間の現実的な設計', body: '300万以上集まってるPJの傾向から案だします' },
-  { title: '掲載までと期間終了までの必要な準備と費用概算', body: 'どんなタスクで何をしないといけないのか？' },
-  { title: 'クラファンアドバイザーでの稼ぎ方', body: 'コンサルタントのなり方' },
-  { title: 'タイアップ・協業・勉強会依頼について', body: '簡単な座組を提案します。コミュニティ主催者大歓迎' },
-  { title: '紹介・お仕事依頼について', body: '挑戦する人のサポートで収入を得たい方話しましょう' },
+/** ②無料相談で分かること（2026-11-22 t iku原稿の5項目） */
+const CONSULT_POINTS = [
+  'あなたの企画にクラファンが適しているか',
+  '目標金額とリターンの考え方',
+  '公開前に必要な準備',
+  '応援してくれる人を集めるための方法',
+  '掲載までの流れと必要な費用',
 ];
 
 /** ⑤個別相談の流れ（3ステップ） */
@@ -175,7 +182,11 @@ export default function SeminarInfoClient({
     }
   };
 
-  const featuredCases = allSuccessCases().filter(c => FEATURED_SLUGS.includes(c.slug));
+  const featuredCases = FEATURED_CASES.flatMap(({ slug, label }) => {
+    const found = allSuccessCases().find(c => c.slug === slug);
+    if (!found || !('heading' in found)) return [];
+    return [{ slug, label, heading: found.heading, raised: found.raised }];
+  });
 
   return (
     <div className="seminar-info-page">
@@ -184,89 +195,88 @@ export default function SeminarInfoClient({
         cta={{ href: CONSULT_URL, label: '個別相談を予約', external: true }}
       />
 
-      {/* ===== ① ヒーロー（主CTA＝個別相談／副CTA＝説明会日程） ===== */}
+      {/* ===== ① ヒーロー（主CTA＝個別相談／副CTA＝説明会日程） =====
+          2026-11-22 t iku指示: 冒頭を「その企画、クラファンで実現できる？」に差し替え */}
       <section className="hero">
         <div className="container">
           <div className="hero-inner">
             <div className="hero-badge"><span className="hero-badge-dot"></span>無料・{CONSULT_MINUTES}分・オンライン</div>
             <h1>
-              実績{NUM_JISSEKI}・達成率{NUM_TASSEI_RATE}の私が、
-              <br />
-              あなたのアイデアと<span className="h1-keep">&quot;達成したいこと&quot;</span>を直接伺います
+              <span className="hero-line1">その企画、</span>
+              <span className="hero-line2">クラファンで<span className="gold">実現できる？</span></span>
             </h1>
-            <p className="hero-lead">クラウドファンディングで、挑戦をかたちにする最初の{CONSULT_MINUTES}分。</p>
+            <p className="hero-lead">{CONSULT_MINUTES}分の無料個別相談で、目標金額・リターン・公開までの準備を整理します。</p>
+            <p className="hero-lead hero-lead-sub">
+              新商品、出版、店舗開業、イベント、地域活動など。<br />
+              「実現したいことはあるけれど、何から始めたらいいのか分からない」そんな方のための無料相談です。
+            </p>
             <div className="hero-cta-row">
               <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="hero-cta hero-cta--main">
-                個別相談を予約する（無料・{CONSULT_MINUTES}分）
+                {CONSULT_MINUTES}分の無料個別相談を予約する
               </a>
               <a href={noSchedule ? '#apply' : SCHEDULE_ANCHOR} className="hero-cta hero-cta--sub">
                 {noSchedule ? '説明会のご案内を見る' : '説明会の日程を見る'}
               </a>
             </div>
-            <p className="hero-note">オンライン（Zoom）で開催／顔出し推奨</p>
+            <p className="hero-note">オンライン開催・相談無料</p>
+            <p className="hero-note">※掲載に伴う手数料や有償サポートの費用は別途ご案内します。</p>
           </div>
         </div>
       </section>
 
-      {/* ===== ② こんな方へ ===== */}
-      <section className="for-you">
-        <div className="container">
-          <div className="for-you-title"><h2>こんな方へ</h2></div>
-          <div className="for-you-grid">
-            {FOR_YOU.map(item => (
-              <div className="for-you-card" key={item}>
-                <span className="kamo-icon kamo-icon-check sm"></span>
-                <p>{item}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== ③ 個別相談（CONSULT_MINUTES分）で分かること ===== */}
+      {/* ===== ② 無料相談で分かること（2026-11-22 t iku原稿） ===== */}
       <section className="learn">
         <div className="container">
-          <div className="learn-title"><h2>個別相談{CONSULT_MINUTES}分で<span className="accent">明確になること</span></h2></div>
-          <div className="learn-list">
-            {CONSULT_GAINS.map(item => (
-              <div className="learn-item" key={item.title}>
+          <div className="learn-title"><h2>無料相談で<span className="accent">分かること</span></h2></div>
+          <div className="learn-list learn-list--simple">
+            {CONSULT_POINTS.map(item => (
+              <div className="learn-item" key={item}>
                 <div className="kamo-icon kamo-icon-check sm"></div>
-                <div><h4>{item.title}</h4><p>{item.body}</p></div>
+                <div><p>{item}</p></div>
               </div>
             ))}
           </div>
+          <p className="learn-lead">まずは企画段階でも構いません。</p>
+          <div className="hero-cta-row learn-cta-row">
+            <a href={CONSULT_URL} target="_blank" rel="noopener noreferrer" className="hero-cta hero-cta--main">
+              {CONSULT_MINUTES}分の無料個別相談を予約する
+            </a>
+          </div>
+          <p className="learn-note">オンライン開催・相談無料</p>
+          <p className="learn-note">※掲載に伴う手数料や有償サポートの費用は別途ご案内します。</p>
         </div>
       </section>
 
-      {/* ===== ④ 実績・成功事例 ===== */}
+      {/* ===== ④ 実績・成功事例（2026-11-22 t iku指示） =====
+          旧「17億円・95%」の数値表示は廃止し、3ページ共通の StatsBanner に統一。
+          成功事例は新商品・店舗開業・出版から1件ずつ、/success の該当アンカーへ送る。 */}
       <section className="results">
         <div className="container">
           <div className="results-title"><h2>実績・<span className="accent">成功事例</span></h2></div>
-          <div className="results-stats">
-            <div className="results-stat">
-              <span className="results-num">{NUM_JISSEKI}</span>
-              <span className="results-label">の支援実績</span>
-            </div>
-            <div className="results-stat">
-              <span className="results-num">{NUM_TASSEI_RATE}</span>
-              <span className="results-label">達成率</span>
-            </div>
-          </div>
+          <StatsBanner className="results-stats-banner" />
           <div className="results-grid">
             {featuredCases.map(c => (
               <a
                 key={c.slug}
-                href={projectUrl(c.slug)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="result-card"
+                href={`/success#${c.slug}`}
+                className="result-card result-card--case"
               >
-                <span className="result-card-owner">{c.owner}</span>
-                <h3 className="result-card-title">{c.title}</h3>
-                <div className="result-card-nums">
-                  <span className="result-card-raised">{formatYen(c.raised)}</span>
-                  <span className="result-card-rate">達成率{c.achievementRate.toLocaleString('ja-JP')}%</span>
-                </div>
+                <span className="result-card-media">
+                  <img
+                    src={caseImage(c.slug)}
+                    alt={`${c.heading}（プロジェクトのメイン画像）`}
+                    width={CASE_IMAGE_WIDTH}
+                    height={CASE_IMAGE_HEIGHT}
+                    loading="lazy"
+                    className="result-card-image"
+                  />
+                </span>
+                <span className="result-card-label">{c.label}</span>
+                <h3 className="result-card-title">{c.heading}</h3>
+                <span className="result-card-nums">
+                  <span className="result-card-raised-label">支援総額</span>
+                  <span className="result-card-raised">{formatManYen(c.raised)}</span>
+                </span>
               </a>
             ))}
           </div>
@@ -342,12 +352,13 @@ export default function SeminarInfoClient({
           <div className="seminar-block">
             <h3 className="seminar-block-title">説明会で分かること</h3>
             <div className="learn-list">
-              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>KAMOファンディングの特徴</h4><p>総支援額{NUM_JISSEKI}！達成率{NUM_TASSEI_RATE}のノウハウの一端をご紹介</p></div></div>
+              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>KAMOファンディングの特徴</h4><p>累計支援総額{NUM_JISSEKI}！目標達成率{NUM_TASSEI_RATE}のノウハウの一端をご紹介</p></div></div>
               <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>クラウドファンディングの集める構造を理解する</h4><p>クラファンで資金を集める仕組みと、成功するプロジェクトの共通パターン</p></div></div>
               <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>応援支援で高額支援を集めるノウハウを伝授</h4><p>スポンサー・VIP設計と、経営者からの高額支援を獲得する戦略</p></div></div>
               {/* 2026-11-03 t iku指示: 4枠目は「進め方」＋「特別オファー」を1枠にまとめて2列×2行に */}
-              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>掲載に関しての進め方</h4><p>達成率{NUM_TASSEI_RATE}個別伴走支援サポートの特別オファー</p></div></div>
+              <div className="learn-item"><div className="kamo-icon kamo-icon-check sm"></div><div><h4>掲載に関しての進め方</h4><p>目標達成率{NUM_TASSEI_RATE}の個別伴走支援サポートの特別オファー</p></div></div>
             </div>
+            <p className="seminar-stats-note">{NUM_JISSEKI_NOTE}</p>
           </div>
 
           <div className="seminar-ai">
@@ -534,6 +545,12 @@ export default function SeminarInfoClient({
           </div>
         </div>
       </section>
+
+      {/* ===== アドバイザー志望・協業・セミナー依頼（主導線から外して小さく逃がす） ===== */}
+      <p className="partner-links">
+        アドバイザーとして働きたい方・協業やセミナーのご依頼は
+        <a href="/partners">パートナー募集のページ</a>へ。
+      </p>
 
       {/* ===== ⑧ 最後のCTA（個別相談が主・説明会が副） ===== */}
       <section className="cta-banner">

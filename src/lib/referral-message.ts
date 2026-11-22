@@ -23,7 +23,7 @@ export function buildReferralShareMessage(name: string, code: string, origin?: s
     'KAMOファンディングの掲載説明会（オンライン・無料）のご案内です。',
     'クラウドファンディングでの資金調達をご検討中でしたら、',
     '掲載の可否や目標金額・スケジュールの決め方を直接お伝えしています。',
-    `（累計支援実績${NUM_JISSEKI}・達成率${NUM_TASSEI_RATE}の担当者が対応します）`,
+    `（累計支援総額${NUM_JISSEKI}〈KAMOファンディングと未来の扉の合算〉・KAMOファンディングの目標達成率${NUM_TASSEI_RATE}の担当者が対応します）`,
     '',
     '▼ お申し込みはこちらのリンクから',
     referralShareUrl(code, origin),
@@ -38,7 +38,7 @@ export function buildReferralShareMessage(name: string, code: string, origin?: s
 export function buildReferralShortMessage(name: string, code: string, origin?: string): string {
   return (
     'クラファン掲載をお考えの方へ。KAMOファンディングの無料オンライン説明会（60分）で、' +
-    `掲載の可否や目標金額の決め方が分かります（累計支援実績${NUM_JISSEKI}・達成率${NUM_TASSEI_RATE}）。` +
+    `掲載の可否や目標金額の決め方が分かります（累計支援総額${NUM_JISSEKI}〈KAMOファンディングと未来の扉の合算〉・KAMOファンディングの目標達成率${NUM_TASSEI_RATE}）。` +
     `▼お申し込み ${referralShareUrl(code, origin)}`
   );
 }

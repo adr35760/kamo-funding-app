@@ -862,3 +862,127 @@ a { color: inherit; text-decoration: none; }
   .seminar-info-page .seminar-block .learn-item h4 { font-size: 18.5px; }
   .seminar-info-page .seminar-block .learn-item p { font-size: 16px; }
 }
+
+/* ============================================================
+   2026-11-22 t iku指示: 冒頭の差し替え・実績の共通バナー化・成功事例3件
+   ============================================================ */
+
+/* ヒーローの補足2文（新商品、出版…／「実現したいことは…」） */
+.seminar-info-page .hero-lead.hero-lead-sub {
+  font-size: 17px;
+  line-height: 1.9;
+  opacity: 0.92;
+  margin-bottom: 30px;
+}
+@media (max-width: 520px) {
+  .seminar-info-page .hero-lead.hero-lead-sub { font-size: 15.5px; line-height: 1.85; }
+}
+
+/* 「無料相談で分かること」直下の予約ブロック */
+.seminar-info-page .learn-lead {
+  margin: 32px auto 16px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--kamo-dark);
+}
+.seminar-info-page .learn-cta-row { margin-top: 0; }
+.seminar-info-page .learn-cta-row .hero-cta--main {
+  background: var(--kamo-red);
+  color: var(--kamo-white);
+  box-shadow: 0 4px 16px rgba(230, 0, 18, 0.25);
+}
+.seminar-info-page .learn-cta-row .hero-cta--main:hover {
+  background: var(--kamo-red-dark);
+  color: var(--kamo-white);
+}
+.seminar-info-page .learn-note {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--kamo-gray);
+}
+.seminar-info-page .learn-note + .learn-note { margin-top: 4px; }
+@media (max-width: 768px) {
+  .seminar-info-page .learn-lead { font-size: 16.5px; }
+}
+
+/* 実績セクション: 共通バナー＋成功事例カード */
+.seminar-info-page .results-stats-banner { margin: 0 auto 32px; max-width: 980px; }
+.seminar-info-page .result-card--case {
+  padding: 0;
+  overflow: hidden;
+  gap: 0;
+  color: var(--kamo-dark) !important;
+}
+.seminar-info-page .result-card-media {
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: var(--kamo-light-bg);
+  overflow: hidden;
+}
+.seminar-info-page .result-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.seminar-info-page .result-card-label {
+  align-self: flex-start;
+  margin: 16px 20px 0;
+  padding: 1px 10px;
+  border-radius: 100px;
+  background: var(--kamo-light-bg);
+  color: var(--kamo-gray);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.8;
+}
+.seminar-info-page .result-card--case .result-card-title { margin: 8px 20px 0; }
+.seminar-info-page .result-card--case .result-card-nums { margin: 12px 20px 20px; padding-top: 0; }
+.seminar-info-page .result-card-raised-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--kamo-gray);
+}
+@media (max-width: 860px) {
+  .seminar-info-page .result-card--case .result-card-title { margin: 8px 16px 0; }
+  .seminar-info-page .result-card--case .result-card-nums { margin: 10px 16px 18px; }
+  .seminar-info-page .result-card-label { margin: 14px 16px 0; }
+}
+
+/* 実績数値の注記（説明会で分かること） */
+.seminar-info-page .seminar-stats-note {
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--kamo-gray);
+}
+
+/* アドバイザー・協業・セミナー依頼の小さな逃げ道 */
+.seminar-info-page .partner-links {
+  padding: 28px 20px 0;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--kamo-gray);
+}
+.seminar-info-page .partner-links a {
+  color: var(--kamo-red);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* 「無料相談で分かること」は見出しなしの1行項目なので、本文を読みやすく強調する */
+.seminar-info-page .learn-list--simple .learn-item { align-items: center; }
+.seminar-info-page .learn-list--simple .learn-item p {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.7;
+  color: var(--kamo-dark);
+}
+@media (max-width: 768px) {
+  .seminar-info-page .learn-list--simple .learn-item p { font-size: 16px; }
+}
