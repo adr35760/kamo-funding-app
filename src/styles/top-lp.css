@@ -2995,12 +2995,12 @@
   .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__title { font-size: 12.5px; letter-spacing: 0.06em; }
   .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__grid {
     /* 390pxで「約19.5億円」が切れない配分（中列を広く取る） */
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.52fr) minmax(0, 1.02fr);
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.78fr) minmax(0, 1fr);
     margin-top: 12px;
   }
   .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__item { padding: 0 2px; }
   .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__value {
-    font-size: 24px;
+    font-size: 21px;
     letter-spacing: -0.02em;
   }
   .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__label { margin-top: 5px; font-size: 11px; letter-spacing: 0; }
@@ -3013,6 +3013,6 @@
 }
 
 @media (max-width: 389px) {
-  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__value { font-size: 22px; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__value { font-size: 19px; }
   .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__label { font-size: 10px; }
 }
