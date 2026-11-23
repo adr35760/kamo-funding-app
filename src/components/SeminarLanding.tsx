@@ -390,7 +390,7 @@ export default function SeminarLanding({
         </section>
       )}
 
-      {/* 成功者から直接聞ける機会（リアル回のみ・今回の差別化） */}
+      {/* サイト運営者から直接聞ける機会（リアル回のみ・今回の差別化） */}
       {config.community && (
         <section className={'sl-section sl-community' + rc('community')}>
           <div className="sl-container">

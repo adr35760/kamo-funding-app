@@ -437,7 +437,7 @@
 }
 .sl-value-card p { margin: 0; font-size: 15px; line-height: 1.95; color: #444; }
 
-/* 成功者から直接聞ける機会（紺背景） */
+/* サイト運営者から直接聞ける機会（紺背景） */
 .sl-community { background: linear-gradient(160deg, var(--kamo-navy) 0%, #16305c 100%); color: #fff; }
 .sl-eyebrow {
   margin: 0 0 14px; text-align: center;
@@ -966,7 +966,7 @@
 }
 .seminar-lp.is-real .sl-r-program .sl-program-closing p { color: var(--sl-navy); }
 
-/* ===== 成功者から直接聞ける機会（白）===== */
+/* ===== サイト運営者から直接聞ける機会（白）===== */
 /* ===== 当日のタイムテーブル（白）=====================================
    セミナー150分と懇親会120分を、時間割として縦に並べる。
    左に時刻（数字は等幅で桁を揃える）、右に1行説明。 */
