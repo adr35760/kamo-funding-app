@@ -1311,7 +1311,8 @@
     gap: 0 clamp(16px, 2vw, 36px);
     /* 固定ヘッダー分を引いて、ちょうど1画面に収める */
     min-height: calc(100svh - 61px);
-    padding: 28px 0 28px;
+    /* 右の写真が画面の端に接しないよう、右にだけ余白を取る */
+    padding: 28px clamp(20px, 3vw, 56px) 28px 0;
     text-align: left;
     overflow: hidden;
     background:
