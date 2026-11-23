@@ -1354,15 +1354,7 @@
   }
 
   /* 左端の白い残り（元画像の文字）をグラデーションで隠し、左のコピーとつなぐ */
-  /* 写真の左端の残りを薄いグラデーションでなじませる */
-  .seminar-lp.is-real .sl-hero-fv .sl-fv-visual::before {
-    content: '';
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 12%;
-    z-index: 1;
-    background: linear-gradient(90deg, rgba(8, 23, 46, 0.85) 0%, rgba(8, 23, 46, 0) 100%);
-  }
+  /* 写真は切り抜き済みなので、上から重ねる加工はしない（枠だけで見せる） */
 
   .seminar-lp.is-real .sl-fv-hook {
     display: block;
