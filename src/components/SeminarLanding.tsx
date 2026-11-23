@@ -164,6 +164,9 @@ export default function SeminarLanding({
 
       {/* ページ最上部の告知バナー（ヒーローより上）— 画像全体を見せる（切り抜かない）。
           SiteHeader が固定ヘッダー分の余白を出すので、ここに余白を足さない。 */}
+      {/* 2026-11-23 t iku指示: リアル回は「1画面で終わる」FVに組み直した。
+          PCでは告知バナーを出さず、FVの中に登壇者写真と見出しを並べる（下のCSS）。
+          スマホは従来どおりバナー＋ヒーローの縦積み。 */}
       {config.topBanner && (
         <section className="sl-top-banner" aria-label="イベントのお知らせ">
           <Image
@@ -180,8 +183,26 @@ export default function SeminarLanding({
       )}
 
       {/* Hero */}
-      <section className="sl-hero">
+      <section className={'sl-hero' + (isReal ? ' sl-hero-fv' : '')}>
+        {isReal && (
+          <div className="sl-fv-visual" aria-hidden="true">
+            <Image
+              src="/real-seminar-fv-speakers.jpg"
+              alt=""
+              width={728}
+              height={576}
+              priority
+              quality={95}
+              sizes="(max-width: 1023px) 0px, 46vw"
+            />
+          </div>
+        )}
         <div className="sl-container">
+          {isReal && (
+            <p className="sl-fv-hook">
+              KAMOファンディング 挑戦者交流会！<span>鴨頭嘉人 参加会のみ！</span>
+            </p>
+          )}
           <div className="sl-badge">{config.format}</div>
           {/* タグラインとキャッチはリアル回だけが持つ（/ai-seminar は未設定＝従来どおり title がH1） */}
           {config.heroTagline && <p className="sl-hero-tagline">{config.heroTagline}</p>}

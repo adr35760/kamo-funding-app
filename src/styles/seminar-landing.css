@@ -1287,3 +1287,133 @@
   .sl-price-value-line { font-size: 14.5px; }
   .sl-price-value-punch { font-size: 17px; }
 }
+
+/* =====================================================================
+   リアル回のファーストビュー（2026-11-23 t iku指示）
+   「下の画面に次のセクションが見える」＝1画面で終わらない問題を、
+   告知バナー＋ヒーローの2段構成から“1画面のFV”に組み直して解決する。
+   PC（≥1024px）: 左にコピー、右に登壇者写真。FVの高さは画面ぴったり。
+   スマホ: 従来どおりバナー＋ヒーローの縦積み（バナーは残す）。
+   ===================================================================== */
+
+/* 写真はPCのときだけ出す */
+.sl-fv-visual { display: none; }
+.sl-fv-hook { display: none; }
+
+@media (min-width: 1024px) {
+  .seminar-lp.is-real .sl-top-banner { display: none; }
+
+  .seminar-lp.is-real .sl-hero-fv {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+    align-items: center;
+    gap: 0 clamp(16px, 2vw, 36px);
+    /* 固定ヘッダー分を引いて、ちょうど1画面に収める */
+    min-height: calc(100svh - 61px);
+    padding: 28px 0 28px;
+    text-align: left;
+    overflow: hidden;
+    background:
+      radial-gradient(90% 120% at 78% 30%, rgba(200, 144, 26, 0.16) 0%, rgba(200, 144, 26, 0) 62%),
+      linear-gradient(160deg, #08172E 0%, #143059 58%, #08172E 100%);
+  }
+
+  .seminar-lp.is-real .sl-hero-fv > .sl-container {
+    position: relative;
+    z-index: 2;
+    grid-column: 1;
+    grid-row: 1;
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 clamp(24px, 3vw, 48px);
+    width: 100%;
+  }
+
+  .seminar-lp.is-real .sl-hero-fv .sl-fv-visual {
+    display: block;
+    position: relative;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    overflow: hidden;
+    border-radius: 16px;
+    border: 1px solid rgba(200, 144, 26, 0.34);
+    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.38);
+  }
+
+  /* 右半分: 登壇者写真。背景の濃紺に溶け込ませる */
+  .seminar-lp.is-real .sl-hero-fv .sl-fv-visual img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* 元画像（728×576）を等倍前後で見せる。引き伸ばさない */
+    max-width: 728px;
+    margin-left: auto;
+    mix-blend-mode: normal;
+  }
+
+  /* 左端の白い残り（元画像の文字）をグラデーションで隠し、左のコピーとつなぐ */
+  /* 写真の左端の残りを薄いグラデーションでなじませる */
+  .seminar-lp.is-real .sl-hero-fv .sl-fv-visual::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 12%;
+    z-index: 1;
+    background: linear-gradient(90deg, rgba(8, 23, 46, 0.85) 0%, rgba(8, 23, 46, 0) 100%);
+  }
+
+  .seminar-lp.is-real .sl-fv-hook {
+    display: block;
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    color: #E8CE92;
+  }
+
+  .seminar-lp.is-real .sl-fv-hook span {
+    margin-left: 10px;
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    color: #F0D79E;
+    white-space: nowrap;
+  }
+
+  /* 写真はFVの右半分に出すので、ヒーロー内の写真は隠す */
+  .seminar-lp.is-real .sl-hero-fv .sl-hero-image { display: none; }
+
+  /* 1画面に収めるため、行間と余白を詰める */
+  .seminar-lp.is-real .sl-hero-fv .sl-badge { margin-bottom: 14px; }
+  .seminar-lp.is-real .sl-hero-fv .sl-hero-tagline { margin-bottom: 10px; }
+  .seminar-lp.is-real .sl-hero-fv h1 {
+    font-size: clamp(24px, 2.4vw, 36px);
+    margin-bottom: 12px;
+  }
+  .seminar-lp.is-real .sl-hero-fv .sl-lead {
+    margin: 0 0 12px;
+    max-width: 880px;
+    font-size: 14.5px;
+  }
+  .seminar-lp.is-real .sl-hero-fv .sl-hero-stats { margin-top: 0; margin-bottom: 4px; }
+  .seminar-lp.is-real .sl-hero-fv .sl-hero-stat-value { font-size: 26px; }
+  .seminar-lp.is-real .sl-hero-fv .sl-hero-stat-src { margin-top: 6px; margin-bottom: 6px; font-size: 10.5px; line-height: 1.4; }
+  .seminar-lp.is-real .sl-hero-fv .sl-hero-when { margin-top: 8px; margin-bottom: 10px; }
+  .seminar-lp.is-real .sl-hero-fv .sl-price-box {
+    margin-bottom: 12px;
+    padding: 10px 18px 8px;
+  }
+  .seminar-lp.is-real .sl-hero-fv .sl-price-amount { font-size: clamp(34px, 3.4vw, 46px); }
+  .seminar-lp.is-real .sl-hero-fv .sl-cta { margin: 0; }
+}
+
+/* 高さの低いPC（ノートPCなど）はさらに詰める */
+@media (min-width: 1024px) and (max-height: 820px) {
+  .seminar-lp.is-real .sl-hero-fv { padding: 22px 0 24px; }
+  .seminar-lp.is-real .sl-hero-fv .sl-lead { margin-bottom: 12px; font-size: 14px; }
+  .seminar-lp.is-real .sl-hero-fv .sl-fv-hook span { font-size: 22px; }
+  .seminar-lp.is-real .sl-hero-fv .sl-hero-stats { display: none; }
+  .seminar-lp.is-real .sl-hero-fv .sl-hero-stat-src { display: none; }
+  .seminar-lp.is-real .sl-hero-fv .sl-price-box { margin-bottom: 14px; }
+}
