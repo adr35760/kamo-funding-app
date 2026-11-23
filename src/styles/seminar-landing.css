@@ -1338,7 +1338,6 @@
     align-self: center;
     overflow: hidden;
     border-radius: 16px;
-    border: 1px solid rgba(200, 144, 26, 0.34);
     box-shadow: 0 22px 48px rgba(0, 0, 0, 0.38);
   }
 
@@ -1347,8 +1346,8 @@
     display: block;
     width: 100%;
     height: auto;
-    /* 元画像（728×576）を等倍前後で見せる。引き伸ばさない */
-    max-width: 728px;
+    /* 正方形のコラージュ画像（1254×1254）。列幅いっぱいに見せる */
+    max-width: 760px;
     margin-left: auto;
     mix-blend-mode: normal;
   }

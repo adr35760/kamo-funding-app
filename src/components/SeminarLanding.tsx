@@ -187,10 +187,10 @@ export default function SeminarLanding({
         {isReal && (
           <div className="sl-fv-visual" aria-hidden="true">
             <Image
-              src="/real-seminar-fv-speakers.jpg"
-              alt=""
-              width={728}
-              height={576}
+              src="/real-seminar-fv-collage.jpg"
+              alt="鴨頭嘉人さんと代表の登壇風景、セミナー会場と交流会の様子"
+              width={1254}
+              height={1254}
               priority
               quality={95}
               sizes="(max-width: 1023px) 0px, 46vw"
