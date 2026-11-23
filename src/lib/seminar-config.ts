@@ -776,7 +776,7 @@ export const REAL_ATTEND_TIERS: RealAttendTier[] = [
     // ストア実測（2026-09-09）。商品名の【１２／８】は全角のまま
     payment: {
       productName: 'リアルセミナー参加＆合同交流会セット券【１２／８】',
-      productUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/72012',
+      productUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/73507',
     },
   },
   {
@@ -792,8 +792,9 @@ export const REAL_ATTEND_TIERS: RealAttendTier[] = [
     partyOnly: true,
     // ストア実測（2026-09-09）
     payment: {
-      productName: '12/8交流会のみ参加券',
-      productUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/72011',
+      // 2026-11-23 ストア商品の入れ替え（72011→73508）。商品名もストア表記に合わせる
+      productName: 'ビジネス合同交流会のみ参加【１２／８】',
+      productUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/73508',
     },
   },
 ];
