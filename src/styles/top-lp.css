@@ -2854,3 +2854,161 @@
     line-height: 1.6;
   }
 }
+
+/* =====================================================================
+   実績バナー（トップ専用の見せ方・2026-11-23 t iku指示）
+   「もっと左右に大きく、文字も見やすく、かっこよく目立つように」
+   - 左右いっぱい（他のセクションの1160px枠をここだけ外す）
+   - 濃紺の面＋金の数値で、白の面の中で浮き上がらせる
+   - 数値はPC 60px級
+   🔴 中身（数値・文言）は共通の StatsBanner。ここはトップの見た目だけを上書きする
+      （/success と /lp のバナーは今のまま）。
+   ===================================================================== */
+.tlp-page .tlp-stats .tlp-inner {
+  max-width: none;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+.tlp-page .kamo-stats-banner.tlp-stats-banner {
+  --ksb-ink: #ffffff;
+  --ksb-sub: #dfe8f6;
+  --ksb-note: rgba(226, 235, 250, 0.72);
+  --ksb-line: rgba(200, 144, 26, 0.3);
+
+  max-width: none;
+  padding: 30px 44px 24px;
+  border: 1px solid rgba(200, 144, 26, 0.34);
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 160% at 50% -30%, rgba(200, 144, 26, 0.22) 0%, rgba(200, 144, 26, 0) 58%),
+    linear-gradient(150deg, #0A1830 0%, #143059 52%, #0A1830 100%);
+  box-shadow: 0 24px 52px rgba(10, 24, 48, 0.28);
+  color: #fff;
+}
+
+/* 上端の金のラインを太く */
+.kamo-stats-banner.tlp-stats-banner::before {
+  height: 3px;
+  background: linear-gradient(90deg, rgba(200,144,26,0) 0%, #E8CE92 18%, #C8901A 50%, #E8CE92 82%, rgba(200,144,26,0) 100%);
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__title {
+  font-size: 19px;
+  letter-spacing: 0.16em;
+  color: #F4E3BC;
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__grid {
+  grid-template-columns: 1fr 1.24fr 1fr;
+  margin-top: 16px;
+  align-items: end;
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__item {
+  padding: 0 10px;
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__value {
+  font-size: 60px;
+  line-height: 1.02;
+  letter-spacing: 0.01em;
+  background: linear-gradient(180deg, #FFF3D0 0%, #E7C574 42%, #C8901A 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 10px rgba(200, 144, 26, 0.22));
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__label {
+  margin-top: 8px;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  color: #FFFFFF;
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__note {
+  margin-top: 3px;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__note.is-strong {
+  color: #F4E3BC;
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__breakdown {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  gap: 14px;
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__breakdown-title {
+  font-size: 13.5px;
+  color: #F4E3BC;
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__breakdown-item {
+  font-size: 13.5px;
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__breakdown-label {
+  color: rgba(226, 235, 250, 0.72);
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__breakdown-value {
+  color: #FFFFFF;
+  font-size: 16px;
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__breakdown-item + .kamo-stats-banner__breakdown-item::before {
+  background: rgba(255, 255, 255, 0.2);
+  height: 12px;
+  margin: 0 12px;
+}
+
+.kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__source {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(226, 235, 250, 0.58);
+  text-align: center;
+}
+
+/* 1024px以下: 数値を少し落として横を詰める */
+@media (max-width: 1024px) {
+  .tlp-page .tlp-stats .tlp-inner { padding-left: 24px; padding-right: 24px; }
+  .tlp-page .kamo-stats-banner.tlp-stats-banner { padding: 26px 24px 20px; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__value { font-size: 46px; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__title { font-size: 16px; letter-spacing: 0.1em; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__label { font-size: 13px; }
+}
+
+/* スマホ: 3列は維持。数値30px・ラベル11px・内訳は左寄せ2行 */
+@media (max-width: 767px) {
+  .tlp-page .tlp-stats .tlp-inner { padding-left: 14px; padding-right: 14px; }
+  .tlp-page .kamo-stats-banner.tlp-stats-banner {
+    padding: 18px 12px 16px;
+    border-radius: 14px;
+  }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__title { font-size: 12.5px; letter-spacing: 0.06em; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__grid {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.34fr) minmax(0, 1.08fr);
+    margin-top: 12px;
+  }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__item { padding: 0 3px; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__value { font-size: 30px; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__label { margin-top: 5px; font-size: 11px; letter-spacing: 0; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__note { margin-top: 2px; font-size: 10px; letter-spacing: 0; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__breakdown { margin-top: 14px; padding-top: 11px; text-align: left; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__breakdown-title { font-size: 11.5px; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__breakdown-item { font-size: 11.5px; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__breakdown-value { font-size: 12.5px; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__source { margin-top: 8px; font-size: 10.5px; text-align: left; }
+}
+
+@media (max-width: 389px) {
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__value { font-size: 26px; }
+  .kamo-stats-banner.tlp-stats-banner .kamo-stats-banner__label { font-size: 10px; }
+}
