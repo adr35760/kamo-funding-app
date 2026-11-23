@@ -270,7 +270,8 @@
    （見た目・中身は src/styles/stats-banner.css が持つ）。ここはトップ側の余白だけ。
    2026-11-22 t iku指示: 構想（3ステップ）より前に単独セクションとして置く。 */
 .tlp-stats {
-  padding: var(--space-section) 0 0;
+  /* 2026-11-23 t iku指示: 実績の枠が下の濃紺に貼り付いて見えるため、白の面の中で上下均等に置く */
+  padding: var(--space-section) 0;
 }
 .kamo-stats-banner.tlp-stats-banner {
   margin-bottom: 0;
@@ -2275,7 +2276,8 @@
 
 /* ===== Z1.5 実績：白の面。上下の余白だけ整える ===== */
 .tlp-page .tlp-stats {
-  padding: var(--space-section) 0 0;
+  /* 2026-11-23 t iku指示: 枠を下に貼り付けず、白の面の中央に置く（上下同量） */
+  padding: var(--space-section) 0;
   background: #fff;
 }
 
