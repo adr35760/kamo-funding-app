@@ -623,8 +623,8 @@ export default function SeminarLanding({
               <div style={{ textAlign: 'center' }}>
                 <h2 style={{ marginBottom: '12px' }}>お申し込みありがとうございます</h2>
                 <p style={{ color: '#666' }}>
-                  ご登録のメールアドレスに確認メールをお送りしました。<br />
-                  参加費などの詳細は、決まり次第あらためてご案内します。
+                  ご登録のメールアドレスに申し込み受付リンクを発行いたしました。<br />
+                  申し込み決済順になりますので、無くなり次第終了とさせていただきます！
                 </p>
                 <p style={{ marginTop: '20px' }}>
                   <a href="/" className="sl-back-link">← トップページに戻る</a>
