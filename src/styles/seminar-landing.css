@@ -1247,3 +1247,41 @@
   .seminar-lp.is-real .sl-tt-total { font-size: 12.5px; }
   .seminar-lp.is-real .sl-top-banner { padding-top: 14px; }
 }
+
+/* ===== 申込直前に置く価格の価値づけ（2026-11-23 t iku原稿） ===== */
+.sl-price-value {
+  max-width: 720px;
+  margin: 0 auto 26px;
+  padding: 26px 24px;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #E1E8F4;
+  border-top: 4px solid #C8901A;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(13, 35, 74, 0.07);
+}
+.sl-price-value-lead {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.8;
+  color: #0B1D3A;
+}
+.sl-price-value-line {
+  margin-top: 10px;
+  font-size: 15.5px;
+  line-height: 1.95;
+  color: #33404F;
+}
+.sl-price-value-punch {
+  margin-top: 16px;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #B8860B;
+}
+@media (max-width: 900px) {
+  .sl-price-value { padding: 20px 16px; margin-bottom: 20px; }
+  .sl-price-value-lead { font-size: 15.5px; }
+  .sl-price-value-line { font-size: 14.5px; }
+  .sl-price-value-punch { font-size: 17px; }
+}

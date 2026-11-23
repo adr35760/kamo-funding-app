@@ -276,6 +276,12 @@ export interface SeminarConfig {
     /** 「これらを1日で体験できます」など価格直前の締め */
     closing: string;
   };
+  /** 申込フォーム直前の価格の価値づけ（リアル回のみ） */
+  priceValueNote?: {
+    lead: string;
+    lines: string[];
+    punch: string;
+  };
   /** 対象者別のメッセージ */
   audience?: {
     heading: string;
@@ -533,6 +539,17 @@ export const REAL_SEMINAR: SeminarConfig = {
         body: 'セミナーでは鴨頭さんのリアル登壇を間近で聞き、懇親会では直接話せます。挑戦する仲間とも出会えます。',
       },
     ],
+  },
+  /**
+   * 申込フォームの直前に置く価格の価値づけ（2026-11-23 t iku原稿）。
+   * 🔴 価格は price の定数のまま。ここでは金額を書かない（二重表記を避ける）。
+   */
+  priceValueNote: {
+    lead: '22,000円で手に入るのは、クラファンの知識だけではありません。',
+    lines: [
+      '自分の企画を形にする時間。成功経験者から直接学ぶ機会。そして、あなたの挑戦を応援してくれる人との出会い。',
+    ],
+    punch: 'この3つを、たった1日で。',
   },
   closing: {
     heading: 'あなたの夢を、応援してくれる人に出会いに行きませんか？',

@@ -618,6 +618,15 @@ export default function SeminarLanding({
       <section className={'sl-section' + rc('apply')} id="apply">
         <div className="sl-container">
           {eyebrow('apply')}
+          {config.priceValueNote && (
+            <div className="sl-price-value">
+              <p className="sl-price-value-lead">{config.priceValueNote.lead}</p>
+              {config.priceValueNote.lines.map(line => (
+                <p className="sl-price-value-line" key={line}>{line}</p>
+              ))}
+              <p className="sl-price-value-punch">{config.priceValueNote.punch}</p>
+            </div>
+          )}
           <div className="sl-form-card">
             {submitted ? (
               <div style={{ textAlign: 'center' }}>
