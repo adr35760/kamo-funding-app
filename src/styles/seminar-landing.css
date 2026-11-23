@@ -682,7 +682,9 @@
   display: block;
   width: 100%;
   height: auto;
-  max-width: 1728px; /* 原寸より大きく引き伸ばさない */
+  /* 2026-11-23 t iku指示: トップのサムネを画面幅いっぱいに広げ、上下の高さも稼ぐ
+     （以前の max-width:1728px だとワイド画面で左右に白が残り、上下も小さく見えた） */
+  max-width: none;
   margin: 0 auto;
 }
 
