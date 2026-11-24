@@ -267,12 +267,14 @@ export interface SeminarConfig {
   /**
    * 参加費に含まれるものの整理。区分ごとの可否（seminar / party）を持たせ、
    * 価格の直前に「何が含まれるか」を並べる。
-   * 🔴 可否は REAL_ATTEND_TIERS の区分（セミナーから参加／交流会から参加）に対応する。
+   * 🔴 seminar / party は「セミナーから参加」「交流会から参加」の2区分に対する可否。
+   *   「セミナーのみ参加」は中身が違う（懇親会に行かない）ため、行ごとに
+   *   onlySeminar で明示する（省略時は seminar と同じ扱い＝本編に含まれる）。
    */
   valueTable?: {
     heading: string;
     lead?: string;
-    rows: { label: string; body: string; seminar: boolean; party: boolean }[];
+    rows: { label: string; body: string; seminar: boolean; party: boolean; onlySeminar?: boolean }[];
     /** 「これらを1日で体験できます」など価格直前の締め */
     closing: string;
   };
@@ -508,12 +510,15 @@ export const REAL_SEMINAR: SeminarConfig = {
         body: '掲載の現場の話・人脈・協力関係づくり',
         seminar: true,
         party: true,
+        // 交流の時間は懇親会。セミナーのみ参加は交流の場（懇親会）に出ないため対象外
+        onlySeminar: false,
       },
       {
         label: '懇親会',
         body: 'セミナーと同じ会場で、鴨頭嘉人さんや参加者との交流会',
         seminar: true,
         party: true,
+        onlySeminar: false,
       },
     ],
     closing: 'これらを1日で体験できます。',
@@ -768,8 +773,13 @@ export interface RealAttendTier {
   capacity?: number;
   /** 区分ごとに価格が違うときの表示（未設定なら config.price を使う） */
   priceLabel?: string;
-  /** サイトの申込フォームではなく、この商品ページへ直接送る */
-  applyUrl?: string;
+  /**
+   * 同じ event_date に複数の区分があるとき、DBの events.title にこの文字列が
+   * 含まれていればこの区分と判定する（realTierFor の判別キー）。
+   */
+  eventTitleMarker?: string;
+  /** セミナー本編だけの区分（懇親会の時間・会場を案内しない） */
+  seminarOnly?: boolean;
   /** 一言説明 */
   summary: string;
   /** 懇親会のみの区分か（セミナー本編の案内を出さない判定に使う） */
@@ -829,12 +839,16 @@ export const REAL_ATTEND_TIERS: RealAttendTier[] = [
           決済リンクは t iku 支給。商品名・価格はストア実測（2026-11-24）：
           「リアルセミナー参加券（懇親会はご参加できません）」15,000円。 */
     label: 'セミナーのみ参加',
+    // 「セミナーから参加」と同じ受付15:30に始まるため、event_date は同じ値になる。
+    // 区分の判別は eventTitleMarker（events.title）で行う（realTierFor 参照）。
+    isoDate: '2026-12-08T15:30:00+09:00',
+    eventTitleMarker: '【セミナーのみ参加】',
+    seminarOnly: true,
     timeLabel: '受付 15:30〜／セミナー 16:00〜18:30',
     venue: { main: REAL_VENUE.seminar },
     priceLabel: '15,000円',
     summary:
       'セミナー本編（第1部〜第5部・鴨頭嘉人リアル登壇）のみの参加です。プロの直接指導とAI実践ワークを含みます。懇親会にはご参加いただけません。',
-    applyUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/73536',
     payment: {
       productName: 'リアルセミナー参加券（懇親会はご参加できません）',
       productUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/73536',
@@ -846,11 +860,31 @@ export const REAL_ATTEND_TIERS: RealAttendTier[] = [
  * DBの events.event_date からリアル回の参加区分を引く。
  * 区分が特定できない行では null（推測で時間や会場を書かない）。
  */
-export function realTierFor(eventDate?: string | null): RealAttendTier | null {
+export function realTierFor(
+  eventDate?: string | null,
+  eventTitle?: string | null
+): RealAttendTier | null {
   if (!eventDate) return null;
   const t = new Date(eventDate).getTime();
   if (Number.isNaN(t)) return null;
-  return REAL_ATTEND_TIERS.find(x => x.isoDate && new Date(x.isoDate).getTime() === t) ?? null;
+  const sameTime = REAL_ATTEND_TIERS.filter(
+    x => x.isoDate && new Date(x.isoDate).getTime() === t
+  );
+  if (sameTime.length === 0) return null;
+  if (sameTime.length === 1) return sameTime[0];
+  // 🔴 同じ受付時刻に複数の区分がある（セミナーから参加／セミナーのみ参加）。
+  //    ここで取り違えると**別の決済券を案内して入場できない**ため、
+  //    タイトルの印で必ず判別する。判別できなければ null（推測しない）。
+  if (eventTitle) {
+    const byTitle = sameTime.find(
+      x => x.eventTitleMarker && eventTitle.includes(x.eventTitleMarker)
+    );
+    if (byTitle) return byTitle;
+  }
+  // 印が付かない行は「基本の区分」（印を持たない区分）とみなす。
+  // ここで null を返すと、タイトルを渡さない既存の呼び出し元で
+  // 区分が引けなくなり、決済リンクが出なくなる（後方互換を守る）。
+  return sameTime.find(x => !x.eventTitleMarker) ?? sameTime[0] ?? null;
 }
 
 /**
@@ -1015,7 +1049,11 @@ export interface PaymentInfo {
  * 4 = KAMOファンディングアワード（25,000円・別商品なので変更しない）。
  * それ以外（無料の掲載説明会など）は null = 決済案内を出さない。
  */
-export function paymentInfoFor(pillar?: number | null, eventDate?: string | null): PaymentInfo | null {
+export function paymentInfoFor(
+  pillar?: number | null,
+  eventDate?: string | null,
+  eventTitle?: string | null
+): PaymentInfo | null {
   if (pillar === 2) {
     return {
       priceLabel: pendingLabel(AI_SEMINAR.price),
@@ -1036,14 +1074,15 @@ export function paymentInfoFor(pillar?: number | null, eventDate?: string | null
     // 🔴 リアル回は**参加区分ごとに決済券が違う**（2026-09-09 に専用券が用意された）。
     //   セミナー参加の方に交流会のみ券を案内すると、参加費を払って15:30に
     //   入場できない。**区分から引いた券以外は絶対に出さない**。
-    const tier = realTierFor(eventDate);
+    const tier = realTierFor(eventDate, eventTitle);
     if (!tier?.payment) {
       // 区分が特定できない／券が未確定の行では、金額だけ伝えてリンクは貼らない。
       // 誤った券を案内するより、案内が一手間増える方が安全。
       return { priceLabel: pendingLabel(REAL_SEMINAR.price), linkless: true };
     }
     return {
-      priceLabel: pendingLabel(REAL_SEMINAR.price),
+      // 区分ごとに価格が違う（セミナーのみ参加は15,000円）ため、区分の表示を優先する
+      priceLabel: tier.priceLabel ?? pendingLabel(REAL_SEMINAR.price),
       productName: tier.payment.productName,
       productUrl: tier.payment.productUrl,
     };
@@ -1064,14 +1103,23 @@ export function paymentInfoFor(pillar?: number | null, eventDate?: string | null
  * @returns 内訳の文字列（例: 受付 15:30〜／セミナー 16:00〜18:30／懇親会 18:30〜20:30）。
  *          該当セッションが設定に無ければ null（推測で書かない）。
  */
-export function realSessionBreakdown(eventDate?: string | null): string | null {
+export function realSessionBreakdown(
+  eventDate?: string | null,
+  eventTitle?: string | null
+): string | null {
   if (!eventDate) return null;
   const target = new Date(eventDate).getTime();
   if (Number.isNaN(target)) return null;
 
   // 「交流会から参加」の区分は懇親会だけなので、
   // セミナー本編の 16:00 や受付 15:30 を出すと**来る時間を間違える**。懇親会の時間だけ返す。
-  const tier = realTierFor(eventDate);
+  const tier = realTierFor(eventDate, eventTitle);
+  // 「セミナーのみ参加」は懇親会に行かないので、懇親会の時間を出さない
+  if (tier?.seminarOnly) {
+    const s0 = REAL_SEMINAR.sessions[0];
+    const parts = [s0?.receptionTimeLabel, s0?.timeLabel].filter(Boolean) as string[];
+    return parts.length ? parts.join('／') : null;
+  }
   if (tier?.partyOnly) {
     const party = REAL_SEMINAR.sessions[0]?.partyTimeLabel;
     return party ?? null;

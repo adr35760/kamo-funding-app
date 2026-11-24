@@ -270,13 +270,13 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
                         {formatEventDateJa(ev.event_date, ev.duration_minutes)}
                         {/* リアル回は「15:30〜20:30」だけだと懇親会の存在が伝わらないため内訳を添える
                             （メールと同じ realSessionBreakdown を使い、数字を必ず揃える） */}
-                        {realSessionBreakdown(ev.event_date) && (
-                          <span className="sh-slot-breakdown">{realSessionBreakdown(ev.event_date)}</span>
+                        {realSessionBreakdown(ev.event_date, ev.title) && (
+                          <span className="sh-slot-breakdown">{realSessionBreakdown(ev.event_date, ev.title)}</span>
                         )}
                         {/* 参加区分（セミナーから参加／交流会から参加）を明示する。
                             同じ12/8で行が2つ並ぶため、これが無いと区別がつかない */}
-                        {realTierFor(ev.event_date) && (
-                          <span className="sh-slot-tier">{realTierFor(ev.event_date)!.label}</span>
+                        {realTierFor(ev.event_date, ev.title) && (
+                          <span className="sh-slot-tier">{realTierFor(ev.event_date, ev.title)!.label}</span>
                         )}
                       </div>
                       <div className="sh-slot-body">
@@ -336,7 +336,7 @@ export default function SeminarHubClient({ initialEvents }: { initialEvents: Hub
                         {events.map(ev => (
                           <option key={ev.id} value={ev.id}>
                             {KIND[kindOf(ev)].short}
-                            {realTierFor(ev.event_date) ? `（${realTierFor(ev.event_date)!.label}）` : ''}
+                            {realTierFor(ev.event_date, ev.title) ? `（${realTierFor(ev.event_date, ev.title)!.label}）` : ''}
                             ／{formatEventDateJa(ev.event_date, ev.duration_minutes)}／{KIND[kindOf(ev)].price}
                           </option>
                         ))}

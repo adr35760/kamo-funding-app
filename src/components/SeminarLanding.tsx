@@ -152,6 +152,14 @@ export default function SeminarLanding({
 
   const priceText = pendingLabel(config.price);
   const priceParts = splitPriceLabel(config.price);
+  /**
+   * 申込フォームに出ている区分だけをカード・比較表に出す。
+   * 「セミナーのみ参加」は events に行が無いと申し込めないため、
+   * 行（タイトルの印）が無いあいだは出さない（押せない選択肢を見せない）。
+   */
+  const availableTiers = REAL_ATTEND_TIERS.filter(
+    t => !t.eventTitleMarker || events.some(e => (e.title || '').includes(t.eventTitleMarker!))
+  );
   const hasSpeakers = !!config.speakers && config.speakers.length > 0;
   const capacityText = pendingLabel(config.capacity);
   // ヒーローの日付は設定の isoDate（JST）から作る（ページに日付を直書きしない）
@@ -494,7 +502,7 @@ export default function SeminarLanding({
               申込前にどちらを選ぶか判断できるよう、日程の直後に並べる。 */}
           {isReal && (
             <div className="sl-tiers">
-              {REAL_ATTEND_TIERS.map(t => (
+              {availableTiers.map(t => (
                 <div className="sl-tier" key={t.label}>
                   <div className="sl-tier-head">
                     <span className="sl-tier-name">{t.label}</span>
@@ -507,17 +515,6 @@ export default function SeminarLanding({
                   </p>
                   {typeof t.capacity === 'number' && <p className="sl-tier-cap">👥 定員 {t.capacity}名</p>}
                   <p className="sl-tier-summary">{t.summary}</p>
-                  {/* 外部ストアで完結する区分（セミナーのみ参加）は、この場から決済ページへ送る */}
-                  {t.applyUrl && (
-                    <a
-                      className="sl-cta sl-tier-cta"
-                      href={t.applyUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {t.label}で申し込む →
-                    </a>
-                  )}
                 </div>
               ))}
             </div>
@@ -553,8 +550,9 @@ export default function SeminarLanding({
             <div className="sl-value-table">
               <div className="sl-value-head">
                 <span className="sl-value-head-label">参加すると得られること</span>
-                <span className="sl-value-head-tier">{REAL_ATTEND_TIERS[0]?.label}</span>
-                <span className="sl-value-head-tier">{REAL_ATTEND_TIERS[1]?.label}</span>
+                {availableTiers.map(t => (
+                  <span className="sl-value-head-tier" key={t.label}>{t.label}</span>
+                ))}
               </div>
               {config.valueTable.rows.map(r => (
                 <div className="sl-value-row" key={r.label}>
@@ -562,20 +560,21 @@ export default function SeminarLanding({
                     <span className="sl-value-label">{r.label}</span>
                     <span className="sl-value-body">{r.body}</span>
                   </div>
-                  <div
-                    className={r.seminar ? 'sl-value-mark is-on' : 'sl-value-mark'}
-                    data-tier={REAL_ATTEND_TIERS[0]?.label}
-                    aria-label={`${r.label}：${REAL_ATTEND_TIERS[0]?.label}は${r.seminar ? '含む' : '含まない'}`}
-                  >
-                    {r.seminar ? '✓' : '—'}
-                  </div>
-                  <div
-                    className={r.party ? 'sl-value-mark is-on' : 'sl-value-mark'}
-                    data-tier={REAL_ATTEND_TIERS[1]?.label}
-                    aria-label={`${r.label}：${REAL_ATTEND_TIERS[1]?.label}は${r.party ? '含む' : '含まない'}`}
-                  >
-                    {r.party ? '✓' : '—'}
-                  </div>
+                  {availableTiers.map(t => {
+                    // 区分ごとに「含む／含まない」を出し分ける
+                    // （セミナーのみ参加＝本編のみ／交流会から参加＝懇親会のみ／セミナーから参加＝両方）
+                    const on = t.partyOnly ? r.party : t.seminarOnly ? (r.onlySeminar ?? r.seminar) : r.seminar;
+                    return (
+                      <div
+                        key={t.label}
+                        className={on ? 'sl-value-mark is-on' : 'sl-value-mark'}
+                        data-tier={t.label}
+                        aria-label={`${r.label}：${t.label}は${on ? '含む' : '含まない'}`}
+                      >
+                        {on ? '✓' : '—'}
+                      </div>
+                    );
+                  })}
                 </div>
               ))}
             </div>
@@ -684,7 +683,7 @@ export default function SeminarLanding({
                             <option key={ev.id} value={ev.id}>
                               {formatEventDateJa(ev.event_date, ev.duration_minutes ?? null)}
                               {/* リアル回は同じ日に2区分が並ぶので、どちらか分かるようにする */}
-                              {realTierFor(ev.event_date) ? `／${realTierFor(ev.event_date)!.label}` : ''}
+                              {realTierFor(ev.event_date, ev.title) ? `／${realTierFor(ev.event_date, ev.title)!.label}` : ''}
                             </option>
                           ))
                         : config.sessions.map(s => (

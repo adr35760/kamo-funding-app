@@ -52,9 +52,13 @@ function zoomBlockHtml(): string {
  * 🔴 リンク先はストアのトップで複数商品が並ぶため、
  *   **選ぶべき商品名と金額を明示**して誤購入を防ぐ。
  */
-export function paymentBlockHtml(pillar?: number | null, eventDate?: string | null): string {
+export function paymentBlockHtml(
+  pillar?: number | null,
+  eventDate?: string | null,
+  eventTitle?: string | null
+): string {
   // eventDate はリアル回の参加区分（＝どの決済券か）の判定に要る
-  const info = paymentInfoFor(pillar, eventDate);
+  const info = paymentInfoFor(pillar, eventDate, eventTitle);
   if (!info) return '';
 
   // 🔴 正しい商品が確定していない回は、**リンクを貼らずに**参加費だけ伝える。
@@ -105,8 +109,8 @@ export function paymentBlockHtml(pillar?: number | null, eventDate?: string | nu
  *   （同名を並べると別の部屋・別の建物に見える）。会場が再び分かれた場合は
  *   REAL_VENUE.party を変えるだけで2行表示に戻る。
  */
-function venueBlockHtml(eventDate?: string | null): string {
-  const tier = realTierFor(eventDate);
+function venueBlockHtml(eventDate?: string | null, eventTitle?: string | null): string {
+  const tier = realTierFor(eventDate, eventTitle);
   const main = tier?.venue.main ?? REAL_VENUE.seminar;
   const party = tier ? tier.venue.sub ?? main : REAL_VENUE.party;
   const rows = tier?.partyOnly
@@ -320,12 +324,12 @@ export function applyConfirmationHtml({
   // リアル回は「15:30〜20:30」だけだと懇親会の存在が伝わらないため内訳を添える
   // （ページと同じ値。設定に無い回では null になり、何も足さない）
   const breakdown = isReal
-    ? realSessionBreakdown(eventDate)
+    ? realSessionBreakdown(eventDate, eventTitle)
     : isAward
       ? awardBreakdown()
       : null;
   // 参加区分（セミナーから参加／交流会から参加）。時間・会場・定員がこれで変わる
-  const tier = isReal ? realTierFor(eventDate) : null;
+  const tier = isReal ? realTierFor(eventDate, eventTitle) : null;
   return `
     <div style="font-family: 'Noto Sans JP', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: #E60012; color: #fff; padding: 20px; border-radius: 8px 8px 0 0; text-align: center;">
@@ -345,8 +349,14 @@ export function applyConfirmationHtml({
         ${isReal ? `
         <p style="margin-top: 16px; padding: 16px; background: #FFFBF0; border-radius: 8px; font-size: 14px;">
           🏢 ${tier ? `${tier.label}（${tier.timeLabel}）` : '会場開催（セミナー＋懇親会）'}<br />
-          💰 参加費：<strong>${pendingLabel(REAL_SEMINAR.price)}</strong><br />
-          👥 定員：${tier ? `${tier.capacity}名` : `${pendingLabel(REAL_SEMINAR.capacity)}${REAL_SEMINAR.capacityParty ? ` / ${pendingLabel(REAL_SEMINAR.capacityParty)}` : ''}`}
+          💰 参加費：<strong>${tier?.priceLabel ?? pendingLabel(REAL_SEMINAR.price)}</strong><br />
+          ${tier && typeof tier.capacity === 'number'
+            ? `👥 定員：${tier.capacity}名`
+            : tier && !tier.seminarOnly
+              ? `👥 定員：${pendingLabel(REAL_SEMINAR.capacity)}${REAL_SEMINAR.capacityParty ? ` / ${pendingLabel(REAL_SEMINAR.capacityParty)}` : ''}`
+              : tier
+                ? '' // セミナーのみ参加は枠の定員を設定から出さない（DBの定員に任せる）
+                : `👥 定員：${pendingLabel(REAL_SEMINAR.capacity)}${REAL_SEMINAR.capacityParty ? ` / ${pendingLabel(REAL_SEMINAR.capacityParty)}` : ''}`}
           ${tier ? `<br /><span style="font-size: 13px; color: #666;">${tier.summary}</span>` : ''}
           ${PRICE_TAX_NOTE ? `<br /><span style="font-size: 12px; color: #666;">${PRICE_TAX_NOTE}</span>` : ''}
         </p>` : isAward ? `
@@ -366,8 +376,8 @@ export function applyConfirmationHtml({
           ⏱️ 約90分<br />
           💰 参加費無料
         </p>`}
-        ${paymentBlockHtml(pillar, eventDate)}
-        ${isReal ? venueBlockHtml(eventDate) : isAward ? awardVenueBlockHtml() : zoomBlockHtml()}
+        ${paymentBlockHtml(pillar, eventDate, eventTitle)}
+        ${isReal ? venueBlockHtml(eventDate, eventTitle) : isAward ? awardVenueBlockHtml() : zoomBlockHtml()}
         <p style="margin-top: 20px;">${isReal
           ? (tier
               // 表示は「15:30〜20:30」のような範囲なので、開始時刻だけを取り出して案内する

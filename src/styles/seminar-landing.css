@@ -318,14 +318,6 @@
 .sl-tier-price { font-size: 19px; font-weight: 900; color: var(--kamo-gold); white-space: nowrap; }
 .sl-tier p { margin: 0 0 6px; font-size: 14px; line-height: 1.75; color: #444; }
 .sl-tier-summary { font-size: 13px !important; color: #666 !important; margin: 10px 0 0 !important; }
-/* 外部ストアで完結する区分（セミナーのみ参加）の決済ボタン */
-.sl-tier-cta {
-  display: block;
-  margin-top: 14px;
-  padding: 12px 16px;
-  text-align: center;
-  font-size: 15px;
-}
 
 @media (max-width: 1023px) and (min-width: 769px) {
   /* 3枚を3列にすると1枚あたりが狭すぎるため、中間幅は2列 */
@@ -497,7 +489,8 @@
 }
 .sl-value-head {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 150px 150px;
+  /* 2026-11-24 参加区分3つ（セミナーから参加／交流会から参加／セミナーのみ参加） */
+  grid-template-columns: minmax(0, 1fr) 140px 140px 140px;
   background: var(--kamo-navy);
   color: #fff;
   font-size: 13px;
@@ -510,7 +503,7 @@
 .sl-value-head .sl-value-head-label { justify-content: flex-start; text-align: left; color: rgba(255, 255, 255, .72); }
 .sl-value-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 150px 150px;
+  grid-template-columns: minmax(0, 1fr) 140px 140px 140px;
   align-items: center;
   border-top: 1px solid rgba(0, 0, 0, .07);
 }
@@ -622,10 +615,13 @@
   /* 表は2列（区分）を保てないため、行ごとに区分チップを並べる */
   .sl-value-head { display: none; }
   .sl-value-row {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 6px;
     padding: 16px;
   }
+  /* 3区分ぶんの印を横に並べるため、ラベルは小さく */
+  .sl-value-mark { font-size: 14px; padding: 8px 4px; flex-direction: column; gap: 2px; }
+  .sl-value-mark::before { font-size: 10px; line-height: 1.3; text-align: center; }
   .sl-value-main { grid-column: 1 / -1; padding: 0; }
   .sl-value-mark {
     display: flex; align-items: center; justify-content: center;
