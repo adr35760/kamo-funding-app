@@ -193,7 +193,7 @@ export default function SeminarLanding({
               height={1254}
               priority
               quality={95}
-              sizes="(max-width: 1023px) 0px, 46vw"
+              sizes="(max-width: 1023px) 92vw, 46vw"
             />
           </div>
         )}
