@@ -205,7 +205,7 @@ export default function SeminarInfoClient({
     <div className="seminar-info-page">
       <SiteHeader
         current="/seminar-info"
-        cta={{ href: CONSULT_URL, label: '個別相談を予約', external: true }}
+        cta={{ href: CONSULT_URL, label: '個別相談を予約' }}
       />
 
       {/* ===== ① ヒーロー（主CTA＝個別相談／副CTA＝説明会日程） =====

@@ -3,6 +3,7 @@ import { normalizeEmail, isValidEmail } from '@/lib/email-address';
 import { SITE_ORIGIN } from '@/lib/site-url';
 import { referralTermsHtml } from '@/lib/referral-terms';
 import { referralShareUrl, siteOrigin } from '@/lib/referral-link';
+import { CONSULT_CALENDAR_URL, CONSULT_MINUTES } from '@/lib/seminar-info-content';
 import { buildReferralShareMessage, buildReferralShortMessage } from '@/lib/referral-message';
 import {
   AI_SEMINAR,
@@ -1371,6 +1372,128 @@ export async function sendConsultAdminNotification(
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
     console.error('LP相談の営業アラート送信に失敗:', error);
+    return { success: false, error };
+  }
+}
+
+// ===== 個別相談の予約前アンケート（/consult） — 2026-11-24 t iku指示 =====
+//
+// 位置づけ:
+//  - 予約スケジュールを入れる**前に**6項目（氏名・性別・年齢・メールアドレス・
+//    アイディア／企画・希望金額）を必須で受ける入り口。
+//  - 申込者には**予約カレンダーのURLを本文に載せた**サンキューを送る
+//    （画面を閉じても、あとからメールから予約できるようにするため）。
+//  - 社内アラートは相談前に内容を把握できるよう、6項目すべてを載せる。
+
+export interface ConsultBookingMailInput {
+  name: string;
+  gender: string;
+  age: number;
+  email: string;
+  idea: string;
+  amount: string;
+  source: string;
+}
+
+const CONSULT_BOOKING_CONFIRMATION_SUBJECT =
+  '【KAMOファンディング】個別相談のお申し込みを受け付けました（予約カレンダーのご案内）';
+
+function consultBookingIdeaHtml(idea: string): string {
+  return escapeHtml(idea).replace(/\r?\n/g, '<br />');
+}
+
+/** 申込者への自動返信（サンキュー＋予約カレンダーの案内） */
+export function consultBookingConfirmationHtml(input: ConsultBookingMailInput): string {
+  return `
+    <div style="font-family:'Noto Sans JP',sans-serif;line-height:1.75;color:#1c1f26;font-size:15px;">
+      <p>${escapeHtml(input.name)} 様</p>
+      <p>このたびはKAMOファンディングの個別相談にお申し込みいただき、ありがとうございます。<br />
+      下記の内容で受け付けました。</p>
+
+      <div style="margin:20px 0;padding:16px;background:#f3f5f9;border-radius:10px;">
+        <p style="margin:0 0 6px;">ご希望金額：<strong>${escapeHtml(input.amount)}</strong></p>
+        <p style="margin:0;">アイディア・企画：<br />${consultBookingIdeaHtml(input.idea)}</p>
+      </div>
+
+      <p style="margin-top:24px;font-weight:700;">つづいて、ご希望の日時をお選びください（${CONSULT_MINUTES}分・無料）。</p>
+      <p style="margin-top:12px;text-align:center;">
+        <a href="${CONSULT_CALENDAR_URL}"
+           style="display:inline-block;background:#E60012;color:#fff;font-weight:700;padding:16px 28px;border-radius:8px;text-decoration:none;">
+          予約カレンダーを開く →
+        </a>
+      </p>
+      <p style="margin-top:8px;font-size:13px;color:#666;text-align:center;word-break:break-all;">
+        うまく開かない場合はこちら: <a href="${CONSULT_CALENDAR_URL}" style="color:#E60012;">${CONSULT_CALENDAR_URL}</a>
+      </p>
+
+      <p style="margin-top:20px;">本メールに心当たりがない場合は、お手数ですがこのメールを破棄してください。</p>
+      <p style="margin-top:24px;">—<br />KAMOファンディング</p>
+    </div>
+  `;
+}
+
+/** 申込者への自動返信を送る。例外は投げない */
+export async function sendConsultBookingConfirmationEmail(
+  input: ConsultBookingMailInput
+): Promise<EmailResult> {
+  try {
+    return await sendEmail(
+      input.email,
+      CONSULT_BOOKING_CONFIRMATION_SUBJECT,
+      consultBookingConfirmationHtml(input)
+    );
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    console.error('個別相談アンケートの自動返信メール送信に失敗:', error);
+    return { success: false, error };
+  }
+}
+
+/** 社内アラートの件名（性別・年齢で仕分けできるようにする） */
+export function consultBookingAdminNotificationSubject(input: ConsultBookingMailInput): string {
+  return `【個別相談】${input.name} 様（${input.gender}・${input.age}歳）`;
+}
+
+/** 社内アラート本文。入力された6項目をそのまま載せる */
+export function consultBookingAdminNotificationHtml(
+  input: ConsultBookingMailInput,
+  receivedAt: string
+): string {
+  return `
+    <div style="font-family:'Noto Sans JP',sans-serif;line-height:1.75;color:#1c1f26;font-size:15px;">
+      <p style="margin:0 0 12px;font-weight:700;">個別相談の予約前アンケートが送信されました。</p>
+      <table style="border-collapse:collapse;font-size:14px;">
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">氏名</th><td>${escapeHtml(input.name)}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">性別</th><td>${escapeHtml(input.gender)}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">年齢</th><td>${input.age}歳</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">メール</th><td>${escapeHtml(input.email)}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">希望金額</th><td>${escapeHtml(input.amount)}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">流入</th><td>${escapeHtml(input.source)}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">受信</th><td>${escapeHtml(receivedAt)}</td></tr>
+      </table>
+      <div style="margin:16px 0;padding:16px;background:#f3f5f9;border-radius:10px;">
+        <p style="margin:0;font-weight:700;">今考えているアイディアや企画</p>
+        <p style="margin:6px 0 0;">${consultBookingIdeaHtml(input.idea)}</p>
+      </div>
+      <p style="margin:0;font-size:12px;color:#666;">※予約カレンダーは申込者への自動返信メールに記載しています。</p>
+    </div>
+  `;
+}
+
+/** 社内アラートを送る。宛先は既存の正規化を通す。例外は投げない */
+export async function sendConsultBookingAdminNotification(
+  input: ConsultBookingMailInput,
+  receivedAt: string
+): Promise<EmailResult> {
+  try {
+    return await sendEmail(
+      resolveAdminNotifyEmails(),
+      consultBookingAdminNotificationSubject(input),
+      consultBookingAdminNotificationHtml(input, receivedAt)
+    );
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    console.error('個別相談アンケートの社内アラート送信に失敗:', error);
     return { success: false, error };
   }
 }

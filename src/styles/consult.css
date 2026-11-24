@@ -1,0 +1,40 @@
+/* ===== 個別相談の予約前アンケート（/consult 専用） =====
+   基本の意匠は supporter-register.css / listing-apply.css を共有し、
+   このファイルは**このページだけの差分**を持つ。 */
+
+/* エラーは複数行で出るので、行間を詰めて読みやすくする */
+.consult-page .apply-error p { margin: 0 0 4px; }
+.consult-page .apply-error p:last-child { margin-bottom: 0; }
+
+/* 送信ボタンはKAMOの主CTA色（赤）。共有元は紺・緑なので、このページだけ上書き */
+.consult-page .form-submit { background: var(--kamo-red); }
+.consult-page .form-submit:hover { background: var(--kamo-red-dark); }
+.consult-page .form-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+/* 送信完了後：予約カレンダーへ進む導線（送信しないと出ない） */
+.success-state .consult-calendar-wrap { margin: 24px 0 6px; }
+.consult-calendar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 14px 30px;
+  background: var(--kamo-red);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.consult-calendar-btn:hover { background: var(--kamo-red-dark); }
+.success-state .consult-calendar-note {
+  font-size: 13px;
+  color: var(--kamo-gray);
+  margin-top: 8px;
+}
+.success-state .consult-calendar-note a {
+  color: var(--kamo-red);
+  text-decoration: underline;
+  word-break: break-all;
+}

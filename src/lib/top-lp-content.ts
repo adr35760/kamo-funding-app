@@ -59,7 +59,7 @@ export const LP_HERO = {
   description:
     '資金だけでなく、あなたの企画を応援してくれるお客様とのつながりをつくるために。KAMOファンディングの担当者が企画を伺い、実施に向けた準備と費用の見通しをご案内します。',
   cta: `自分の企画を無料で相談する｜${CONSULT_MINUTES}分`,
-  /** 2026-11-22 t iku指示: 本文側の相談CTAはすべてカレンダー予約に統一（CONSULT_URLのみ参照） */
+  /** 2026-11-24 t iku指示: 相談CTAはすべて予約前アンケート（CONSULT_URL=/consult）に統一 */
   ctaHref: CONSULT_URL,
   /** 補助導線（説明会LPへ） */
   subCtaLead: '全体像を知りたい方へ',
@@ -125,7 +125,7 @@ export interface LpCard {
   note: string;
   /** カード下部の小さな注記（本文2文の制約を守るため本文とは分ける） */
   footnote?: string;
-  /** 相談の入り口はすべてカレンダー予約（CONSULT_URL）／それ以外は各ページ */
+  /** 相談の入り口はすべて予約前アンケート（CONSULT_URL=/consult）／それ以外は各ページ */
   href: string;
 }
 
@@ -141,7 +141,7 @@ export const LP_CARDS: LpCard[] = [
     footnote: '※プロジェクト例・支援者データを説明会で公開',
     cta: '相談する（無料）',
     note: '相談無料・最短24時間返信',
-    // 2026-11-22 t iku指示: 個別相談の入口はカレンダー予約に一本化（フォームは下部に残す）
+    // 2026-11-24 t iku指示: 個別相談の入口は予約前アンケート（/consult）に一本化
     href: CONSULT_URL,
   },
   {

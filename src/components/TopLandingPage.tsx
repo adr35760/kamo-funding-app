@@ -117,8 +117,9 @@ export default function TopLandingPage() {
 
   /**
    * 相談CTAの計測（2026-11-22 t iku指示）。
-   * 🔴 遷移先はすべてカレンダー予約（CONSULT_URL）なので、クリックを記録して
-   *    そのままリンクを開かせる（preventDefault しない＝別タブで開く）。
+   * 🔴 遷移先はすべて予約前アンケート（CONSULT_URL=/consult）なので、クリックを記録して
+   *    そのままリンクを開かせる（preventDefault しない）。
+   *    2026-11-24: カレンダー直行をやめ、アンケート入力を挟む。
    *    位置は置き場所ごとに分ける（fv / cases / support / trust / steps / follow / form）。
    */
   const trackCta = useCallback(
@@ -202,7 +203,7 @@ export default function TopLandingPage() {
       {/* ヘッダーCTAは現行のまま（PM指示） */}
       <SiteHeader
         current="/"
-        cta={{ href: CONSULT_URL, label: '個別相談を予約', external: true }}
+        cta={{ href: CONSULT_URL, label: '個別相談を予約' }}
       />
 
       <main>

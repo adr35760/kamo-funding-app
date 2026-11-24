@@ -31,12 +31,22 @@ export const NUM_JISSEKI_NOTE =
   `${NUM_TASSEI_RATE}はKAMOファンディング単独の目標達成実績です。`;
 
 /**
- * 個別相談（生島との45分）の予約ページ。
- * t iku さん指定のURLをそのまま使う（パラメータを付けない・短縮しない）。
- * 🔴 トップ（/）・/lp・/seminar-info はすべてこの定数を import する。
- *    URLを各ページに直書きしない（差し替えを1箇所で済ませる）。
+ * 個別相談（生島との45分）の予約カレンダー（Googleカレンダーの予約ページ）。
+ *
+ * 🔴 このURLは /consult の送信完了後にだけ出す。サイト内の相談CTAから直接
+ *    開かせない（2026-11-24 t iku指示: アンケート未入力では予約できないようにする）。
  */
-export const CONSULT_URL = 'https://calendar.app.google/ejvtBroV4bRErCPM7';
+export const CONSULT_CALENDAR_URL = 'https://calendar.app.google/ejvtBroV4bRErCPM7';
+
+/**
+ * 個別相談CTAの遷移先＝予約前アンケートの入力ページ。
+ *
+ * 2026-11-24 t iku指示: 予約スケジュールを入れる前にアンケート（氏名・性別・年齢・
+ * メールアドレス・アイディア／企画・希望金額）の入力を必須にした。
+ * そのためサイト内の「個別相談」CTAはすべてこの定数を参照し、外部カレンダーへ
+ * 直リンクしない（URLの差し替えはこの1箇所で済ませる）。
+ */
+export const CONSULT_URL = '/consult';
 
 /**
  * 個別相談の所要時間（分）。ヒーロー・ステップ・FAQ・SEO で共用。
