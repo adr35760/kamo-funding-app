@@ -796,6 +796,16 @@ export interface RealAttendTier {
   payment?: { productName: string; productUrl: string };
 }
 
+/**
+ * 12/8 リアル回の**セミナー会場の総定員**（2026-11-24 t iku確定）。
+ *
+ * 🔴 「セミナーから参加」と「セミナーのみ参加」は同じ部屋（20名）を分け合う。
+ *    events の capacity は行ごとにしか効かないため、**2区分をまたいだ合計**は
+ *    /api/apply がこの値で判定する（片方だけで20名まで受けると、
+ *    もう片方の申込で部屋が溢れる）。
+ */
+export const REAL_SEMINAR_ROOM_CAPACITY = 20;
+
 export const REAL_ATTEND_TIERS: RealAttendTier[] = [
   {
     label: 'セミナーから参加',

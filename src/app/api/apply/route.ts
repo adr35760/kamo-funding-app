@@ -7,6 +7,7 @@ import { isEventFinished } from '@/lib/event-visibility';
 import { normalizeUtmValue } from '@/lib/utm';
 import { isReferralCodeShape, normalizeReferralCode } from '@/lib/referral-link';
 import { logEmailResult } from '@/lib/email-log';
+import { REAL_SEMINAR_ROOM_CAPACITY, realTierFor } from '@/lib/seminar-config';
 
 /**
  * POST /api/apply
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
     try {
       const { data: evCheck } = await supabaseAdmin
         .from('events')
-        .select('event_date, duration_minutes, status')
+        .select('event_date, duration_minutes, status, title, pillar')
         .eq('id', event_id)
         .single();
       // 中止・下書きの回は受け付けない。
@@ -178,6 +179,75 @@ export async function POST(request: NextRequest) {
     } catch (e) {
       // 定員チェックに失敗しても申込自体は妨げない（可用性優先）
       console.error('Capacity check failed:', e);
+    }
+
+    // 🔴 12/8 リアル回のセミナー会場（20名）は参加区分をまたいで共有する
+    //    （2026-11-24 t iku確定）。「セミナーから参加」と「セミナーのみ参加」が
+    //    同じ部屋なので、**両区分の合計**で判定する。行ごとの capacity だけでは
+    //    片方で20名・もう片方で10名のように溢れる。
+    try {
+      const { data: evInfo } = await supabaseAdmin
+        .from('events')
+        .select('title, event_date, pillar')
+        .eq('id', event_id)
+        .single();
+      const pillar = (evInfo?.pillar as number | null) ?? null;
+      const tier = realTierFor(
+        (evInfo?.event_date as string | null) ?? null,
+        (evInfo?.title as string | null) ?? null
+      );
+      // 懇親会のみの区分はセミナー会場を使わないので対象外
+      if (pillar === 3 && tier && !tier.partyOnly) {
+        // 同じ日のセミナー系（懇親会のみ以外）の区分すべてを合算する
+        const target = new Date(evInfo!.event_date as string);
+        const dayKey = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Asia/Tokyo',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }).format(target);
+        const { data: sameDayEvents } = await supabaseAdmin
+          .from('events')
+          .select('id, title, event_date')
+          .eq('pillar', 3)
+          .in('status', ['upcoming', 'published']);
+        const ids = (sameDayEvents || [])
+          .filter((e: Record<string, unknown>) => {
+            const d = e.event_date as string | null;
+            if (!d) return false;
+            const key = new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'Asia/Tokyo',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            }).format(new Date(d));
+            if (key !== dayKey) return false;
+            const t2 = realTierFor(d, (e.title as string | null) ?? null);
+            return !!t2 && !t2.partyOnly;
+          })
+          .map((e: Record<string, unknown>) => e.id as string);
+
+        if (ids.length > 0) {
+          const { count } = await supabaseAdmin
+            .from('registrations')
+            .select('id', { count: 'exact', head: true })
+            .in('event_id', ids)
+            .eq('status', 'registered');
+          if (typeof count === 'number' && count >= REAL_SEMINAR_ROOM_CAPACITY) {
+            return NextResponse.json(
+              {
+                success: false,
+                error:
+                  '申し訳ありません。セミナー会場の定員（20名）に達したため受付を終了しました。交流会のみの参加は引き続き受け付けています。',
+              },
+              { status: 409 }
+            );
+          }
+        }
+      }
+    } catch (e) {
+      // 合算の判定に失敗しても申込は妨げない（可用性優先）
+      console.error('Combined capacity check failed:', e);
     }
 
     // 申込レコードの基本項目（UTM列が無い環境でも必ず通る内容）
