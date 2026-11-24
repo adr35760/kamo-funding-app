@@ -113,7 +113,10 @@ function venueBlockHtml(eventDate?: string | null, eventTitle?: string | null): 
   const tier = realTierFor(eventDate, eventTitle);
   const main = tier?.venue.main ?? REAL_VENUE.seminar;
   const party = tier ? tier.venue.sub ?? main : REAL_VENUE.party;
-  const rows = tier?.partyOnly
+  // セミナーのみ参加は懇親会に行かないので「（懇親会も同会場）」を出さない
+  const rows = tier?.seminarOnly
+    ? `<p style="margin: 0 0 8px;">セミナー会場: <strong>${main}</strong></p>`
+    : tier?.partyOnly
     ? `<p style="margin: 0 0 8px;">懇親会会場: <strong>${main}</strong></p>`
     : `<p style="margin: 0 0 4px;">セミナー会場: <strong>${main}</strong>${
         party === main ? '（懇親会も同会場）' : ''
