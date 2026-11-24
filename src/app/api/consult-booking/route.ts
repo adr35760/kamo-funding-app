@@ -42,6 +42,7 @@ async function saveConsultBooking(
     const { error } = await supabase.from('consult_bookings').insert({
       name: value.name,
       gender: value.gender,
+      status: value.status,
       age: value.age,
       email: value.email,
       idea: value.idea,

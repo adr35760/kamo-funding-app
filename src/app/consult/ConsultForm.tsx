@@ -16,6 +16,8 @@ import {
   CONSULT_AMOUNT_MAX,
   CONSULT_GENDERS,
   CONSULT_IDEA_MAX,
+  CONSULT_PAID_STATUS,
+  CONSULT_STATUSES,
   validateConsultBooking,
 } from '@/lib/consult-booking-shared';
 
@@ -34,6 +36,10 @@ export default function ConsultForm() {
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [ideaLength, setIdeaLength] = useState(0);
+  /** 現在の状況（ラジオの選択状態で枠色を変えるため値を持つ） */
+  const [status, setStatus] = useState('');
+  /** 送信時の状況。実施中は予約カレンダーを出さない（無料相談の対象外） */
+  const [submittedStatus, setSubmittedStatus] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -44,6 +50,7 @@ export default function ConsultForm() {
     const payload = {
       name: get('name'),
       gender: get('gender'),
+      status: get('status'),
       age: get('age'),
       email: get('email'),
       idea: get('idea'),
@@ -77,6 +84,7 @@ export default function ConsultForm() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
+      setSubmittedStatus(payload.status);
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {
@@ -98,9 +106,9 @@ export default function ConsultForm() {
             個別相談の<span className="gold">お申し込み</span>
           </h1>
           <p>
-            ご予約の前に、6つの項目にお答えください。
+            ご予約の前に、以下の項目にお答えください。
             <br />
-            送信後、予約カレンダーからご希望の日時をお選びいただけます。
+            送信後、無料相談の対象の方は予約カレンダーから日時をお選びいただけます。
           </p>
         </div>
       </section>
@@ -112,34 +120,56 @@ export default function ConsultForm() {
               <div className="success-state">
                 <div className="check"></div>
                 <h3>お申し込みを受け付けました</h3>
-                <p>
-                  ありがとうございます。つづいて、ご希望の日時をお選びください。
-                  <br />
-                  同じご案内を、ご入力のメールアドレスにもお送りしました。
-                </p>
-                <p className="consult-calendar-wrap">
-                  <a
-                    className="consult-calendar-btn"
-                    href={CONSULT_CALENDAR_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    予約カレンダーを開く →
-                  </a>
-                </p>
-                <p className="consult-calendar-note">
-                  カレンダーが開かない場合は
-                  <a href={CONSULT_CALENDAR_URL} target="_blank" rel="noopener noreferrer">
-                    こちらのリンク
-                  </a>
-                  からお進みください。
-                </p>
+                {submittedStatus === CONSULT_PAID_STATUS ? (
+                  <>
+                    <p>
+                      ありがとうございます。実施中の方は有償のご相談となるため、
+                      <br />
+                      無料相談の予約カレンダーはご案内しておりません。
+                    </p>
+                    <p>
+                      担当者より、ご相談の内容と費用をご連絡します。
+                      <br />
+                      同じご案内を、ご入力のメールアドレスにもお送りしました。
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      ありがとうございます。つづいて、ご希望の日時をお選びください。
+                      <br />
+                      同じご案内を、ご入力のメールアドレスにもお送りしました。
+                    </p>
+                    <p className="consult-calendar-wrap">
+                      <a
+                        className="consult-calendar-btn"
+                        href={CONSULT_CALENDAR_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        予約カレンダーを開く →
+                      </a>
+                    </p>
+                    <p className="consult-calendar-note">
+                      カレンダーが開かない場合は
+                      <a href={CONSULT_CALENDAR_URL} target="_blank" rel="noopener noreferrer">
+                        こちらのリンク
+                      </a>
+                      からお進みください。
+                    </p>
+                  </>
+                )}
               </div>
             ) : (
               <>
                 <h2>
                   予約前の<span className="gold">アンケート</span>
                 </h2>
+                <p className="consult-notice">
+                  無料相談はこれから挑戦したい方のみです！
+                  <br />
+                  「実施中の方は有償です」
+                </p>
                 <p className="form-sub">
                   すべて必須項目です。所要時間は約2分です。
                 </p>
@@ -214,6 +244,32 @@ export default function ConsultForm() {
                       autoComplete="email"
                       placeholder="example@email.com"
                     />
+                  </div>
+
+                  <div className="form-group">
+                    <label>
+                      現在の状況 <span className="required">必須</span>
+                    </label>
+                    <div className="apply-radios">
+                      {CONSULT_STATUSES.map((v) => (
+                        <label key={v} className={`apply-radio${status === v ? ' is-checked' : ''}`}>
+                          <input
+                            type="radio"
+                            name="status"
+                            value={v}
+                            required
+                            checked={status === v}
+                            onChange={() => setStatus(v)}
+                          />
+                          {v}
+                        </label>
+                      ))}
+                    </div>
+                    {status === CONSULT_PAID_STATUS && (
+                      <p className="consult-status-note">
+                        実施中の方は、担当者より有償のご相談をご案内します（無料相談の対象外です）。
+                      </p>
+                    )}
                   </div>
 
                   <div className="form-group">

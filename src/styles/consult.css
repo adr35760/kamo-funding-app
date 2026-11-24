@@ -38,3 +38,31 @@
   text-decoration: underline;
   word-break: break-all;
 }
+
+/* 見出し直下の注意書き（無料相談の対象を明示）。煽らず、赤の縦線で目に入るだけにする */
+.consult-page .consult-notice {
+  margin: -6px 0 20px;
+  padding: 14px 18px;
+  background: #FFF5F5;
+  border: 1px solid var(--kamo-border);
+  border-left: 5px solid var(--kamo-red);
+  border-radius: var(--radius);
+  color: var(--kamo-red-dark);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.75;
+  text-align: left;
+}
+@media (max-width: 768px) {
+  /* 390px幅で「…のみです！」が途中で折れないよう、1文字だけ小さくする */
+  .consult-page .consult-notice { font-size: 13px; padding: 12px 14px; line-height: 1.8; }
+}
+
+/* 「実施中」を選んだときの補足（有償のご案内） */
+.consult-page .consult-status-note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--kamo-red-dark);
+  font-weight: 700;
+}

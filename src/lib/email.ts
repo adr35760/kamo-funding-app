@@ -4,6 +4,7 @@ import { SITE_ORIGIN } from '@/lib/site-url';
 import { referralTermsHtml } from '@/lib/referral-terms';
 import { referralShareUrl, siteOrigin } from '@/lib/referral-link';
 import { CONSULT_CALENDAR_URL, CONSULT_MINUTES } from '@/lib/seminar-info-content';
+import { CONSULT_PAID_STATUS } from '@/lib/consult-booking-shared';
 import { buildReferralShareMessage, buildReferralShortMessage } from '@/lib/referral-message';
 import {
   AI_SEMINAR,
@@ -1388,6 +1389,8 @@ export async function sendConsultAdminNotification(
 export interface ConsultBookingMailInput {
   name: string;
   gender: string;
+  /** これから挑戦したい／実施中（実施中は無料相談の対象外＝有償のご案内） */
+  status: string;
   age: number;
   email: string;
   idea: string;
@@ -1415,16 +1418,21 @@ export function consultBookingConfirmationHtml(input: ConsultBookingMailInput): 
         <p style="margin:0;">アイディア・企画：<br />${consultBookingIdeaHtml(input.idea)}</p>
       </div>
 
-      <p style="margin-top:24px;font-weight:700;">つづいて、ご希望の日時をお選びください（${CONSULT_MINUTES}分・無料）。</p>
-      <p style="margin-top:12px;text-align:center;">
-        <a href="${CONSULT_CALENDAR_URL}"
-           style="display:inline-block;background:#E60012;color:#fff;font-weight:700;padding:16px 28px;border-radius:8px;text-decoration:none;">
-          予約カレンダーを開く →
-        </a>
-      </p>
-      <p style="margin-top:8px;font-size:13px;color:#666;text-align:center;word-break:break-all;">
-        うまく開かない場合はこちら: <a href="${CONSULT_CALENDAR_URL}" style="color:#E60012;">${CONSULT_CALENDAR_URL}</a>
-      </p>
+      ${input.status === CONSULT_PAID_STATUS
+        ? `<div style="margin:20px 0;padding:16px;background:#FFF5F5;border-left:4px solid #E60012;border-radius:8px;">
+             <p style="margin:0;font-weight:700;color:#B8000E;">実施中の方は有償のご相談となります。</p>
+             <p style="margin:6px 0 0;font-size:14px;">無料相談の予約カレンダーはご案内しておりません。担当者より、ご相談の内容と費用をご連絡します。</p>
+           </div>`
+        : `<p style="margin-top:24px;font-weight:700;">つづいて、ご希望の日時をお選びください（${CONSULT_MINUTES}分・無料）。</p>
+           <p style="margin-top:12px;text-align:center;">
+             <a href="${CONSULT_CALENDAR_URL}"
+                style="display:inline-block;background:#E60012;color:#fff;font-weight:700;padding:16px 28px;border-radius:8px;text-decoration:none;">
+               予約カレンダーを開く →
+             </a>
+           </p>
+           <p style="margin-top:8px;font-size:13px;color:#666;text-align:center;word-break:break-all;">
+             うまく開かない場合はこちら: <a href="${CONSULT_CALENDAR_URL}" style="color:#E60012;">${CONSULT_CALENDAR_URL}</a>
+           </p>`}
 
       <p style="margin-top:20px;">本メールに心当たりがない場合は、お手数ですがこのメールを破棄してください。</p>
       <p style="margin-top:24px;">—<br />KAMOファンディング</p>
@@ -1451,7 +1459,8 @@ export async function sendConsultBookingConfirmationEmail(
 
 /** 社内アラートの件名（性別・年齢で仕分けできるようにする） */
 export function consultBookingAdminNotificationSubject(input: ConsultBookingMailInput): string {
-  return `【個別相談】${input.name} 様（${input.gender}・${input.age}歳）`;
+  const paid = input.status === CONSULT_PAID_STATUS ? '【実施中・有償】' : '';
+  return `【個別相談】${paid}${input.name} 様（${input.gender}・${input.age}歳）`;
 }
 
 /** 社内アラート本文。入力された6項目をそのまま載せる */
@@ -1465,6 +1474,7 @@ export function consultBookingAdminNotificationHtml(
       <table style="border-collapse:collapse;font-size:14px;">
         <tr><th style="text-align:left;padding:4px 16px 4px 0;">氏名</th><td>${escapeHtml(input.name)}</td></tr>
         <tr><th style="text-align:left;padding:4px 16px 4px 0;">性別</th><td>${escapeHtml(input.gender)}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">現在の状況</th><td><strong>${escapeHtml(input.status)}</strong>${input.status === CONSULT_PAID_STATUS ? '（無料相談の対象外・有償のご案内）' : ''}</td></tr>
         <tr><th style="text-align:left;padding:4px 16px 4px 0;">年齢</th><td>${input.age}歳</td></tr>
         <tr><th style="text-align:left;padding:4px 16px 4px 0;">メール</th><td>${escapeHtml(input.email)}</td></tr>
         <tr><th style="text-align:left;padding:4px 16px 4px 0;">希望金額</th><td>${escapeHtml(input.amount)}</td></tr>

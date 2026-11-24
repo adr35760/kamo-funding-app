@@ -13,6 +13,16 @@
 export const CONSULT_GENDERS = ['女性', '男性', 'その他'] as const;
 export type ConsultGender = (typeof CONSULT_GENDERS)[number];
 
+/**
+ * 現在の状況（2026-11-24 t iku指示で追加）。
+ * 無料相談の対象は「これから挑戦したい方」のみ。実施中の方は有償の相談になる。
+ */
+export const CONSULT_STATUSES = ['これから挑戦したい', '実施中'] as const;
+export type ConsultStatus = (typeof CONSULT_STATUSES)[number];
+
+/** 無料相談の対象外（＝有償のご案内になる）状態 */
+export const CONSULT_PAID_STATUS: ConsultStatus = '実施中';
+
 /** 年齢の許容範囲（契約年齢を下回る入力・打ち間違いを弾く） */
 export const CONSULT_AGE_MIN = 18;
 export const CONSULT_AGE_MAX = 120;
@@ -27,6 +37,8 @@ export const CONSULT_AMOUNT_MAX = 100;
 export interface ConsultBookingInput {
   name: string;
   gender: string;
+  /** これから挑戦したい／実施中 */
+  status: string;
   age: string | number;
   email: string;
   idea: string;
@@ -39,6 +51,7 @@ export interface ConsultBookingInput {
 export interface ConsultBookingValue {
   name: string;
   gender: ConsultGender;
+  status: ConsultStatus;
   age: number;
   email: string;
   idea: string;
@@ -49,6 +62,10 @@ export interface ConsultBookingValue {
 
 export function isConsultGender(value: string): value is ConsultGender {
   return (CONSULT_GENDERS as readonly string[]).includes(value);
+}
+
+export function isConsultStatus(value: string): value is ConsultStatus {
+  return (CONSULT_STATUSES as readonly string[]).includes(value);
 }
 
 /** メールアドレスの形式チェック（相談フォームと同じ緩さ＝弾きすぎない） */
@@ -67,6 +84,7 @@ export function validateConsultBooking(
 
   const name = String(body.name ?? '').trim();
   const gender = String(body.gender ?? '').trim();
+  const status = String(body.status ?? '').trim();
   const ageRaw = String(body.age ?? '').trim();
   const email = String(body.email ?? '').trim();
   const idea = String(body.idea ?? '').trim();
@@ -79,6 +97,11 @@ export function validateConsultBooking(
 
   if (!gender) errors.push('性別を選択してください');
   else if (!isConsultGender(gender)) errors.push('性別は「女性・男性・その他」から選択してください');
+
+  if (!status) errors.push('現在の状況を選択してください');
+  else if (!isConsultStatus(status)) {
+    errors.push('現在の状況は「これから挑戦したい・実施中」から選択してください');
+  }
 
   const age = Number(ageRaw);
   if (!ageRaw) errors.push('年齢を入力してください');
@@ -109,6 +132,7 @@ export function validateConsultBooking(
     value: {
       name,
       gender: gender as ConsultGender,
+      status: status as ConsultStatus,
       age,
       email,
       idea,
