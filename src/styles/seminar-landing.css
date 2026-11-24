@@ -293,11 +293,12 @@
    「セミナーから参加」「交流会から参加」は同額で、違うのは時間・会場・内容。
    申込前に見比べて選べるよう、日程の直後にカードで並べる。
    ============================================ */
+/* 2026-11-24 参加区分が3つになった（セミナーのみ参加を追加）ため3列に */
 .sl-tiers {
-  max-width: 780px;
+  max-width: 1100px;
   margin: 22px auto 0;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 .sl-tier {
@@ -317,6 +318,19 @@
 .sl-tier-price { font-size: 19px; font-weight: 900; color: var(--kamo-gold); white-space: nowrap; }
 .sl-tier p { margin: 0 0 6px; font-size: 14px; line-height: 1.75; color: #444; }
 .sl-tier-summary { font-size: 13px !important; color: #666 !important; margin: 10px 0 0 !important; }
+/* 外部ストアで完結する区分（セミナーのみ参加）の決済ボタン */
+.sl-tier-cta {
+  display: block;
+  margin-top: 14px;
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 15px;
+}
+
+@media (max-width: 1023px) and (min-width: 769px) {
+  /* 3枚を3列にすると1枚あたりが狭すぎるため、中間幅は2列 */
+  .sl-tiers { grid-template-columns: repeat(2, 1fr); }
+}
 
 @media (max-width: 768px) {
   /* 狭い幅で2列にすると金額と会場名が潰れるため1列に */

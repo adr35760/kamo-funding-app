@@ -566,7 +566,7 @@ export const REAL_SEMINAR: SeminarConfig = {
   // 🔴 サイト内の金額はここだけを直す（/seminar・完了メール・特商法表記も追随する）。
   //    ストアの商品価格（外部）はコード外なので、別途 22,000円 への変更が必要。
   price: { status: 'fixed', label: '22,000円（税込）' },
-  priceNote: '参加区分は2つ・どちらも同額',
+  priceNote: 'セミナーのみ参加は15,000円',
   // 参加費を大きく強調（/ai-seminar と統一意匠）
   emphasizePrice: true,
   capacity: { status: 'fixed', label: 'セミナー 20名' },
@@ -754,14 +754,22 @@ export const REAL_SEMINAR: SeminarConfig = {
 export interface RealAttendTier {
   /** 区分の表示名 */
   label: string;
-  /** DBの events.event_date と突き合わせるISO時刻（JST） */
-  isoDate: string;
+  /**
+   * DBの events.event_date と突き合わせるISO時刻（JST）。
+   * 🔴 サイトの申込フォームを使わず外部ストアで完結する区分は持たない
+   *    （持たせると realTierFor が同じ時刻の別区分を誤って返す）。
+   */
+  isoDate?: string;
   /** 時間の表示 */
   timeLabel: string;
   /** この区分の参加者にとっての会場（メール・ページ共通） */
   venue: { main: string; sub?: string };
-  /** 定員 */
-  capacity: number;
+  /** 定員（未設定なら定員行を出さない） */
+  capacity?: number;
+  /** 区分ごとに価格が違うときの表示（未設定なら config.price を使う） */
+  priceLabel?: string;
+  /** サイトの申込フォームではなく、この商品ページへ直接送る */
+  applyUrl?: string;
   /** 一言説明 */
   summary: string;
   /** 懇親会のみの区分か（セミナー本編の案内を出さない判定に使う） */
@@ -814,6 +822,24 @@ export const REAL_ATTEND_TIERS: RealAttendTier[] = [
       productUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/73508',
     },
   },
+  {
+    /* 2026-11-24 t iku指示で追加。セミナー本編だけの参加枠。
+       🔴 この区分は**サイトの申込フォームを使わず、ストアの商品ページへ直接送る**
+          （events に行が無いため、満席判定・完了メールの対象外）。
+          決済リンクは t iku 支給。商品名・価格はストア実測（2026-11-24）：
+          「リアルセミナー参加券（懇親会はご参加できません）」15,000円。 */
+    label: 'セミナーのみ参加',
+    timeLabel: '受付 15:30〜／セミナー 16:00〜18:30',
+    venue: { main: REAL_VENUE.seminar },
+    priceLabel: '15,000円',
+    summary:
+      'セミナー本編（第1部〜第5部・鴨頭嘉人リアル登壇）のみの参加です。プロの直接指導とAI実践ワークを含みます。懇親会にはご参加いただけません。',
+    applyUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/73536',
+    payment: {
+      productName: 'リアルセミナー参加券（懇親会はご参加できません）',
+      productUrl: 'https://www.kamofunding.com/stores/kamofunding04/products/73536',
+    },
+  },
 ];
 
 /**
@@ -824,7 +850,7 @@ export function realTierFor(eventDate?: string | null): RealAttendTier | null {
   if (!eventDate) return null;
   const t = new Date(eventDate).getTime();
   if (Number.isNaN(t)) return null;
-  return REAL_ATTEND_TIERS.find(x => new Date(x.isoDate).getTime() === t) ?? null;
+  return REAL_ATTEND_TIERS.find(x => x.isoDate && new Date(x.isoDate).getTime() === t) ?? null;
 }
 
 /**

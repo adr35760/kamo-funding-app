@@ -498,15 +498,26 @@ export default function SeminarLanding({
                 <div className="sl-tier" key={t.label}>
                   <div className="sl-tier-head">
                     <span className="sl-tier-name">{t.label}</span>
-                    <span className="sl-tier-price">{priceParts.amount}</span>
+                    <span className="sl-tier-price">{t.priceLabel ?? priceParts.amount}</span>
                   </div>
                   <p className="sl-tier-time">🕒 {t.timeLabel}</p>
                   <p className="sl-tier-venue">
                     📍 {t.venue.main}
                     {t.venue.sub && t.venue.sub !== t.venue.main && <>（懇親会：{t.venue.sub}）</>}
                   </p>
-                  <p className="sl-tier-cap">👥 定員 {t.capacity}名</p>
+                  {typeof t.capacity === 'number' && <p className="sl-tier-cap">👥 定員 {t.capacity}名</p>}
                   <p className="sl-tier-summary">{t.summary}</p>
+                  {/* 外部ストアで完結する区分（セミナーのみ参加）は、この場から決済ページへ送る */}
+                  {t.applyUrl && (
+                    <a
+                      className="sl-cta sl-tier-cta"
+                      href={t.applyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t.label}で申し込む →
+                    </a>
+                  )}
                 </div>
               ))}
             </div>

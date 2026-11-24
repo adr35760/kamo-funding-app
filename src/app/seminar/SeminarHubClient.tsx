@@ -68,7 +68,10 @@ const COMPARE = [
     priceNote: REAL_SEMINAR.priceNote ?? null,
     format: 'リアル開催（セミナー＋懇親会）',
     // 参加区分が2つあるため、比較カードでは両方の時間を示す（設定から引く）
-    duration: REAL_ATTEND_TIERS.map(t => `${t.label} ${t.timeLabel.split('（')[0]}`).join(' / '),
+    // 外部ストアで完結する区分（isoDateなし）は events を持たないので、開催概要の区分には出さない
+    duration: REAL_ATTEND_TIERS.filter(t => t.isoDate)
+      .map(t => `${t.label} ${t.timeLabel.split('（')[0]}`)
+      .join(' / '),
     capacity: REAL_SEMINAR.capacityParty
       ? `${pendingLabel(REAL_SEMINAR.capacity)} / ${pendingLabel(REAL_SEMINAR.capacityParty)}`
       : pendingLabel(REAL_SEMINAR.capacity),
