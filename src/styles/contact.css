@@ -1,0 +1,61 @@
+/* ===== 質問・問い合わせ・取材依頼（/contact 専用） =====
+   基本の意匠は supporter-register.css（紺×金のヒーロー／フォームカード）と
+   listing-apply.css（ラジオ・エラー・同意欄）を共有する。
+   このファイルは**このページだけの差分**を持つ。 */
+
+/* 送信ボタンはKAMOの主CTA色（赤）。共有元は紺なので、このページだけ上書き */
+.contact-page .form-submit { background: var(--kamo-red); }
+.contact-page .form-submit:hover { background: var(--kamo-red-dark); }
+.contact-page .form-submit:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+/* 用件の選択肢は文言が長いので、ピルを2列のグリッドにして折り返しを揃える */
+.contact-page .apply-radios.is-contact-kinds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.contact-page .is-contact-kinds .apply-radio {
+  justify-content: flex-start;
+  padding: 13px 16px;
+  line-height: 1.5;
+  text-align: left;
+}
+@media (max-width: 768px) {
+  .contact-page .apply-radios.is-contact-kinds { grid-template-columns: 1fr; }
+}
+
+/* 取材依頼を選んだときだけ出る補足 */
+.contact-page .contact-kind-note {
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  background: #FFFDF5;
+  border: 1px solid var(--kamo-gold);
+  border-radius: var(--radius);
+  font-size: 13px;
+  line-height: 1.8;
+  color: #5A4A18;
+  text-align: left;
+}
+
+/* エラーは複数行で出るので行間を詰める */
+.contact-page .apply-error p { margin: 0 0 4px; }
+.contact-page .apply-error p:last-child { margin-bottom: 0; }
+
+/* 送信完了後の戻り導線 */
+.success-state .contact-back { margin-top: 22px; }
+.success-state .contact-back a {
+  color: var(--kamo-red);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+/* ヒーローの見出しは「質問・問い合わせ・」と「取材依頼」の区切りで折る。
+   390pxで「取／材依頼」のように語の途中で割れるのを防ぐ */
+@media (max-width: 520px) {
+  .contact-page .hero h1 .gold { display: block; }
+}
+
+/* ヒーローとフォーム冒頭の説明文は、語の途中（「メデ／ィア」等）で
+   折れないよう文節単位で改行する。未対応ブラウザは通常の折り返しのまま */
+.contact-page .hero p,
+.contact-page .form-sub { word-break: auto-phrase; }

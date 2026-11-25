@@ -1,0 +1,161 @@
+/* ===== 運営会社情報（/company 専用） =====
+   ヒーロー・フッターの意匠は supporter-register.css を共有し、
+   このファイルは会社情報カードの差分だけを持つ。 */
+
+.company-page .company-body {
+  padding: 64px 0 80px;
+  background: linear-gradient(180deg, var(--navy-bg) 0%, #F0F2F8 100%);
+}
+.company-page .container { max-width: 820px; }
+
+.company-card {
+  background: var(--kamo-white);
+  border-radius: var(--radius-lg);
+  padding: 36px 40px;
+  box-shadow: var(--shadow);
+  border-top: 4px solid var(--kamo-gold);
+  margin-bottom: 24px;
+}
+.company-card .company-role {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--kamo-gold);
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.company-card h2 {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--kamo-navy);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.company-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.8;
+}
+.company-table th,
+.company-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 14px 8px;
+  border-top: 1px solid var(--navy-border);
+}
+.company-table th {
+  width: 132px;
+  font-weight: 700;
+  color: var(--kamo-navy);
+  white-space: nowrap;
+}
+.company-table td { color: #3A4552; }
+
+.company-contact {
+  background: var(--kamo-white);
+  border-radius: var(--radius-lg);
+  padding: 32px 40px 36px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.company-contact h2 {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--kamo-navy);
+  margin-bottom: 10px;
+}
+.company-contact p {
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--kamo-gray);
+  margin-bottom: 18px;
+}
+.company-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 14px 28px;
+  background: var(--kamo-red);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: var(--radius);
+  transition: background 0.2s;
+}
+.company-contact-btn:hover { background: var(--kamo-red-dark); }
+.company-contact .company-contact-note {
+  margin: 16px 0 0;
+  font-size: 13px;
+}
+.company-contact .company-contact-note a {
+  color: var(--kamo-red);
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+@media (max-width: 768px) {
+  .company-page .company-body { padding: 44px 0 56px; }
+  .company-card { padding: 26px 22px; }
+  .company-card h2 { font-size: 20px; }
+  /* 会社名が長いので、390pxでは「項目／値」の2列をやめて縦積みにする */
+  .company-table th,
+  .company-table td { display: block; }
+  .company-table th {
+    width: auto;
+    padding: 12px 8px 0;
+    border-top: 1px solid var(--navy-border);
+  }
+  .company-table th + td { padding-top: 2px; }
+  .company-contact { padding: 26px 22px 30px; }
+}
+
+/* 英語表記（社名の下の控えめな1行） */
+.company-card .company-name-en {
+  margin: -14px 0 18px;
+  font-size: 13px;
+  color: var(--kamo-gray);
+  letter-spacing: 0.02em;
+}
+
+/* 事業内容 */
+.company-biz-title {
+  margin: 28px 0 12px;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--kamo-navy);
+  padding-left: 12px;
+  border-left: 4px solid var(--kamo-gold);
+  line-height: 1.4;
+}
+.company-biz-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.company-biz-list li {
+  padding: 12px 0;
+  border-top: 1px solid #E7EBF1;
+  font-size: 15px;
+  line-height: 1.8;
+}
+.company-biz-list li:first-child { border-top: none; padding-top: 2px; }
+.company-biz-name {
+  display: block;
+  font-weight: 700;
+  color: var(--kamo-navy);
+}
+.company-biz-detail {
+  display: block;
+  font-size: 14px;
+  color: #3A4552;
+}
+
+/* ヒーローの説明文は幅を広くとり、文節単位で折る（「運営／し、」で割れないように） */
+.company-page .hero p { max-width: 720px; word-break: auto-phrase; }
+
+/* スマホでは「質問・問い合わせ・取材依頼はこちら →」が2行に割れないよう文字を詰める */
+@media (max-width: 768px) {
+  .company-contact-btn { font-size: 14px; padding: 13px 16px; }
+}

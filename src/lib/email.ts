@@ -1507,3 +1507,109 @@ export async function sendConsultBookingAdminNotification(
     return { success: false, error };
   }
 }
+
+// ===== 質問・問い合わせ・取材依頼（/contact） — 2026-11-25 t iku指示 =====
+//
+// 位置づけ:
+//  - サイトに問い合わせの受け口が無かったため新設（従来は特商法表記に
+//    メールアドレスがあるだけ）。
+//  - 申込者には**受付番号代わりの控えメール**を返し、社内には用件区分つきで通知する。
+//  - 取材依頼は件名の接頭辞で仕分けできるようにする（見落とし防止）。
+
+export interface ContactMailInput {
+  kind: string;
+  name: string;
+  organization: string;
+  email: string;
+  phone: string;
+  message: string;
+}
+
+function contactMessageHtml(message: string): string {
+  return escapeHtml(message).replace(/\r?\n/g, '<br />');
+}
+
+/** 取材依頼かどうか（件名の接頭辞を分けるためだけに使う） */
+function isPressKind(kind: string): boolean {
+  return kind.includes('取材');
+}
+
+const CONTACT_CONFIRMATION_SUBJECT = '【KAMOファンディング】お問い合わせを受け付けました';
+
+/** 申込者への自動返信（控えメール）本文 */
+export function contactConfirmationHtml(input: ContactMailInput): string {
+  return `
+    <div style="font-family:'Noto Sans JP',sans-serif;line-height:1.75;color:#1c1f26;font-size:15px;">
+      <p>${escapeHtml(input.name)} 様</p>
+      <p>このたびはKAMOファンディングへお問い合わせいただき、ありがとうございます。<br />
+      下記の内容で受け付けました。内容を確認のうえ、原則として2営業日以内にご返信します。</p>
+
+      <div style="margin:20px 0;padding:16px;background:#f3f5f9;border-radius:10px;">
+        <p style="margin:0 0 6px;">お問い合わせの種類：<strong>${escapeHtml(input.kind)}</strong></p>
+        <p style="margin:0;">お問い合わせ内容：<br />${contactMessageHtml(input.message)}</p>
+      </div>
+
+      <p>お急ぎの場合は、このメールに返信いただくか、下記までご連絡ください。<br />
+      info@local-creation.com</p>
+
+      <p>本メールに心当たりがない場合は、お手数ですがこのメールを破棄してください。</p>
+      <p style="margin-top:24px;">—<br />KAMOファンディング</p>
+    </div>
+  `;
+}
+
+/** 申込者への自動返信を送る。例外は投げない */
+export async function sendContactConfirmationEmail(input: ContactMailInput): Promise<EmailResult> {
+  try {
+    return await sendEmail(input.email, CONTACT_CONFIRMATION_SUBJECT, contactConfirmationHtml(input));
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    console.error('お問い合わせの控えメール送信に失敗:', error);
+    return { success: false, error };
+  }
+}
+
+/** 社内アラートの件名（取材依頼は先頭に【取材依頼】を付けて仕分ける） */
+export function contactAdminNotificationSubject(input: ContactMailInput): string {
+  const prefix = isPressKind(input.kind) ? '【取材依頼】' : '【お問い合わせ】';
+  return `${prefix}${input.kind}｜${input.name} 様`;
+}
+
+/** 社内アラート本文。申込者の入力をそのまま載せる */
+export function contactAdminNotificationHtml(input: ContactMailInput, receivedAt: string): string {
+  return `
+    <div style="font-family:'Noto Sans JP',sans-serif;line-height:1.75;color:#1c1f26;font-size:15px;">
+      <p style="margin:0 0 12px;font-weight:700;">サイトのお問い合わせフォームから送信がありました。</p>
+      <table style="border-collapse:collapse;font-size:14px;">
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">種類</th><td><strong>${escapeHtml(input.kind)}</strong></td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">氏名</th><td>${escapeHtml(input.name)}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">会社・媒体</th><td>${input.organization ? escapeHtml(input.organization) : '（未入力）'}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">メール</th><td>${escapeHtml(input.email)}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">電話</th><td>${input.phone ? escapeHtml(input.phone) : '（未入力）'}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">受信</th><td>${escapeHtml(receivedAt)}</td></tr>
+      </table>
+      <div style="margin:16px 0;padding:16px;background:#f3f5f9;border-radius:10px;">
+        ${contactMessageHtml(input.message)}
+      </div>
+      <p style="margin:0;font-size:12px;color:#666;">※返信はこのメールへの返信、または申込者のメールアドレス宛てに送ってください。</p>
+    </div>
+  `;
+}
+
+/** 社内アラートを送る。宛先は既存の正規化を通す。例外は投げない */
+export async function sendContactAdminNotification(
+  input: ContactMailInput,
+  receivedAt: string
+): Promise<EmailResult> {
+  try {
+    return await sendEmail(
+      resolveAdminNotifyEmails(),
+      contactAdminNotificationSubject(input),
+      contactAdminNotificationHtml(input, receivedAt)
+    );
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    console.error('お問い合わせの社内アラート送信に失敗:', error);
+    return { success: false, error };
+  }
+}

@@ -56,3 +56,12 @@ a {
 .legal-footer-links a:hover {
   opacity: 1;
 }
+
+/* フッターの問い合わせ導線（/contact）。
+   法務リンクと同じ行に並ぶが、こちらは**行き先のある導線**なので少し強く見せる */
+.legal-footer-links .footer-contact-link {
+  font-weight: 700;
+  opacity: 1;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
