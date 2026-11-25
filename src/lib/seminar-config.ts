@@ -15,8 +15,8 @@
  * ■ 定員: リアルはセミナー20名・**懇親会20名**（2026-11-25 t iku指示で懇親会40→20に修正）。
  *   events.capacity にはセミナー本体の20を入れており、申込上限の判定はこの20が基準。
  *   懇親会の20名は capacityParty として表示専用に持つ。
- *   ⚠️ 「交流会から参加」（懇親会のみ）の枠は別途20名で受付中で、
- *      セミナー参加者と合計すると懇親会の上限20名を超え得る（2026-11-25 未決）。
+ *   懇親会は「セミナーから参加」＋「交流会から参加」の**合算20名**で止める
+ *   （2026-11-25 t iku確定・/api/apply で判定。REAL_PARTY_CAPACITY）。
  *   オンラインの定員も20名で確定済み。
  *
  * ■ 懇親会が別料金かは未確定のため、リアル回は料金の内訳を書かない方針。
@@ -403,6 +403,16 @@ export const AI_SEMINAR: SeminarConfig = {
   venue: null,
 };
 
+/**
+ * 12/8 リアル回の**懇親会の総定員**（2026-11-25 t iku確定）。
+ *
+ * 🔴 「セミナーから参加」の20名も懇親会に入るため、懇親会の人数は
+ *    「セミナーから参加」＋「交流会から参加」の**合計**で20名まで。
+ *    （「セミナーのみ参加」は懇親会に出ないので含めない）
+ *    行ごとの capacity だけでは跨げないので、/api/apply が合算で判定する。
+ */
+export const REAL_PARTY_CAPACITY = 20;
+
 export const REAL_SEMINAR: SeminarConfig = {
   slug: 'real-seminar',
   pillar: 3,
@@ -578,7 +588,7 @@ export const REAL_SEMINAR: SeminarConfig = {
   emphasizePrice: true,
   capacity: { status: 'fixed', label: 'セミナー 20名' },
   // 2026-11-25 t iku指示: 懇親会の参加上限は20名（会場が20名のため）
-  capacityParty: { status: 'fixed', label: '懇親会 20名' },
+  capacityParty: { status: 'fixed', label: `懇親会 ${REAL_PARTY_CAPACITY}名` },
   contents: [
     '夢実現のステップ',
     'AIでページを作成',
@@ -754,11 +764,9 @@ export const REAL_SEMINAR: SeminarConfig = {
  *   交流会のみの方には自動的に「18:30〜20:30」が入る（15:30・受付行は出ない）。
  *
  * 🔴 定員の注意: **懇親会の上限は20名**（2026-11-25 t iku指示。会場が20名のため）。
- *   セミナー参加者も懇親会に入るので、本来は「セミナーから参加」＋「交流会から参加」で
- *   合計20名まで。ただし現状は行ごとの capacity（各20名）で独立して判定しており、
- *   両方が満席になると懇親会の人数が上限を超え得る（2026-11-25 未決・要判断）。
- *   （events.capacity は行ごとに独立して判定されるため、
- *     跨ぎの在庫管理を作る場合は /api/apply 側に合算判定を足す必要がある）
+ *   セミナー参加者も懇親会に入るので、「セミナーから参加」＋「交流会から参加」で
+ *   **合計20名まで**（2026-11-25 t iku確定）。行ごとの capacity だけでは跨げないため、
+ *   /api/apply が same-day の両区分を合算して判定する（REAL_PARTY_CAPACITY）。
  */
 export interface RealAttendTier {
   /** 区分の表示名 */

@@ -7,7 +7,7 @@ import { isEventFinished } from '@/lib/event-visibility';
 import { normalizeUtmValue } from '@/lib/utm';
 import { isReferralCodeShape, normalizeReferralCode } from '@/lib/referral-link';
 import { logEmailResult } from '@/lib/email-log';
-import { REAL_SEMINAR_ROOM_CAPACITY, realTierFor } from '@/lib/seminar-config';
+import { REAL_PARTY_CAPACITY, REAL_SEMINAR_ROOM_CAPACITY, realTierFor } from '@/lib/seminar-config';
 
 /**
  * POST /api/apply
@@ -181,10 +181,11 @@ export async function POST(request: NextRequest) {
       console.error('Capacity check failed:', e);
     }
 
-    // 🔴 12/8 リアル回のセミナー会場（20名）は参加区分をまたいで共有する
-    //    （2026-11-24 t iku確定）。「セミナーから参加」と「セミナーのみ参加」が
-    //    同じ部屋なので、**両区分の合計**で判定する。行ごとの capacity だけでは
-    //    片方で20名・もう片方で10名のように溢れる。
+    // 🔴 12/8 リアル回は「セミナー会場20名」と「懇親会20名」を参加区分をまたいで
+    //    共有する（2026-11-24 / 2026-11-25 t iku確定）。
+    //    ・セミナー会場＝「セミナーから参加」＋「セミナーのみ参加」（懇親会のみは使わない）
+    //    ・懇親会　　＝「セミナーから参加」＋「交流会から参加」（セミナーのみは出ない）
+    //    行ごとの capacity だけでは跨げないため、same-day の該当区分を合算して判定する。
     try {
       const { data: evInfo } = await supabaseAdmin
         .from('events')
@@ -196,9 +197,8 @@ export async function POST(request: NextRequest) {
         (evInfo?.event_date as string | null) ?? null,
         (evInfo?.title as string | null) ?? null
       );
-      // 懇親会のみの区分はセミナー会場を使わないので対象外
-      if (pillar === 3 && tier && !tier.partyOnly) {
-        // 同じ日のセミナー系（懇親会のみ以外）の区分すべてを合算する
+      if (pillar === 3 && tier) {
+        // 同じ日の区分を1回だけ引いて、会場・懇親会それぞれの合算対象を絞る
         const target = new Date(evInfo!.event_date as string);
         const dayKey = new Intl.DateTimeFormat('en-CA', {
           timeZone: 'Asia/Tokyo',
@@ -211,34 +211,69 @@ export async function POST(request: NextRequest) {
           .select('id, title, event_date')
           .eq('pillar', 3)
           .in('status', ['upcoming', 'published']);
-        const ids = (sameDayEvents || [])
-          .filter((e: Record<string, unknown>) => {
-            const d = e.event_date as string | null;
-            if (!d) return false;
-            const key = new Intl.DateTimeFormat('en-CA', {
-              timeZone: 'Asia/Tokyo',
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-            }).format(new Date(d));
-            if (key !== dayKey) return false;
-            const t2 = realTierFor(d, (e.title as string | null) ?? null);
-            return !!t2 && !t2.partyOnly;
-          })
-          .map((e: Record<string, unknown>) => e.id as string);
-
-        if (ids.length > 0) {
+        const sameDay = (sameDayEvents || []).filter((e: Record<string, unknown>) => {
+          const d = e.event_date as string | null;
+          if (!d) return false;
+          const key = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Asia/Tokyo',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+          }).format(new Date(d));
+          return key === dayKey;
+        });
+        const countFor = async (ids: string[]): Promise<number | null> => {
+          if (ids.length === 0) return 0;
           const { count } = await supabaseAdmin
             .from('registrations')
             .select('id', { count: 'exact', head: true })
             .in('event_id', ids)
             .eq('status', 'registered');
-          if (typeof count === 'number' && count >= REAL_SEMINAR_ROOM_CAPACITY) {
+          return typeof count === 'number' ? count : null;
+        };
+
+        // ① セミナー会場（懇親会のみの区分は使わない）
+        if (!tier.partyOnly) {
+          const ids = sameDay
+            .filter((e) => {
+              const t2 = realTierFor(
+                (e.event_date as string | null) ?? null,
+                (e.title as string | null) ?? null
+              );
+              return !!t2 && !t2.partyOnly;
+            })
+            .map((e) => e.id as string);
+          const count = await countFor(ids);
+          if (count !== null && count >= REAL_SEMINAR_ROOM_CAPACITY) {
             return NextResponse.json(
               {
                 success: false,
                 error:
-                  '申し訳ありません。セミナー会場の定員（20名）に達したため受付を終了しました。交流会のみの参加は引き続き受け付けています。',
+                  '申し訳ありません。セミナー会場の定員（20名）に達したため受付を終了しました。「交流会から参加」は、懇親会の空きがあれば引き続き受け付けています。',
+              },
+              { status: 409 }
+            );
+          }
+        }
+
+        // ② 懇親会（セミナーのみ参加は懇親会に出ないので含めない）
+        if (!tier.seminarOnly) {
+          const ids = sameDay
+            .filter((e) => {
+              const t2 = realTierFor(
+                (e.event_date as string | null) ?? null,
+                (e.title as string | null) ?? null
+              );
+              return !!t2 && !t2.seminarOnly;
+            })
+            .map((e) => e.id as string);
+          const count = await countFor(ids);
+          if (count !== null && count >= REAL_PARTY_CAPACITY) {
+            return NextResponse.json(
+              {
+                success: false,
+                error:
+                  '申し訳ありません。懇親会の定員（20名）に達したため受付を終了しました。「セミナーのみ参加」は引き続き受け付けています。',
               },
               { status: 409 }
             );
