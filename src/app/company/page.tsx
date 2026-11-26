@@ -151,13 +151,15 @@ export default function CompanyPage() {
             <ul className="profile-media">
               <li>
                 <a
-                  href="https://www.youtube.com/@%E7%94%9F%E5%B3%B6%E6%AD%A3%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89%E3%83%95%E3%82%A1%E3%83%B3%E3%83%87%E3%82%A3%E3%83%B3%E3%82%B0%E3%83%81%E3%83%A3"
+                  href="https://www.youtube.com/@crowdfunding-sp"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  YouTube「生島正のクラウドファンディングチャンネル」
+                  YouTube「クラウドファンディングの学校」
                 </a>
-                <span>クラウドファンディングの基礎、集め方、企画の立て方を発信</span>
+                <span>
+                  チャンネル登録者 約42万人。クラウドファンディングの基礎、集め方、企画の立て方を発信
+                </span>
               </li>
               <li>
                 <a href="https://voicy.jp/channel/959827" target="_blank" rel="noopener noreferrer">
