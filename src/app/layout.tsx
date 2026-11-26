@@ -48,6 +48,16 @@ export const metadata = {
     icon: '/kamo-logo-icon.png',
     apple: '/kamo-logo-icon.png',
   },
+  /**
+   * Meta広告のドメイン認証（2026-11-26 t iku指示）。
+   * 🔴 content の値は1文字も変更しない（Metaが発行したトークン）。
+   *    出力は <meta name="facebook-domain-verification" content="…" />。
+   */
+  verification: {
+    other: {
+      'facebook-domain-verification': '26dddyytuxrvjckb6hzkybvftgmckc',
+    },
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
