@@ -1294,7 +1294,7 @@ export interface ConsultMailInput {
   source: string;
 }
 
-const CONSULT_CONFIRMATION_SUBJECT = '【KAMOファンディング】無料相談のお申し込みを受け付けました';
+const CONSULT_CONFIRMATION_SUBJECT = `【KAMOファンディング】クラファン事業資金づくり診断（無料${CONSULT_MINUTES}分）のお申し込みを受け付けました`;
 
 function consultSummaryHtml(summary: string): string {
   return escapeHtml(summary).replace(/\r?\n/g, '<br />');
@@ -1305,7 +1305,7 @@ export function consultConfirmationHtml(input: ConsultMailInput): string {
   return `
     <div style="font-family:'Noto Sans JP',sans-serif;line-height:1.75;color:#1c1f26;font-size:15px;">
       <p>${escapeHtml(input.name)} 様</p>
-      <p>このたびはKAMOファンディングの無料相談にお申し込みいただき、ありがとうございます。<br />
+      <p>このたびはKAMOファンディングの無料診断にお申し込みいただき、ありがとうございます。<br />
       下記の内容で受け付けました。担当者より、最短24時間以内にご連絡します。</p>
 
       <div style="margin:20px 0;padding:16px;background:#eef3ff;border-radius:10px;">
@@ -1377,7 +1377,7 @@ export async function sendConsultAdminNotification(
   }
 }
 
-// ===== 個別相談の予約前アンケート（/consult） — 2026-11-24 t iku指示 =====
+// ===== 事業資金づくり診断の予約前アンケート（/consult） — 2026-11-24 t iku指示 =====
 //
 // 位置づけ:
 //  - 予約スケジュールを入れる**前に**6項目（氏名・性別・年齢・メールアドレス・
@@ -1389,7 +1389,7 @@ export async function sendConsultAdminNotification(
 export interface ConsultBookingMailInput {
   name: string;
   gender: string;
-  /** これから挑戦したい／実施中（実施中は無料相談の対象外＝有償のご案内） */
+  /** これから挑戦したい／実施中（実施中は無料診断の対象外＝有償のご案内） */
   status: string;
   age: number;
   email: string;
@@ -1399,7 +1399,7 @@ export interface ConsultBookingMailInput {
 }
 
 const CONSULT_BOOKING_CONFIRMATION_SUBJECT =
-  '【KAMOファンディング】個別相談のお申し込みを受け付けました（予約カレンダーのご案内）';
+  `【KAMOファンディング】クラファン事業資金づくり診断（無料${CONSULT_MINUTES}分）のお申し込みを受け付けました（予約カレンダーのご案内）`;
 
 function consultBookingIdeaHtml(idea: string): string {
   return escapeHtml(idea).replace(/\r?\n/g, '<br />');
@@ -1410,7 +1410,7 @@ export function consultBookingConfirmationHtml(input: ConsultBookingMailInput): 
   return `
     <div style="font-family:'Noto Sans JP',sans-serif;line-height:1.75;color:#1c1f26;font-size:15px;">
       <p>${escapeHtml(input.name)} 様</p>
-      <p>このたびはKAMOファンディングの個別相談にお申し込みいただき、ありがとうございます。<br />
+      <p>このたびはKAMOファンディングの事業資金づくり診断にお申し込みいただき、ありがとうございます。<br />
       下記の内容で受け付けました。</p>
 
       <div style="margin:20px 0;padding:16px;background:#f3f5f9;border-radius:10px;">
@@ -1421,7 +1421,7 @@ export function consultBookingConfirmationHtml(input: ConsultBookingMailInput): 
       ${input.status === CONSULT_PAID_STATUS
         ? `<div style="margin:20px 0;padding:16px;background:#FFF5F5;border-left:4px solid #E60012;border-radius:8px;">
              <p style="margin:0;font-weight:700;color:#B8000E;">実施中の方は有償のご相談となります。</p>
-             <p style="margin:6px 0 0;font-size:14px;">無料相談の予約カレンダーはご案内しておりません。担当者より、ご相談の内容と費用をご連絡します。</p>
+             <p style="margin:6px 0 0;font-size:14px;">無料診断の予約カレンダーはご案内しておりません。担当者より、ご相談の内容と費用をご連絡します。</p>
            </div>`
         : `<p style="margin-top:24px;font-weight:700;">つづいて、ご希望の日時をお選びください（${CONSULT_MINUTES}分・無料）。</p>
            <p style="margin-top:12px;text-align:center;">
@@ -1452,7 +1452,7 @@ export async function sendConsultBookingConfirmationEmail(
     );
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
-    console.error('個別相談アンケートの自動返信メール送信に失敗:', error);
+    console.error('事業資金づくり診断アンケートの自動返信メール送信に失敗:', error);
     return { success: false, error };
   }
 }
@@ -1460,7 +1460,7 @@ export async function sendConsultBookingConfirmationEmail(
 /** 社内アラートの件名（性別・年齢で仕分けできるようにする） */
 export function consultBookingAdminNotificationSubject(input: ConsultBookingMailInput): string {
   const paid = input.status === CONSULT_PAID_STATUS ? '【実施中・有償】' : '';
-  return `【個別相談】${paid}${input.name} 様（${input.gender}・${input.age}歳）`;
+  return `【事業資金づくり診断】${paid}${input.name} 様（${input.gender}・${input.age}歳）`;
 }
 
 /** 社内アラート本文。入力された6項目をそのまま載せる */
@@ -1470,11 +1470,11 @@ export function consultBookingAdminNotificationHtml(
 ): string {
   return `
     <div style="font-family:'Noto Sans JP',sans-serif;line-height:1.75;color:#1c1f26;font-size:15px;">
-      <p style="margin:0 0 12px;font-weight:700;">個別相談の予約前アンケートが送信されました。</p>
+      <p style="margin:0 0 12px;font-weight:700;">事業資金づくり診断の予約前アンケートが送信されました。</p>
       <table style="border-collapse:collapse;font-size:14px;">
         <tr><th style="text-align:left;padding:4px 16px 4px 0;">氏名</th><td>${escapeHtml(input.name)}</td></tr>
         <tr><th style="text-align:left;padding:4px 16px 4px 0;">性別</th><td>${escapeHtml(input.gender)}</td></tr>
-        <tr><th style="text-align:left;padding:4px 16px 4px 0;">現在の状況</th><td><strong>${escapeHtml(input.status)}</strong>${input.status === CONSULT_PAID_STATUS ? '（無料相談の対象外・有償のご案内）' : ''}</td></tr>
+        <tr><th style="text-align:left;padding:4px 16px 4px 0;">現在の状況</th><td><strong>${escapeHtml(input.status)}</strong>${input.status === CONSULT_PAID_STATUS ? '（無料診断の対象外・有償のご案内）' : ''}</td></tr>
         <tr><th style="text-align:left;padding:4px 16px 4px 0;">年齢</th><td>${input.age}歳</td></tr>
         <tr><th style="text-align:left;padding:4px 16px 4px 0;">メール</th><td>${escapeHtml(input.email)}</td></tr>
         <tr><th style="text-align:left;padding:4px 16px 4px 0;">希望金額</th><td>${escapeHtml(input.amount)}</td></tr>
@@ -1503,7 +1503,7 @@ export async function sendConsultBookingAdminNotification(
     );
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
-    console.error('個別相談アンケートの社内アラート送信に失敗:', error);
+    console.error('事業資金づくり診断アンケートの社内アラート送信に失敗:', error);
     return { success: false, error };
   }
 }

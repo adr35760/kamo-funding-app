@@ -215,7 +215,7 @@ function StoryCard({ item, index }: { item: CaseStory; index: number }) {
 
           <div className="sc-story-cta">
             <p className="sc-story-cta-title">
-              <span className="sc-story-num">06</span>あなたの企画も相談してみませんか？
+              <span className="sc-story-num">06</span>あなたの企画も診断してみませんか？
             </p>
             <TrackedLink
               href={CONSULT_URL}
@@ -224,7 +224,7 @@ function StoryCard({ item, index }: { item: CaseStory; index: number }) {
               event="cta_click"
               params={{ position: 'case' }}
             >
-              無料で企画を相談する →
+              無料で企画を診断する →
             </TrackedLink>
           </div>
         </div>
@@ -374,7 +374,7 @@ export default function SuccessPage() {
               event="cta_click"
               params={{ position: 'middle' }}
             >
-              {CONSULT_MINUTES}分の無料個別相談を予約する
+              クラファン事業資金づくり診断（無料{CONSULT_MINUTES}分）を予約する
             </TrackedLink>
             <p className="sc-fields-cta-note">{FIELD_SECTION.cta.note}</p>
           </div>
@@ -402,7 +402,7 @@ export default function SuccessPage() {
               <span>05</span>成功のポイント
             </li>
             <li>
-              <span>06</span>次の行動（無料相談）
+              <span>06</span>次の行動（無料診断）
             </li>
           </ol>
         </div>
@@ -432,7 +432,7 @@ export default function SuccessPage() {
         </section>
       ))}
 
-      {/* ===== CTA（2026-11-21 t iku指示: 個別相談をメイン・掲載説明会をサブに） ===== */}
+      {/* ===== CTA（2026-11-21 t iku指示: 事業資金づくり診断をメイン・掲載説明会をサブに） ===== */}
       <section className="sc-cta" id="consult">
         <div className="sc-container">
           <h2 className="sc-cta-title">次に挑戦するのは、あなたです。</h2>
@@ -445,7 +445,7 @@ export default function SuccessPage() {
             <li>「目標金額はいくらに設定すればいいのか？」</li>
           </ul>
           <p className="sc-cta-lead">
-            まずは{CONSULT_MINUTES}分の無料個別相談で、あなたの企画についてお聞かせください。
+            まずはクラファン事業資金づくり診断（無料{CONSULT_MINUTES}分）で、あなたの企画についてお聞かせください。
             企画内容や目標金額、公開までの準備について一緒に整理します。
           </p>
           <div className="sc-cta-actions">
@@ -457,11 +457,11 @@ export default function SuccessPage() {
               event="cta_click"
               params={{ position: 'footer' }}
             >
-              {CONSULT_MINUTES}分の無料個別相談を予約する
+              クラファン事業資金づくり診断（無料{CONSULT_MINUTES}分）を予約する
             </TrackedLink>
           </div>
           <p className="sc-cta-note">
-            ※相談は無料です。掲載手数料や有償サポート費用については別途ご案内します。
+            ※診断は無料です。掲載手数料や有償サポート費用については別途ご案内します。
           </p>
 
           <p className="sc-cta-flow">

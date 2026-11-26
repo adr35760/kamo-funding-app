@@ -7,10 +7,10 @@ import '@/styles/site-header.css';
 interface NavItem { href: string; label: string; banner?: boolean }
 
 const NAV_ITEMS: NavItem[] = [
-  // 2026-10-26: 主導線を個別相談へ切り替え（ラベルのみ変更・リンク先は /seminar-info のまま＝
-  // そのページは既に個別相談メインの構成）
-  { href: '/seminar-info', label: '個別相談' },
-  // 2026-11-02 t iku 指示: 「個別相談」と「パートナーシップ」の間に掲載説明会のバナーを置く
+  // 2026-10-26: 主導線を事業資金づくり診断へ切り替え（ラベルのみ変更・リンク先は /seminar-info のまま＝
+  // そのページは既に事業資金づくり診断メインの構成）
+  { href: '/seminar-info', label: '事業資金づくり診断' },
+  // 2026-11-02 t iku 指示: 「事業資金づくり診断」と「パートナーシップ」の間に掲載説明会のバナーを置く
   { href: '/seminar-info#schedule', label: '掲載説明会', banner: true },
   { href: '/partner-session-announce', label: 'パートナーシップ' },
   { href: '/partners', label: 'パートナー登録' },

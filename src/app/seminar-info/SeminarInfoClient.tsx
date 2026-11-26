@@ -41,7 +41,7 @@ const FEATURED_CASES = [
   { slug: 'nakajima01', label: '出版' },
 ] as const;
 
-/** ②無料相談で分かること（2026-11-22 t iku原稿の5項目） */
+/** ②無料診断で分かること（2026-11-22 t iku原稿の5項目） */
 const CONSULT_POINTS = [
   'あなたの企画にクラファンが適しているか',
   '目標金額とリターンの考え方',
@@ -50,7 +50,7 @@ const CONSULT_POINTS = [
   '掲載までの流れと必要な費用',
 ];
 
-/** ⑤個別相談の流れ（3ステップ） */
+/** ⑤事業資金づくり診断の流れ（3ステップ） */
 const FLOW_STEPS = [
   { title: '予約', body: 'カレンダーから日時を選ぶ' },
   { title: '当日伺うこと！', body: '実施アイディア／集めたい金額／時期など' },
@@ -205,10 +205,10 @@ export default function SeminarInfoClient({
     <div className="seminar-info-page">
       <SiteHeader
         current="/seminar-info"
-        cta={{ href: CONSULT_URL, label: '個別相談を予約' }}
+        cta={{ href: CONSULT_URL, label: '事業資金づくり診断を予約' }}
       />
 
-      {/* ===== ① ヒーロー（主CTA＝個別相談／副CTA＝説明会日程） =====
+      {/* ===== ① ヒーロー（主CTA＝事業資金づくり診断／副CTA＝説明会日程） =====
           2026-11-22 t iku指示: 冒頭を「その企画、クラファンで実現できる？」に差し替え */}
       <section className="hero">
         <div className="container">
@@ -218,10 +218,10 @@ export default function SeminarInfoClient({
               <span className="hero-line1">その企画、</span>
               <span className="hero-line2">クラファンで<span className="gold">実現できる？</span></span>
             </h1>
-            <p className="hero-lead">{CONSULT_MINUTES}分の無料個別相談で、目標金額・リターン・公開までの準備を整理します。</p>
+            <p className="hero-lead">クラファン事業資金づくり診断（無料{CONSULT_MINUTES}分）で、目標金額・リターン・公開までの準備を整理します。</p>
             <p className="hero-lead hero-lead-sub">
               新商品、出版、店舗開業、イベント、地域活動など。<br />
-              「実現したいことはあるけれど、何から始めたらいいのか分からない」そんな方のための無料相談です。
+              「実現したいことはあるけれど、何から始めたらいいのか分からない」そんな方のための無料診断です。
             </p>
             <div className="hero-cta-row">
               <TrackedLink
@@ -232,7 +232,7 @@ export default function SeminarInfoClient({
                 event="cta_click"
                 params={{ position: 'consult' }}
               >
-                {CONSULT_MINUTES}分の無料個別相談を予約する
+                クラファン事業資金づくり診断（無料{CONSULT_MINUTES}分）を予約する
               </TrackedLink>
               <TrackedLink
                 href={noSchedule ? '#apply' : SCHEDULE_ANCHOR}
@@ -243,16 +243,16 @@ export default function SeminarInfoClient({
                 {noSchedule ? '説明会のご案内を見る' : '説明会の日程を見る'}
               </TrackedLink>
             </div>
-            <p className="hero-note">オンライン開催・相談無料</p>
+            <p className="hero-note">オンライン開催・診断無料</p>
             <p className="hero-note">※掲載手数料は{PLATFORM_FEE_SHORT}。有償サポートは個別にお見積もりします。</p>
           </div>
         </div>
       </section>
 
-      {/* ===== ② 無料相談で分かること（2026-11-22 t iku原稿） ===== */}
+      {/* ===== ② 無料診断で分かること（2026-11-22 t iku原稿） ===== */}
       <section className="learn">
         <div className="container">
-          <div className="learn-title"><h2>無料相談で<span className="accent">分かること</span></h2></div>
+          <div className="learn-title"><h2>無料診断で<span className="accent">分かること</span></h2></div>
           <div className="learn-list learn-list--simple">
             {CONSULT_POINTS.map(item => (
               <div className="learn-item" key={item}>
@@ -271,10 +271,10 @@ export default function SeminarInfoClient({
               event="cta_click"
               params={{ position: 'consult' }}
             >
-              {CONSULT_MINUTES}分の無料個別相談を予約する
+              クラファン事業資金づくり診断（無料{CONSULT_MINUTES}分）を予約する
             </TrackedLink>
           </div>
-          <p className="learn-note">オンライン開催・相談無料</p>
+          <p className="learn-note">オンライン開催・診断無料</p>
           <p className="learn-note">※掲載手数料は{PLATFORM_FEE_SHORT}。有償サポートは個別にお見積もりします。</p>
         </div>
       </section>
@@ -316,10 +316,10 @@ export default function SeminarInfoClient({
         </div>
       </section>
 
-      {/* ===== ⑤ 個別相談の流れ ===== */}
+      {/* ===== ⑤ 事業資金づくり診断の流れ ===== */}
       <section className="flow">
         <div className="container">
-          <div className="flow-title"><h2>個別相談の<span className="accent">流れ</span></h2></div>
+          <div className="flow-title"><h2>事業資金づくり診断の<span className="accent">流れ</span></h2></div>
           <ol className="flow-list">
             {FLOW_STEPS.map((step, i) => (
               <li className="flow-step" key={step.title}>
@@ -334,7 +334,7 @@ export default function SeminarInfoClient({
             ))}
           </ol>
 
-          {/* 2026-11-02 t iku指示: 個別相談の流れの下に予約バナー */}
+          {/* 2026-11-02 t iku指示: 事業資金づくり診断の流れの下に予約バナー */}
           <TrackedLink
             href={CONSULT_URL}
             target="_blank"
@@ -343,7 +343,7 @@ export default function SeminarInfoClient({
             event="cta_click"
             params={{ position: 'consult' }}
           >
-            <span className="seminar-flow-banner-text">無料の個別相談を予約する<span className="seminar-flow-banner-arrow">→</span></span>
+            <span className="seminar-flow-banner-text">無料の事業資金づくり診断を予約する<span className="seminar-flow-banner-arrow">→</span></span>
             <span className="seminar-flow-banner-note">無料・{CONSULT_MINUTES}分・オンライン</span>
           </TrackedLink>
         </div>
@@ -352,14 +352,14 @@ export default function SeminarInfoClient({
       {/* ===== ⑥ 説明会はこんな方に（既存コンテンツの集約＋日程＋申込） ===== */}
       <section className="seminar-detail">
         <div className="container">
-          {/* 2026-11-03 t iku指示: 個別相談の予約と掲載の申込は別の手続きなので、間に区切りを入れる */}
+          {/* 2026-11-03 t iku指示: 事業資金づくり診断の予約と掲載の申込は別の手続きなので、間に区切りを入れる */}
           <div className="seminar-divider" role="separator" aria-label="ここからは別のお申し込みです">
             <span className="seminar-divider-line" aria-hidden="true" />
             <span className="seminar-divider-label">ここからは別のお申し込み</span>
             <span className="seminar-divider-line" aria-hidden="true" />
           </div>
           <p className="seminar-divider-note">
-            上は<strong>個別相談のご予約</strong>、ここからは<strong>掲載のお申し込み</strong>です。
+            上は<strong>事業資金づくり診断のご予約</strong>、ここからは<strong>掲載のお申し込み</strong>です。
           </p>
           {/* 2026-11-02 t iku指示: 説明会を経ずに掲載を希望する人向けの導線を、見出しの上に置く */}
           <a href="/apply-listing" className="seminar-listing-banner">
@@ -376,7 +376,7 @@ export default function SeminarInfoClient({
           {/* 公開日程が無いときの案内（B決定）。CTAは同じ枠内に置く */}
           {noSchedule && (
             <div className="seminar-schedule-note">
-              <p>開催日程は、ご希望に応じて設定します。まずは個別相談でご都合をお聞かせください。</p>
+              <p>開催日程は、ご希望に応じて設定します。まずは事業資金づくり診断でご都合をお聞かせください。</p>
               <TrackedLink
                 href={CONSULT_URL}
                 className="seminar-consult-cta"
@@ -385,7 +385,7 @@ export default function SeminarInfoClient({
                 event="cta_click"
                 params={{ position: 'consult' }}
               >
-                個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+                事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
               </TrackedLink>
             </div>
           )}
@@ -498,7 +498,7 @@ export default function SeminarInfoClient({
                   event="cta_click"
                   params={{ position: 'consult' }}
                 >
-                  個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+                  事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
                 </TrackedLink>
               </div>
             ) : (
@@ -595,10 +595,10 @@ export default function SeminarInfoClient({
         <a href="/partners">パートナー募集のページ</a>へ。
       </p>
 
-      {/* ===== ⑧ 最後のCTA（個別相談が主・説明会が副） ===== */}
+      {/* ===== ⑧ 最後のCTA（事業資金づくり診断が主・説明会が副） ===== */}
       <section className="cta-banner">
         <div className="container">
-          <h2>まずは、無料の個別相談から。</h2>
+          <h2>まずは、無料の事業資金づくり診断から。</h2>
           <p>{CONSULT_MINUTES}分で、あなたのアイデアの勝ち筋と現実的な設計をお伝えします。<br />{noSchedule ? '説明会についても、個別にご案内します。' : '説明会の日程から選ぶこともできます。'}</p>
           <div className="hero-cta-row">
             <TrackedLink
@@ -609,7 +609,7 @@ export default function SeminarInfoClient({
               event="cta_click"
               params={{ position: 'consult' }}
             >
-              個別相談を予約する（無料・{CONSULT_MINUTES}分）
+              事業資金づくり診断を予約する（無料・{CONSULT_MINUTES}分）
             </TrackedLink>
             <TrackedLink
               href="#apply"

@@ -168,7 +168,7 @@ export default function LPClient({
                 企画の立て方、目標金額とリターンの設計、公開までの準備、<br />
                 応援を集める考え方を、実際の成功事例をもとに解説します。
               </p>
-              {/* 主導線（2026-10-26 t iku決定）: 個別相談が主・説明会申込と日程が二番手。
+              {/* 主導線（2026-10-26 t iku決定）: 事業資金づくり診断が主・説明会申込と日程が二番手。
                   URLと所要時間は seminar-info-content.ts の定数を共有する。 */}
               <div className="hero-cta-group">
                 <TrackedLink
@@ -179,7 +179,7 @@ export default function LPClient({
                   event="cta_click"
                   params={{ position: 'fv' }}
                 >
-                  個別相談を予約する（無料・{CONSULT_MINUTES}分）
+                  事業資金づくり診断を予約する（無料・{CONSULT_MINUTES}分）
                 </TrackedLink>
                 <TrackedLink
                   href="#apply"
@@ -275,9 +275,9 @@ export default function LPClient({
               </ul>
             </div>
           </div>
-          {/* 個別相談への導線を、説明会の内容の直後にも置く */}
+          {/* 事業資金づくり診断への導線を、説明会の内容の直後にも置く */}
           <div className="lp-consult-band">
-            <p>自分の企画でどうなるか知りたい方は、個別相談が早いです。</p>
+            <p>自分の企画でどうなるか知りたい方は、事業資金づくり診断が早いです。</p>
             <TrackedLink
               href={CONSULT_URL}
               target="_blank"
@@ -286,7 +286,7 @@ export default function LPClient({
               event="cta_click"
               params={{ position: 'middle' }}
             >
-              個別相談を予約する（無料・{CONSULT_MINUTES}分）
+              事業資金づくり診断を予約する（無料・{CONSULT_MINUTES}分）
             </TrackedLink>
           </div>
         </div>
@@ -299,7 +299,7 @@ export default function LPClient({
             <span className="label">SCHEDULE</span>
             <h2>開催<span className="accent">日程</span></h2>
             <p>{noSchedule
-              ? '日程は、ご希望に応じて設定します。まずは個別相談でご都合をお聞かせください。'
+              ? '日程は、ご希望に応じて設定します。まずは事業資金づくり診断でご都合をお聞かせください。'
               : '各回定員になり次第締切となります。お早めにお申込みください。'}</p>
           </div>
           <div className="schedule-list">
@@ -333,7 +333,7 @@ export default function LPClient({
             ) : eventsLoaded ? (
               <div style={{ textAlign: 'center', padding: '40px 20px', background: '#FFF5F5', borderRadius: '16px', border: '2px solid #FFE0E0' }}>
                 <p style={{ fontSize: '18px', fontWeight: 700, marginBottom: '10px' }}>現在、説明会の日程は個別にご案内しています。</p>
-                <p style={{ fontSize: '15px', color: '#666', marginBottom: '18px' }}>ご希望に応じて日程を設定します。まずは個別相談でご都合をお聞かせください。</p>
+                <p style={{ fontSize: '15px', color: '#666', marginBottom: '18px' }}>ご希望に応じて日程を設定します。まずは事業資金づくり診断でご都合をお聞かせください。</p>
                 <TrackedLink
                   href={CONSULT_URL}
                   className="lp-consult-cta"
@@ -342,7 +342,7 @@ export default function LPClient({
                   event="cta_click"
                   params={{ position: 'middle' }}
                 >
-                  個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+                  事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
                 </TrackedLink>
               </div>
             ) : (
@@ -371,7 +371,7 @@ export default function LPClient({
                   event="cta_click"
                   params={{ position: 'footer' }}
                 >
-                  個別相談を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+                  事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
                 </TrackedLink>
               </div>
             ) : (
@@ -473,7 +473,7 @@ export default function LPClient({
                 参加費はかかりますか？
               </div>
               <div className="faq-answer"><div className="faq-answer-inner">
-                この掲載説明会は参加費無料です。個別相談も無料です。有償サポートは必要な場合のみ、個別にお見積もりします。
+                この掲載説明会は参加費無料です。事業資金づくり診断も無料です。有償サポートは必要な場合のみ、個別にお見積もりします。
               </div></div>
             </div>
             <div className="faq-item">
@@ -489,7 +489,7 @@ export default function LPClient({
                 説明会に参加した後、どうなりますか？
               </div>
               <div className="faq-answer"><div className="faq-answer-inner">
-                説明会のあと、希望者は無料の個別相談へ進みます。企画・目標金額・リターンを具体的に整理し、掲載が決まったら企画設計から公開まで伴走します。
+                説明会のあと、希望者は無料の事業資金づくり診断へ進みます。企画・目標金額・リターンを具体的に整理し、掲載が決まったら企画設計から公開まで伴走します。
               </div></div>
             </div>
             <div className="faq-item">

@@ -20,7 +20,7 @@ export interface PublicEventState {
   /**
    * DBからの取得に成功したか。
    * 🔴 「0件」と「読めなかった」を区別するために返す（MEMORYの定石）。
-   *    true かつ 0件 → 公開日程は本当に無い（＝フォームを出さず個別相談へ差し替える）
+   *    true かつ 0件 → 公開日程は本当に無い（＝フォームを出さず事業資金づくり診断へ差し替える）
    *    false → 取得失敗（クライアント側の /api/events フォールバックに委ねる）
    */
   resolved: boolean;

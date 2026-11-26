@@ -36,7 +36,7 @@ export const CONSULT_FEE_LABEL = `${yen(PARTNER_PROGRAM.CONSULT_FEE_MIN)}〜${PA
 export const TRAINING_FEE_LABEL = yen(PARTNER_PROGRAM.TRAINING_FEE);
 
 /**
- * サポートパートナーの相談先（個別相談と同じカレンダー）。
+ * サポートパートナーの相談先（事業資金づくり診断と同じカレンダー）。
  * URLは seminar-info-content.ts の1箇所で管理する（直書きしない）。
  */
 export const SUPPORT_CONSULT_URL = CONSULT_URL;

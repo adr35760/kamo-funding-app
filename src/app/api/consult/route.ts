@@ -6,7 +6,7 @@ import { validateConsult, type ConsultInput, type ConsultValue } from '@/lib/con
 /**
  * POST /api/consult
  *
- * トップページ（LP仕様書 v1.1 §10）の主要CV＝無料相談フォームの送信先。
+ * トップページ（LP仕様書 v1.1 §10）の主要CV＝無料診断フォームの送信先。
  *
  * 🔴 設計方針（PM指定 2026-10-27）:
  *   1. **サーバー側でも必須検証する**。ブラウザの required は外せるので、

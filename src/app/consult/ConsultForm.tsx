@@ -22,7 +22,7 @@ import {
 } from '@/lib/consult-booking-shared';
 
 /**
- * 個別相談の予約前アンケート。
+ * 事業資金づくり診断の予約前アンケート。
  *
  * 🔴 このフォームを送信するまで、予約カレンダーのURLは画面に出さない
  *    （2026-11-24 t iku指示: アンケート未入力では予約できないようにする）。
@@ -38,7 +38,7 @@ export default function ConsultForm() {
   const [ideaLength, setIdeaLength] = useState(0);
   /** 現在の状況（ラジオの選択状態で枠色を変えるため値を持つ） */
   const [status, setStatus] = useState('');
-  /** 送信時の状況。実施中は予約カレンダーを出さない（無料相談の対象外） */
+  /** 送信時の状況。実施中は予約カレンダーを出さない（無料診断の対象外） */
   const [submittedStatus, setSubmittedStatus] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -101,14 +101,14 @@ export default function ConsultForm() {
 
       <section className="hero">
         <div className="container">
-          <div className="hero-badge">無料個別相談（{CONSULT_MINUTES}分）</div>
+          <div className="hero-badge">クラファン事業資金づくり診断（無料{CONSULT_MINUTES}分）</div>
           <h1>
-            個別相談の<span className="gold">お申し込み</span>
+            事業資金づくり診断の<span className="gold">お申し込み</span>
           </h1>
           <p>
             ご予約の前に、以下の項目にお答えください。
             <br />
-            送信後、無料相談の対象の方は予約カレンダーから日時をお選びいただけます。
+            送信後、無料診断の対象の方は予約カレンダーから日時をお選びいただけます。
           </p>
         </div>
       </section>
@@ -125,7 +125,7 @@ export default function ConsultForm() {
                     <p>
                       ありがとうございます。実施中の方は有償のご相談となるため、
                       <br />
-                      無料相談の予約カレンダーはご案内しておりません。
+                      無料診断の予約カレンダーはご案内しておりません。
                     </p>
                     <p>
                       担当者より、ご相談の内容と費用をご連絡します。
@@ -166,7 +166,7 @@ export default function ConsultForm() {
                   予約前の<span className="gold">アンケート</span>
                 </h2>
                 <p className="consult-notice">
-                  無料相談はこれから挑戦したい方のみです！
+                  無料診断はこれから挑戦したい方のみです！
                   <br />
                   「実施中の方は有償です」
                 </p>
@@ -267,7 +267,7 @@ export default function ConsultForm() {
                     </div>
                     {status === CONSULT_PAID_STATUS && (
                       <p className="consult-status-note">
-                        実施中の方は、担当者より有償のご相談をご案内します（無料相談の対象外です）。
+                        実施中の方は、担当者より有償のご相談をご案内します（無料診断の対象外です）。
                       </p>
                     )}
                   </div>

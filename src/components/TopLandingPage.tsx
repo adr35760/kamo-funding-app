@@ -54,7 +54,7 @@ import { track, type CtaPosition } from '@/lib/analytics';
  */
 
 /** TODO(t iku確認中: 仕様書§7は「30分」。実際の予約枠は45分のため定数で表示／PM判断 2026-10-27) */
-const FINAL_NOTE = `${CONSULT_MINUTES}分のオンライン相談。経験豊富なアドバイザーが対応します`;
+const FINAL_NOTE = `クラファン事業資金づくり診断（無料${CONSULT_MINUTES}分）。経験豊富なアドバイザーが対応します`;
 
 /**
  * Z3.5 成功事例カード（2026-11-22 t iku指示）。
@@ -203,7 +203,7 @@ export default function TopLandingPage() {
       {/* ヘッダーCTAは現行のまま（PM指示） */}
       <SiteHeader
         current="/"
-        cta={{ href: CONSULT_URL, label: '個別相談を予約' }}
+        cta={{ href: CONSULT_URL, label: '事業資金づくり診断を予約' }}
       />
 
       <main>

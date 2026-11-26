@@ -15,12 +15,12 @@ export const revalidate = 60;
  * 構成変更（2026-10-25・t iku指示）に合わせて title/description を更新。
  * 数値は seminar-info-content.ts の定数を参照する（本文と二重管理にしない）。
  */
-const TITLE = `個別相談（無料・${CONSULT_MINUTES}分）｜その企画、クラファンで実現できる？`;
+const TITLE = `クラファン事業資金づくり診断（無料${CONSULT_MINUTES}分）｜その企画、クラファンで実現できる？`;
 // 2026-11-22 t iku指示: 冒頭の差し替えに合わせる。旧「17億円・95%」は出さない
 // （数値の定義はページ内の実績バナー＝site-stats.ts に一本化）。
 const DESCRIPTION =
   `クラウドファンディングで、挑戦をかたちにする最初の${CONSULT_MINUTES}分。新商品・出版・店舗開業・イベント・地域活動など、` +
-  '企画段階でも構いません。目標金額・リターン・公開までの準備を、無料の個別相談で整理します。';
+  '企画段階でも構いません。目標金額・リターン・公開までの準備を、無料の事業資金づくり診断で整理します。';
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -45,7 +45,7 @@ export default async function SeminarInfoPage({
   // 掲載説明会は pillar=1。
   // 2026-10-27 t iku決定（B＝申込があったときだけ開催）により、公開側では
   // info_session を出さない（filter は fetch-seminar-events 側）。DBは不変。
-  // resolved=false は「取得失敗」なので、0件（＝個別相談へ差し替え）と区別して渡す。
+  // resolved=false は「取得失敗」なので、0件（＝事業資金づくり診断へ差し替え）と区別して渡す。
   const { events, resolved } = await fetchSeminarEventState(1);
 
   /**

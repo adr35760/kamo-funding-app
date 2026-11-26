@@ -1,5 +1,5 @@
 /**
- * 個別相談の予約前アンケート（/consult）の入力仕様。
+ * 事業資金づくり診断の予約前アンケート（/consult）の入力仕様。
  *
  * 画面（ConsultForm）とAPI（/api/consult-booking）の**両方**がこの1ファイルを参照する。
  * 選択肢・上限・検証を片方だけ変えると「画面では通るのにAPIが弾く」状態になるため、
@@ -15,12 +15,12 @@ export type ConsultGender = (typeof CONSULT_GENDERS)[number];
 
 /**
  * 現在の状況（2026-11-24 t iku指示で追加）。
- * 無料相談の対象は「これから挑戦したい方」のみ。実施中の方は有償の相談になる。
+ * 無料診断の対象は「これから挑戦したい方」のみ。実施中の方は有償の相談になる。
  */
 export const CONSULT_STATUSES = ['これから挑戦したい', '実施中'] as const;
 export type ConsultStatus = (typeof CONSULT_STATUSES)[number];
 
-/** 無料相談の対象外（＝有償のご案内になる）状態 */
+/** 無料診断の対象外（＝有償のご案内になる）状態 */
 export const CONSULT_PAID_STATUS: ConsultStatus = '実施中';
 
 /** 年齢の許容範囲（契約年齢を下回る入力・打ち間違いを弾く） */
