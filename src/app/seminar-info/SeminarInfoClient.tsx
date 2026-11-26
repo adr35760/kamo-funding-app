@@ -232,7 +232,7 @@ export default function SeminarInfoClient({
                 event="cta_click"
                 params={{ position: 'consult' }}
               >
-                事業資金づくり診断を予約する
+                事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
               </TrackedLink>
               <TrackedLink
                 href={noSchedule ? '#apply' : SCHEDULE_ANCHOR}
@@ -271,7 +271,7 @@ export default function SeminarInfoClient({
               event="cta_click"
               params={{ position: 'consult' }}
             >
-              事業資金づくり診断を予約する
+              事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
             </TrackedLink>
           </div>
           <p className="learn-note">オンライン開催・診断無料</p>
@@ -385,7 +385,7 @@ export default function SeminarInfoClient({
                 event="cta_click"
                 params={{ position: 'consult' }}
               >
-                事業資金づくり診断を予約する
+                事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
               </TrackedLink>
             </div>
           )}
@@ -498,7 +498,7 @@ export default function SeminarInfoClient({
                   event="cta_click"
                   params={{ position: 'consult' }}
                 >
-                  事業資金づくり診断を予約する
+                  事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
                 </TrackedLink>
               </div>
             ) : (
@@ -609,7 +609,7 @@ export default function SeminarInfoClient({
               event="cta_click"
               params={{ position: 'consult' }}
             >
-              事業資金づくり診断を予約する
+              事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
             </TrackedLink>
             <TrackedLink
               href="#apply"
