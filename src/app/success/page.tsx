@@ -374,7 +374,7 @@ export default function SuccessPage() {
               event="cta_click"
               params={{ position: 'middle' }}
             >
-              クラファン事業資金づくり診断（無料{CONSULT_MINUTES}分）を予約する
+              事業資金づくり診断を予約する
             </TrackedLink>
             <p className="sc-fields-cta-note">{FIELD_SECTION.cta.note}</p>
           </div>
@@ -457,7 +457,7 @@ export default function SuccessPage() {
               event="cta_click"
               params={{ position: 'footer' }}
             >
-              クラファン事業資金づくり診断（無料{CONSULT_MINUTES}分）を予約する
+              事業資金づくり診断を予約する
             </TrackedLink>
           </div>
           <p className="sc-cta-note">
