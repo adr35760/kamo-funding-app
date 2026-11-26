@@ -32,7 +32,25 @@ export const metadata: Metadata = {
     title: LP_TITLE,
     description: LP_DESCRIPTION,
     type: 'website',
+    url: '/',
+    siteName: 'KAMOファンディング',
     locale: 'ja_JP',
+    // 🔴 2026-11-26 t iku指示: リンクを貼ったときの画像がぼやけていた（画像指定が無く、
+    //    小さいロゴが引き伸ばされていた）。t iku提供の登壇写真から1200×630を作り指定する。
+    images: [
+      {
+        url: '/og-top.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'KAMOファンディング｜クラファンは、ファン集め。',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: LP_TITLE,
+    description: LP_DESCRIPTION,
+    images: ['/og-top.jpg'],
   },
 };
 
