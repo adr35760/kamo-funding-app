@@ -1,8 +1,12 @@
 import './globals.css';
 import '@/styles/kamo-icons.css';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
 export const metadata = {
+  // OGP/Twitterカードの画像URLを絶対URLで出すために必要（未設定だと相対パスになり
+  // LINE・X のプレビューが画像を読めない）。URLの正は src/lib/site-url.ts の1箇所。
+  metadataBase: new URL(SITE_ORIGIN),
   title: 'KAMOファンディング — 売上促進4本柱プロジェクト',
   description: '説明会・セミナー管理 + AIクラファンページ作成ツール',
   icons: {

@@ -53,11 +53,25 @@ export const metadata: Metadata = {
     title: '成功事例 | KAMOファンディング',
     description: META_DESCRIPTION,
     type: 'website',
+    url: '/success',
+    siteName: 'KAMOファンディング',
+    locale: 'ja_JP',
+    // 🔴 2026-11-26 t iku指示: リンクを貼ったときの画像がぼやけていた（画像指定が無く、
+    //    ページ内の透過ロゴが拡大されていた）。成功事例と分かる専用カードを指定する。
+    images: [
+      {
+        url: '/og-success.jpg',
+        width: 1200,
+        height: 630,
+        alt: '成功事例｜KAMOファンディング',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: '成功事例 | KAMOファンディング',
     description: META_DESCRIPTION,
+    images: ['/og-success.jpg'],
   },
 };
 
