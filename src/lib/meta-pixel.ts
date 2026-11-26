@@ -12,6 +12,25 @@
 
 export const META_PIXEL_ID = '1153335503882062';
 
+/**
+ * Metaピクセルの計測対象から外す内部業務ページ（2026-11-26 t iku指示）。
+ *
+ * - /admin   管理画面（Basic認証）
+ * - /work    社内の業務管理システム
+ * - /ai-tool 自社ツール（社内利用）
+ *
+ * 🔴 **パスの先頭一致**で判定する（/admin/xxx のような下位パスも除外）。
+ *    判定の正はこの1箇所だけ。layout のベースコードにも同じ配列を渡す。
+ * 🔴 除外ページでは init も PageView も撃たない（fbq 自体を読み込まない）。
+ */
+export const META_PIXEL_EXCLUDED_PREFIXES = ['/admin', '/work', '/ai-tool'] as const;
+
+/** このパスが計測除外（内部業務ページ）かどうか */
+export function isMetaPixelExcludedPath(pathname: string): boolean {
+  if (!pathname) return false;
+  return META_PIXEL_EXCLUDED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
 declare global {
   interface Window {
     /**
