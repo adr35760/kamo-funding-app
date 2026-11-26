@@ -7,10 +7,10 @@
  *   - 合同会社LOCALCREATION: local-creation.com（2026-11-25 取得）と
  *     旧KAMOファンディングサイト kamofunding.com/company、特商法表記（legal-docs.ts）
  *
- * 食い違い（2026-11-25 時点・t iku確認待ち）:
- *   - LOCALCREATION の電話番号: 旧サイト=078-576-0400 / 特商法表記=078-576-1030
- *     → サイト内で既に公開済みの特商法表記（法令上の記載）を正として採用し、
- *       旧サイト側の値は使わない。確定したらこの1ファイルだけ直せばよい。
+ * 確認済み（2026-11-26 t iku回答・食い違い解消）:
+ *   - LOCALCREATION の電話番号は 078-576-1030 で確定（特商法表記 legal-docs.ts と一致）。
+ *     旧サイト kamofunding.com の 078-576-0400 は誤記載として扱う。値の正はこの1箇所
+ *     （AGENCY_COMPANY.tel）と legal-docs.ts の2箇所だけに持つ。
  *   - LOCALCREATION の設立年月日・資本金は一次情報が無いため載せていない。
  */
 
