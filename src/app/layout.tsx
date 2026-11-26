@@ -1,7 +1,32 @@
 import './globals.css';
 import '@/styles/kamo-icons.css';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import MetaPixelPageView from '@/components/MetaPixelPageView';
+import { META_PIXEL_ID } from '@/lib/meta-pixel';
 import { SITE_ORIGIN } from '@/lib/site-url';
+
+/**
+ * Metaピクセルのベースコード（2026-11-26 t iku指示）。
+ *
+ * 🔴 依頼文のスニペットをそのまま使う（init → PageView → fbevents.js）。
+ *    改変はピクセルIDの埋め込み（1箇所管理）だけ。
+ * 🔴 置き場所は <head> の末尾（依頼どおり「</head> の直前」）。
+ *    <noscript><img></noscript> は HTML 仕様上 head に置けないため <body> の先頭に置く。
+ */
+const META_PIXEL_BASE_CODE = `
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '${META_PIXEL_ID}');
+fbq('track', 'PageView');
+`;
+
+const META_PIXEL_NOSCRIPT = `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1" alt="" />`;
 
 export const metadata = {
   // OGP/Twitterカードの画像URLを絶対URLで出すために必要（未設定だと相対パスになり
@@ -22,8 +47,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
+        {/* Meta Pixel Code */}
+        <script dangerouslySetInnerHTML={{ __html: META_PIXEL_BASE_CODE }} />
+        {/* End Meta Pixel Code */}
       </head>
       <body>
+        {/* Meta Pixel Code（noscript）— img は head に置けないため body 先頭 */}
+        <noscript dangerouslySetInnerHTML={{ __html: META_PIXEL_NOSCRIPT }} />
+        <MetaPixelPageView />
         <GoogleAnalytics />
         {children}
       </body>

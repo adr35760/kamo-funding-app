@@ -10,6 +10,7 @@ import {
   CONSULT_CALENDAR_URL,
   CONSULT_MINUTES,
 } from '@/lib/seminar-info-content';
+import { trackMetaEvent } from '@/lib/meta-pixel';
 import {
   CONSULT_AGE_MAX,
   CONSULT_AGE_MIN,
@@ -86,6 +87,15 @@ export default function ConsultForm() {
       }
       setSubmittedStatus(payload.status);
       setSubmitted(true);
+      /**
+       * 🔴 Metaピクセルの Lead（2026-11-26 t iku指示）。
+       *    - 送信成功（res.ok かつ data.ok）の後、完了表示に切り替えた直後に1回だけ撃つ
+       *    - ボタンクリック時・入力エラー・通信エラー・res.ok でない場合は撃たない
+       *    - 「実施中（有償）」は完了画面にカレンダーを出さない分岐だが、
+       *      送信自体は完了している＝リードとして数える（両分岐とも1回）
+       *    - 同一ページ内の完了表示なので遷移先は無い
+       */
+      trackMetaEvent('Lead');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {
       setErrors(['通信エラーで送信できませんでした。電波の良い場所でもう一度お試しください']);
