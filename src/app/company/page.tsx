@@ -95,6 +95,79 @@ export default function CompanyPage() {
             </div>
           ))}
 
+          <div className="company-card profile-card">
+            <div className="profile-head">
+              <img
+                src="/profile-ikushima.jpg"
+                alt="合同会社LOCALCREATION 代表 生島 正"
+                className="profile-photo"
+                width={240}
+                height={240}
+              />
+              <div className="profile-head-text">
+                <p className="company-role">代表プロフィール</p>
+                <h2>生島 正</h2>
+                <p className="profile-kana">いくしま ただし</p>
+                <p className="profile-title">
+                  合同会社LOCALCREATION 代表
+                  <br />
+                  KAMOファンディング 運営責任者
+                </p>
+              </div>
+            </div>
+
+            <p className="profile-lead">
+              「社会から応援されるプロジェクトを創出する」をミッションに、
+              2014年からクラウドファンディングの活用支援に取り組んでいます。
+              現在はYouTube講演家の鴨頭嘉人さんとともにKAMOファンディングを運営し、
+              起案者の想いを伝わる企画に変え、支援が集まるまでの道のりを伴走しています。
+            </p>
+
+            <h3 className="company-biz-title">略歴</h3>
+            <ul className="profile-history">
+              <li>
+                <span className="profile-year">2014年</span>
+                地域クラウドファンディング「FAAVO兵庫」を立ち上げ、クラウドファンディングのアドバイス事業を開始
+              </li>
+              <li>
+                <span className="profile-year">2016年</span>
+                CAMPFIREと提携し「CAMPFIRE × LOCAL×HYOGO」を運営
+              </li>
+              <li>
+                <span className="profile-year">2017年</span>
+                神戸市中央区とまちづくりクラウドファンディング事業を開始
+              </li>
+              <li>
+                <span className="profile-year">2024年</span>
+                自身のクラウドファンディングで初の著書『最新版！クラウドファンディングの教科書』（鴨ブックス）を出版
+              </li>
+              <li>
+                <span className="profile-year">現在</span>
+                合同会社LOCALCREATION 代表としてKAMOファンディングの運営を担当
+              </li>
+            </ul>
+
+            <h3 className="company-biz-title">発信・メディア</h3>
+            <ul className="profile-media">
+              <li>
+                <a
+                  href="https://www.youtube.com/@%E7%94%9F%E5%B3%B6%E6%AD%A3%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89%E3%83%95%E3%82%A1%E3%83%B3%E3%83%87%E3%82%A3%E3%83%B3%E3%82%B0%E3%83%81%E3%83%A3"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  YouTube「生島正のクラウドファンディングチャンネル」
+                </a>
+                <span>クラウドファンディングの基礎、集め方、企画の立て方を発信</span>
+              </li>
+              <li>
+                <a href="https://voicy.jp/channel/959827" target="_blank" rel="noopener noreferrer">
+                  Voicy「クラウドファンディングの学校」
+                </a>
+                <span>パーソナリティとして、明日から使える企画・言葉・導線の具体策を配信</span>
+              </li>
+            </ul>
+          </div>
+
           <div className="company-contact">
             <h2>お問い合わせ</h2>
             <p>

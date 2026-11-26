@@ -159,3 +159,92 @@
 @media (max-width: 768px) {
   .company-contact-btn { font-size: 14px; padding: 13px 16px; }
 }
+
+/* ===== 代表プロフィール ===== */
+.profile-card .profile-head {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  margin-bottom: 22px;
+}
+.profile-photo {
+  width: 168px;
+  height: 168px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 3px solid var(--kamo-gold);
+  flex-shrink: 0;
+  background: #fff;
+}
+.profile-card .company-role { margin-bottom: 4px; }
+.profile-card h2 { margin-bottom: 2px; }
+.profile-kana {
+  font-size: 13px;
+  color: var(--kamo-gray);
+  margin-bottom: 8px;
+}
+.profile-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--kamo-navy);
+  line-height: 1.7;
+}
+.profile-lead {
+  font-size: 15px;
+  line-height: 1.95;
+  color: #3A4552;
+}
+
+.profile-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.profile-history li {
+  position: relative;
+  padding: 10px 0 10px 0;
+  border-top: 1px solid #E7EBF1;
+  font-size: 14.5px;
+  line-height: 1.8;
+  color: #3A4552;
+}
+.profile-history li:first-child { border-top: none; }
+.profile-year {
+  display: inline-block;
+  min-width: 4.2em;
+  font-weight: 700;
+  color: var(--kamo-navy);
+}
+
+.profile-media {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.profile-media li {
+  padding: 10px 0;
+  border-top: 1px solid #E7EBF1;
+  font-size: 14.5px;
+  line-height: 1.8;
+}
+.profile-media li:first-child { border-top: none; }
+.profile-media a {
+  display: block;
+  font-weight: 700;
+  color: var(--kamo-red);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.profile-media span {
+  display: block;
+  font-size: 13.5px;
+  color: var(--kamo-gray);
+}
+
+@media (max-width: 768px) {
+  .profile-card .profile-head { gap: 16px; align-items: flex-start; }
+  .profile-photo { width: 104px; height: 104px; border-radius: 12px; }
+  .profile-card h2 { font-size: 20px; }
+  .profile-history li { font-size: 14px; }
+  .profile-year { display: block; min-width: 0; }
+}
