@@ -374,7 +374,7 @@ export default function SuccessPage() {
               event="cta_click"
               params={{ position: 'middle' }}
             >
-              事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+              <span>事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span></span>
             </TrackedLink>
             <p className="sc-fields-cta-note">{FIELD_SECTION.cta.note}</p>
           </div>
@@ -457,7 +457,7 @@ export default function SuccessPage() {
               event="cta_click"
               params={{ position: 'footer' }}
             >
-              事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+              <span>事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span></span>
             </TrackedLink>
           </div>
           <p className="sc-cta-note">

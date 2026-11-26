@@ -179,7 +179,7 @@ export default function LPClient({
                   event="cta_click"
                   params={{ position: 'fv' }}
                 >
-                  事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+                  <span>事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span></span>
                 </TrackedLink>
                 <TrackedLink
                   href="#apply"
@@ -286,7 +286,7 @@ export default function LPClient({
               event="cta_click"
               params={{ position: 'middle' }}
             >
-              事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+              <span>事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span></span>
             </TrackedLink>
           </div>
         </div>
@@ -342,7 +342,7 @@ export default function LPClient({
                   event="cta_click"
                   params={{ position: 'middle' }}
                 >
-                  事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+                  <span>事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span></span>
                 </TrackedLink>
               </div>
             ) : (
@@ -371,7 +371,7 @@ export default function LPClient({
                   event="cta_click"
                   params={{ position: 'footer' }}
                 >
-                  事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span>
+                  <span>事業資金づくり診断を予約する<span style={{ whiteSpace: 'nowrap' }}>（無料・{CONSULT_MINUTES}分）</span></span>
                 </TrackedLink>
               </div>
             ) : (
