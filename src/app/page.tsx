@@ -37,9 +37,11 @@ export const metadata: Metadata = {
     locale: 'ja_JP',
     // 🔴 2026-11-26 t iku指示: リンクを貼ったときの画像がぼやけていた（画像指定が無く、
     //    小さいロゴが引き伸ばされていた）。t iku提供の登壇写真から1200×630を作り指定する。
+    // 🔴 画像はwww付きの絶対URLで指定する（metadataBase は apex のままで、
+    //    apex は www へ308転送するため、クローラーによっては画像取得に失敗する）
     images: [
       {
-        url: '/og-top.jpg',
+        url: 'https://www.crowdfunding.co.jp/og-top.jpg',
         width: 1200,
         height: 630,
         alt: 'KAMOファンディング｜クラファンは、ファン集め。',
@@ -50,7 +52,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: LP_TITLE,
     description: LP_DESCRIPTION,
-    images: ['/og-top.jpg'],
+    images: ['https://www.crowdfunding.co.jp/og-top.jpg'],
   },
 };
 
